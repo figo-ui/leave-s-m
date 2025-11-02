@@ -1,0 +1,25 @@
+.App {
+  text-align: left;
+}
+
+.role-switcher {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: white;
+  padding: 10px 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  z-index: 1000;
+}
+
+.role-switcher label {
+  margin-right: 10px;
+  font-weight: 600;
+}
+
+.role-switcher select {
+  padding: 5px 10px;
+  border: 1px solid #bdc3c7;
+  border-radius: 4px;
+}
