@@ -1,8 +1,10 @@
 import multer from 'multer';
 import fs from 'fs';
 import express from 'express';
+import rateLimit from 'express-rate-limit';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import helmet from 'helmet';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -17,17 +19,161 @@ const __dirname = path.dirname(__filename);
 dotenv.config();
 
 const app = express();
-const prisma = new PrismaClient();
-const PORT = process.env.PORT || 5000;
-const JWT_SECRET = process.env.JWT_SECRET || 'a3af209ef7207b8d1546cd868258620f';
 
-// Middleware
+
+const PORT = process.env.PORT || 5000;
+const JWT_SECRET = process.env.JWT_SECRET;
+// Add this at the beginning of server.js
+if (process.env.NODE_ENV === 'production') {
+  const requiredEnvVars = [
+    'DATABASE_URL',
+    'JWT_SECRET',
+    'PORT'
+  ];
+  
+  const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+  
+  if (missingVars.length > 0) {
+    console.error('❌ Missing required environment variables:', missingVars);
+    process.exit(1);
+  }
+  
+  // Validate JWT secret in production
+  if (process.env.JWT_SECRET === 'a3af209ef7207b8d1546cd868258620f') {
+    console.error('❌ DEFAULT JWT_SECRET DETECTED! Please change it in production.');
+    process.exit(1);
+  }
+}
+// In your server.js, update the Prisma initialization
+const prisma = new PrismaClient({
+  log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL
+    }
+  }
+});
+
+// Add connection error handling
+prisma.$connect()
+  .then(() => console.log('✅ Database connected successfully'))
+  .catch(err => {
+    console.error('❌ Database connection failed:', err);
+    process.exit(1);
+  });
+
+
+// In server.js, update CORS configuration
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://10.140.8.10',
+  'https://10.140.8.10',
+];
+
+// List of allowed headers
+const allowedHeaders = [
+  'Content-Type',
+  'Authorization',
+  'X-Requested-With',
+  'Accept',
+  'Origin',
+  'X-Application-Name',
+  'X-Application-Version',
+  'X-Client-ID',
+  'X-Request-ID'
+];
+
 app.use(cors({
-  origin: 'http://localhost:5173',
-  credentials: true
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = `The CORS policy for this site does not allow access from the specified Origin: ${origin}`;
+      console.warn('CORS blocked:', origin);
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: allowedHeaders,
+  exposedHeaders: ['Content-Length', 'X-Request-ID', 'X-RateLimit-Limit', 'X-RateLimit-Remaining'],
+  maxAge: 86400, // 24 hours
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 }));
+
+
 app.use(express.json());
 
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"],
+    },
+  },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true
+  }
+}));
+app.use((req, res, next) => {
+  // Security headers
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  
+  // Disable caching for API responses
+  if (req.path.startsWith('/api')) {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+  }
+  
+  next();
+});
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: {
+    success: false,
+    message: 'Too many requests from this IP, please try again after 15 minutes'
+  },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+// Apply to all API routes
+app.use('/api', apiLimiter);
+
+// Stricter limiter for auth endpoints
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5, // Only 5 attempts per 15 minutes
+  message: {
+    success: false,
+    message: 'Too many login attempts, please try again later'
+  }
+});
+
+app.use('/api/auth/login', authLimiter);
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+  maxAge: '1d',
+  setHeaders: (res, path) => {
+    if (path.endsWith('.jpg') || path.endsWith('.png') || path.endsWith('.jpeg')) {
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+    }
+  }
+}));
 // Auth middleware
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
@@ -45,6 +191,8 @@ const authenticateToken = (req, res, next) => {
     next();
   });
 };
+
+
 /// Enhanced multer configuration with professional photo validation
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -3736,10 +3884,51 @@ app.get('/', (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err);
-  res.status(500).json({
+  console.error('🔥 Server Error:', {
+    message: err.message,
+    stack: err.stack,
+    path: req.path,
+    method: req.method
+  });
+  
+  // Handle Prisma errors
+  if (err.code && err.code.startsWith('P')) {
+    return res.status(400).json({
+      success: false,
+      message: 'Database error occurred'
+    });
+  }
+  
+  // Handle JWT errors
+  if (err.name === 'JsonWebTokenError') {
+    return res.status(401).json({
+      success: false,
+      message: 'Invalid token'
+    });
+  }
+  
+  // Handle validation errors
+  if (err.isJoi) {
+    return res.status(400).json({
+      success: false,
+      message: err.details[0].message
+    });
+  }
+  
+  // Default error
+  res.status(err.status || 500).json({
     success: false,
-    message: 'Internal server error'
+    message: process.env.NODE_ENV === 'production' 
+      ? 'Internal server error' 
+      : err.message
+  });
+});
+
+// Handle 404
+app.use( (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: 'Endpoint not found'
   });
 });
 // Start server

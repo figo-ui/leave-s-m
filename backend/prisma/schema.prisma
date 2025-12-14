@@ -1,54 +1,16 @@
 // schema.prisma
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["multiSchema"] // For future multi-tenant support
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  schemas  = ["public", "audit"] // Separate schema for audit logs
 }
 
-// ============= USER MODEL =============
-model User {
-  id           Int       @id @default(autoincrement())
-  email        String    @unique
-  password     String
-  name         String
-  role         UserRole  @default(EMPLOYEE)
-  department   String
-  position     String?
-  phone        String?
-  avatar       String?
-  status       UserStatus @default(ACTIVE)
-  joinDate     DateTime? @default(now())
-  
-  // Manager relationship (self-referencing)
-  managerId    Int?
-  manager      User?     @relation("ManagedBy", fields: [managerId], references: [id])
-  subordinates User[]    @relation("ManagedBy")
-  
-  // Leave relationships
-  leaves       Leave[]   @relation("EmployeeLeaves")
-  leavesManaged Leave[]  @relation("ManagerLeaves") // Leaves this manager approved
-  leavesHRApproved Leave[] @relation("HRLeaves") // Leaves this HR admin approved
-  
-  // Leave balances
-  leaveBalances LeaveBalance[]
-  
-  // Notifications
-  notifications Notification[]
-  
-  // Timestamps
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  
-  // Indexes
-  @@index([managerId])
-  @@index([department])
-  @@index([status])
-  @@index([role])
-}
-
+// ============= ENUMS =============
 enum UserRole {
   EMPLOYEE
   MANAGER
@@ -61,146 +23,31 @@ enum UserStatus {
   INACTIVE
   SUSPENDED
   TERMINATED
-}
-
-// ============= LEAVE TYPE MODEL =============
-model LeaveType {
-  id                   Int        @id @default(autoincrement())
-  name                 String     @unique
-  maxDays              Int        @default(15)
-  description          String?
-  color                String?    @default("#3B82F6")
-  requiresHRApproval   Boolean    @default(true)
-  carryOver            Boolean    @default(false)
-  requiresApproval     Boolean    @default(true)
-  isActive             Boolean    @default(true)
-  
-  // Relationships
-  leaves               Leave[]
-  leaveBalances        LeaveBalance[]
-  
-  // Timestamps
-  createdAt            DateTime   @default(now())
-  updatedAt            DateTime   @updatedAt
-}
-
-// ============= LEAVE MODEL =============
-model Leave {
-  id                 Int           @id @default(autoincrement())
-  employeeId         Int
-  leaveTypeId        Int
-  startDate          DateTime
-  endDate            DateTime
-  days               Int           // Total days of leave
-  reason             String
-  status             LeaveStatus   @default(PENDING_MANAGER)
-  currentApprover    String?       @default("MANAGER") // "MANAGER", "HR", "SYSTEM"
-  
-  // Approval tracking
-  appliedDate        DateTime      @default(now())
-  managerApproved    Boolean?      @default(false)
-  managerApprovedBy  Int?
-  managerApprovedDate DateTime?
-  managerNotes       String?
-  
-  hrApproved         Boolean?      @default(false)
-  hrApprovedBy       Int?
-  hrApprovedDate     DateTime?
-  hrNotes            String?
-  
-  // Rejection tracking
-  rejectedBy         Int?
-  rejectedDate       DateTime?
-  rejectionReason    String?
-  
-  // Relationships
-  employee           User          @relation("EmployeeLeaves", fields: [employeeId], references: [id])
-  leaveType          LeaveType     @relation(fields: [leaveTypeId], references: [id])
-  manager            User?         @relation("ManagerLeaves", fields: [managerApprovedBy], references: [id])
-  hrAdmin            User?         @relation("HRLeaves", fields: [hrApprovedBy], references: [id])
-  
-  // Timestamps
-  createdAt          DateTime      @default(now())
-  updatedAt          DateTime      @updatedAt
-  
-  // Indexes
-  @@index([employeeId])
-  @@index([leaveTypeId])
-  @@index([status])
-  @@index([startDate])
-  @@index([endDate])
-  @@index([managerApprovedBy])
-  @@index([hrApprovedBy])
-  @@unique([employeeId, startDate, endDate])
+  ON_LEAVE
 }
 
 enum LeaveStatus {
+  DRAFT
   PENDING_MANAGER
   PENDING_HR
   APPROVED        // Manager approved (1st step)
   HR_APPROVED     // HR approved (2nd step - final)
   REJECTED
   CANCELLED
-}
-
-// ============= LEAVE BALANCE MODEL =============
-model LeaveBalance {
-  id            Int     @id @default(autoincrement())
-  userId        Int
-  leaveTypeId   Int
-  year          Int     @default(2024)
-  totalDays     Int     @default(0)
-  usedDays      Int     @default(0)
-  remainingDays Int     @default(0)
-  
-  // Relationships
-  user          User    @relation(fields: [userId], references: [id])
-  leaveType     LeaveType @relation(fields: [leaveTypeId], references: [id])
-  
-  // Composite unique constraint
-  @@unique([userId, leaveTypeId, year])
-  
-  // Indexes
-  @@index([userId])
-  @@index([leaveTypeId])
-  @@index([year])
-}
-
-// ============= NOTIFICATION MODEL =============
-model Notification {
-  id           Int             @id @default(autoincrement())
-  userId       Int
-  type         NotificationType
-  title        String
-  message      String
-  actionUrl    String?
-  relatedId    String?         // Related entity ID (e.g., leaveId)
-  isRead       Boolean         @default(false)
-  priority     NotificationPriority @default(MEDIUM)
-  
-  // Relationships
-  user         User            @relation(fields: [userId], references: [id])
-  
-  // Timestamps
-  createdAt    DateTime        @default(now())
-  readAt       DateTime?
-  
-  // Indexes
-  @@index([userId])
-  @@index([isRead])
-  @@index([createdAt])
-  @@index([type])
+  WITHDRAWN
 }
 
 enum NotificationType {
-   LEAVE_PENDING
+  LEAVE_PENDING
   LEAVE_APPROVED
   LEAVE_REJECTED
+  LEAVE_CANCELLED
   SYSTEM_ALERT
   PASSWORD_RESET
   PROFILE_UPDATE
   LEAVE_REMINDER
-  PASSWORD_CHANGE  // Add this line
+  APPROVAL_REMINDER
+  HR_APPROVAL_REQUIRED
 }
 
 enum NotificationPriority {
@@ -210,32 +57,346 @@ enum NotificationPriority {
   CRITICAL
 }
 
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  APPROVE
+  REJECT
+  EXPORT
+  IMPORT
+  SYSTEM
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+// ============= USER MODEL =============
+model User {
+  id              Int       @id @default(autoincrement())
+  employeeCode    String?   @unique @db.VarChar(20) // Added: Unique employee code
+  email           String    @unique @db.VarChar(255)
+  password        String    @db.VarChar(255)
+  name            String    @db.VarChar(100)
+  role            UserRole  @default(EMPLOYEE)
+  department      String    @db.VarChar(100)
+  position        String?   @db.VarChar(100)
+  phone           String?   @db.VarChar(20)
+  avatar          String?   @db.VarChar(500)
+  status          UserStatus @default(ACTIVE)
+  joinDate        DateTime? @default(now())
+  lastLoginAt     DateTime? // Track last login
+  passwordChangedAt DateTime? // Track password change for security
+  
+  // Manager relationship (self-referencing)
+  managerId       Int?
+  manager         User?     @relation("ManagedBy", fields: [managerId], references: [id])
+  subordinates    User[]    @relation("ManagedBy")
+  
+  // Leave relationships
+  leaves          Leave[]   @relation("EmployeeLeaves")
+  leavesManaged   Leave[]   @relation("ManagerLeaves")
+  leavesHRApproved Leave[]  @relation("HRLeaves")
+  
+  // Leave balances
+  leaveBalances   LeaveBalance[]
+  
+  // Notifications
+  notifications   Notification[]
+  
+  // Audit logs created by this user
+  auditLogs       AuditLog[]
+  
+  // Timestamps
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime? @map("deleted_at") // Soft delete
+  
+  // Indexes for performance
+  @@index([managerId])
+  @@index([department])
+  @@index([status])
+  @@index([role])
+  @@index([createdAt])
+  @@index([email])
+  @@index([employeeCode])
+  @@index([status, role])
+  @@index([department, status])
+  
+  // Add searchable fields index
+  @@fulltext([name, email])
+  
+  // Add unique constraint for email (already defined)
+  // Add unique constraint for employeeCode
+  @@unique([employeeCode], map: "idx_user_employee_code")
+}
+
+// ============= LEAVE TYPE MODEL =============
+model LeaveType {
+  id                   Int        @id @default(autoincrement())
+  name                 String     @unique @db.VarChar(100)
+  code                 String     @unique @db.VarChar(20) // Added: Short code (AL, SL, ML)
+  maxDays              Int        @default(15)
+  minDays              Int        @default(0)
+  description          String?    @db.Text
+  color                String?    @default("#3B82F6") @db.VarChar(7)
+  requiresHRApproval   Boolean    @default(true)
+  requiresManagerApproval Boolean @default(true)
+  carryOver            Boolean    @default(false)
+  carryOverLimit       Int?       @default(5)
+  requiresDocument     Boolean    @default(false)
+  documentTypes        String[]   // Array of accepted document types
+  isActive             Boolean    @default(true)
+  order                Int        @default(0) // For UI ordering
+  year                 Int        @default(2024) // Year this leave type applies to
+  
+  // Relationships
+  leaves               Leave[]
+  leaveBalances        LeaveBalance[]
+  
+  // Timestamps
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+  deletedAt            DateTime?  @map("deleted_at")
+  
+  // Indexes
+  @@index([isActive])
+  @@index([name])
+  @@index([code])
+  @@index([year])
+  @@index([isActive, year])
+  
+  // Full text search
+  @@fulltext([name, description])
+}
+
+// ============= LEAVE MODEL =============
+model Leave {
+  id                 Int           @id @default(autoincrement())
+  leaveNumber        String        @unique @db.VarChar(50) // Added: Unique leave number (L-2024-001)
+  employeeId         Int
+  leaveTypeId        Int
+  startDate          DateTime
+  endDate            DateTime
+  days               Float         // Can be fractional (0.5 days)
+  reason             String        @db.Text
+  status             LeaveStatus   @default(PENDING_MANAGER)
+  currentApprover    String?       @db.VarChar(50) @default("MANAGER")
+  workflowStage      Int           @default(1) // Track workflow stage (1, 2, 3...)
+  
+  // Approval tracking
+  appliedDate        DateTime      @default(now())
+  managerApproved    Boolean?      @default(false)
+  managerApprovedBy  Int?
+  managerApprovedDate DateTime?
+  managerNotes       String?       @db.Text
+  
+  hrApproved         Boolean?      @default(false)
+  hrApprovedBy       Int?
+  hrApprovedDate     DateTime?
+  hrNotes            String?       @db.Text
+  
+  // Rejection tracking
+  rejectedBy         Int?
+  rejectedDate       DateTime?
+  rejectionReason    String?       @db.Text
+  
+  // Cancellation
+  cancelledBy        Int?
+  cancelledDate      DateTime?
+  cancellationReason String?       @db.Text
+  
+  // Document attachments
+  attachmentUrl      String?       @db.VarChar(500)
+  documentType       String?       @db.VarChar(50)
+  
+  // Emergency contact during leave
+  emergencyContact   String?       @db.VarChar(100)
+  emergencyPhone     String?       @db.VarChar(20)
+  
+  // Relationships
+  employee           User          @relation("EmployeeLeaves", fields: [employeeId], references: [id])
+  leaveType          LeaveType     @relation(fields: [leaveTypeId], references: [id])
+  manager            User?         @relation("ManagerLeaves", fields: [managerApprovedBy], references: [id])
+  hrAdmin            User?         @relation("HRLeaves", fields: [hrApprovedBy], references: [id])
+  
+  // Comments/updates
+  comments           Comment[]
+  
+  // Timestamps
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  deletedAt          DateTime?     @map("deleted_at")
+  
+  // Indexes for performance
+  @@index([employeeId])
+  @@index([leaveTypeId])
+  @@index([status])
+  @@index([startDate])
+  @@index([endDate])
+  @@index([managerApprovedBy])
+  @@index([hrApprovedBy])
+  @@index([appliedDate])
+  @@index([status, startDate])
+  @@index([employeeId, status])
+  @@index([employeeId, startDate, endDate])
+  @@index([status, currentApprover])
+  
+  // Composite indexes
+  @@index([employeeId, leaveTypeId, startDate])
+  @@index([status, workflowStage])
+  
+  // Prevent overlapping leaves (composite unique)
+  @@unique([employeeId, startDate, endDate], map: "idx_leave_no_overlap")
+  
+  // Generate leave number before create
+  @@map("leaves")
+}
+
+// ============= LEAVE BALANCE MODEL =============
+model LeaveBalance {
+  id            Int     @id @default(autoincrement())
+  userId        Int
+  leaveTypeId   Int
+  year          Int     @default(2024)
+  totalDays     Float   @default(0)
+  usedDays      Float   @default(0)
+  remainingDays Float   @default(0)
+  carriedOver   Float   @default(0) // Days carried from previous year
+  adjustedDays  Float   @default(0) // HR adjustments
+  
+  // Audit fields
+  lastUpdatedBy Int?
+  lastUpdatedAt DateTime @default(now())
+  notes         String?  @db.Text
+  
+  // Relationships
+  user          User    @relation(fields: [userId], references: [id])
+  leaveType     LeaveType @relation(fields: [leaveTypeId], references: [id])
+  
+  // Composite unique constraint
+  @@unique([userId, leaveTypeId, year], map: "idx_balance_user_type_year")
+  
+  // Indexes
+  @@index([userId])
+  @@index([leaveTypeId])
+  @@index([year])
+  @@index([remainingDays])
+  @@index([userId, year])
+  @@index([leaveTypeId, year])
+  
+  @@map("leave_balances")
+}
+
+// ============= NOTIFICATION MODEL =============
+model Notification {
+  id           Int                 @id @default(autoincrement())
+  userId       Int
+  type         NotificationType
+  title        String              @db.VarChar(200)
+  message      String              @db.Text
+  actionUrl    String?             @db.VarChar(500)
+  relatedId    String?             @db.VarChar(100) // Related entity ID
+  isRead       Boolean             @default(false)
+  priority     NotificationPriority @default(MEDIUM)
+  scheduledAt  DateTime?           // For scheduled notifications
+  expiresAt    DateTime?           // Auto-expire notifications
+  
+  // Relationships
+  user         User                @relation(fields: [userId], references: [id])
+  
+  // Timestamps
+  createdAt    DateTime            @default(now())
+  readAt       DateTime?
+  
+  // Indexes for performance
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@index([type])
+  @@index([priority])
+  @@index([userId, isRead])
+  @@index([scheduledAt])
+  @@index([expiresAt])
+  @@index([userId, isRead, createdAt])
+  
+  // Composite index for common queries
+  @@index([userId, type, isRead])
+  
+  @@map("notifications")
+}
+
+// ============= COMMENT MODEL =============
+model Comment {
+  id           Int       @id @default(autoincrement())
+  leaveId      Int
+  userId       Int
+  content      String    @db.Text
+  isInternal   Boolean   @default(false) // Internal HR comments
+  
+  // Relationships
+  leave        Leave     @relation(fields: [leaveId], references: [id])
+  user         User      @relation(fields: [userId], references: [id])
+  
+  // Timestamps
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  
+  // Indexes
+  @@index([leaveId])
+  @@index([userId])
+  @@index([createdAt])
+  @@index([leaveId, isInternal])
+  
+  @@map("comments")
+}
+
 // ============= SYSTEM SETTINGS MODEL =============
 model SystemSettings {
   id          Int       @id @default(autoincrement())
-  key         String    @unique
-  value       String
-  description String?
-  category    String    @default("general")
+  key         String    @unique @db.VarChar(100)
+  value       String    @db.Text
+  description String?   @db.VarChar(500)
+  category    String    @default("general") @db.VarChar(50)
+  dataType    String    @default("string") @db.VarChar(20) // string, number, boolean, json, array
   isPublic    Boolean   @default(false)
+  isRequired  Boolean   @default(false)
+  validValues String[]  // Array of valid values for validation
   
   // Timestamps
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  updatedBy   Int?      // Who last updated this setting
   
   // Indexes
   @@index([category])
+  @@index([key])
   @@index([isPublic])
+  @@index([category, isPublic])
+  
+  @@map("system_settings")
 }
 
-// ============= HOLIDAY MODEL (Optional) =============
+// ============= HOLIDAY MODEL =============
 model Holiday {
   id          Int       @id @default(autoincrement())
-  name        String
+  name        String    @db.VarChar(200)
+  description String?   @db.Text
   date        DateTime
-  description String?
-  recurring   Boolean   @default(true)
-  country     String?   @default("Ethiopia")
+  year        Int       // Year this holiday applies to
+  type        String    @default("PUBLIC") @db.VarChar(50) // PUBLIC, OBSERVANCE, COMPANY
+  isRecurring Boolean   @default(true)
+  country     String?   @default("Ethiopia") @db.VarChar(100)
+  region      String?   @db.VarChar(100) // Specific region if applicable
   
   // Timestamps
   createdAt   DateTime  @default(now())
@@ -243,5 +404,186 @@ model Holiday {
   
   // Indexes
   @@index([date])
-  @@index([recurring])
+  @@index([year])
+  @@index([isRecurring])
+  @@index([type])
+  @@index([country])
+  @@index([date, country])
+  
+  // Prevent duplicate holidays
+  @@unique([name, date, country], map: "idx_holiday_unique")
+  
+  @@map("holidays")
+}
+
+// ============= WORKING DAYS MODEL =============
+model WorkingDay {
+  id          Int       @id @default(autoincrement())
+  dayOfWeek   DayOfWeek
+  isWorking   Boolean   @default(true)
+  startTime   String?   @db.VarChar(8) // Format: "09:00"
+  endTime     String?   @db.VarChar(8) // Format: "17:00"
+  breakStart  String?   @db.VarChar(8)
+  breakEnd    String?   @db.VarChar(8)
+  year        Int       @default(2024)
+  
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Indexes
+  @@index([dayOfWeek])
+  @@index([isWorking])
+  @@index([year])
+  
+  // Unique constraint per day per year
+  @@unique([dayOfWeek, year], map: "idx_working_day_unique")
+  
+  @@map("working_days")
+}
+
+// ============= AUDIT LOG MODEL =============
+model AuditLog {
+  id          Int         @id @default(autoincrement())
+  userId      Int?
+  action      AuditAction
+  entityType  String      @db.VarChar(50) // "User", "Leave", "LeaveType", etc.
+  entityId    String?     @db.VarChar(100)
+  oldData     Json?
+  newData     Json?
+  ipAddress   String?     @db.VarChar(45) // IPv4 or IPv6
+  userAgent   String?     @db.VarChar(500)
+  metadata    Json?       // Additional metadata
+  
+  // Relationships
+  user        User?       @relation(fields: [userId], references: [id])
+  
+  // Timestamps
+  createdAt   DateTime    @default(now())
+  
+  // Indexes for performance
+  @@index([userId])
+  @@index([action])
+  @@index([entityType])
+  @@index([entityId])
+  @@index([createdAt])
+  @@index([userId, createdAt])
+  @@index([entityType, entityId])
+  @@index([action, createdAt])
+  
+  // Composite indexes
+  @@index([entityType, entityId, createdAt])
+  @@index([userId, action, createdAt])
+  
+  @@map("audit_logs")
+}
+
+// ============= PASSWORD RESET TOKEN MODEL =============
+model PasswordResetToken {
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  token       String    @unique @db.VarChar(255)
+  expiresAt   DateTime
+  used        Boolean   @default(false)
+  
+  // Relationships
+  user        User      @relation(fields: [userId], references: [id])
+  
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  usedAt      DateTime?
+  
+  // Indexes
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+  @@index([used])
+  @@index([userId, used])
+  
+  @@map("password_reset_tokens")
+}
+
+// ============= API KEY MODEL =============
+model ApiKey {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(100)
+  key         String    @unique @db.VarChar(255)
+  userId      Int
+  permissions String[]  // Array of permissions
+  expiresAt   DateTime?
+  lastUsedAt  DateTime?
+  isActive    Boolean   @default(true)
+  
+  // Relationships
+  user        User      @relation(fields: [userId], references: [id])
+  
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Indexes
+  @@index([userId])
+  @@index([key])
+  @@index([isActive])
+  @@index([expiresAt])
+  
+  @@map("api_keys")
+}
+
+// ============= LEAVE POLICY MODEL =============
+model LeavePolicy {
+  id                      Int       @id @default(autoincrement())
+  name                    String    @unique @db.VarChar(100)
+  description             String?   @db.Text
+  minAdvanceNoticeDays    Int       @default(3)
+  maxConsecutiveDays      Int       @default(30)
+  allowBackdated          Boolean   @default(false)
+  maxBackdatedDays        Int       @default(7)
+  allowOverlap            Boolean   @default(false)
+  requireDocumentation    Boolean   @default(false)
+  approvalWorkflow        String[]  // Array of approval steps
+  autoApproveDays         Int?      @default(1) // Auto-approve if less than X days
+  isDefault               Boolean   @default(false)
+  
+  // Timestamps
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+  
+  // Indexes
+  @@index([name])
+  @@index([isDefault])
+  
+  @@map("leave_policies")
+}
+
+// ============= DEPARTMENT MODEL =============
+model Department {
+  id          Int       @id @default(autoincrement())
+  code        String    @unique @db.VarChar(20)
+  name        String    @db.VarChar(100)
+  description String?   @db.Text
+  headId      Int?      // Department head user ID
+  parentId    Int?      // For hierarchical departments
+  isActive    Boolean   @default(true)
+  
+  // Self-referencing for hierarchy
+  parent      Department? @relation("DepartmentHierarchy", fields: [parentId], references: [id])
+  children    Department[] @relation("DepartmentHierarchy")
+  
+  // Relationships
+  head        User?     @relation(fields: [headId], references: [id])
+  users       User[]
+  
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Indexes
+  @@index([code])
+  @@index([name])
+  @@index([headId])
+  @@index([parentId])
+  @@index([isActive])
+  
+  @@map("departments")
 }
