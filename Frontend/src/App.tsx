@@ -6,121 +6,134 @@ import Login from './components/auth/Login';
 import Dashboard from './components/Dashboard';
 import ApplyLeave from './components/employee/ApplyLeave';
 import LeaveHistory from './components/employee/LeaveHistory';
-import ProfileSettings from './components/employee/ProfileSettings';
+import AboutMe from './components/employee/AboutMe';
 import PendingRequests from './components/manager/PendingRequests';
 import UserManagement from './components/hr-admin/UserManagement';
 import LeaveOverview from './components/hr-admin/LeaveOverview';
 import LeaveTypes from './components/hr-admin/LeaveTypes';
-import ApprovalsHistory from './components/manager/ApprovalsHistory';
-import TeamOverview from './components/manager/TeamOverview';
-import ManagerReports from './components/manager/ManagerReports';
 import SystemConfig from './components/hr-admin/SystemConfig';
 import HrReports from './components/hr-admin/HrReports';
 import HRApprovals from './components/hr-admin/HRApprovals';
-import Notifications from './components/common/Notifications';
 import './App.css';
 
-// Loading component
+// Loading Component
 const LoadingScreen: React.FC = () => (
   <div className="loading-screen">
-    <div className="loading-spinner"></div>
-    <p>Loading...</p>
+    <div className="loading-content">
+      <div className="loading-logo">OBU LMS</div>
+      <div className="loading-spinner"></div>
+      <p>Loading system...</p>
+    </div>
   </div>
 );
 
-// Public Route - redirect to dashboard if already logged in
+// Public Route
 const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
-  
-  if (loading) {
-    return <LoadingScreen />;
-  }
-  
+  if (loading) return <LoadingScreen />;
   return !isAuthenticated ? <>{children}</> : <Navigate to="/dashboard" replace />;
 };
 
-// Protected Route - redirect to login if not authenticated
+// Protected Route
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
-  
-  if (loading) {
-    return <LoadingScreen />;
-  }
-  
+  if (loading) return <LoadingScreen />;
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
 };
 
-// Main App Content with Routing
-const AppContent: React.FC = () => {
+// Role-based Route
+const RoleRoute: React.FC<{ 
+  children: React.ReactNode; 
+  allowedRoles: string[];
+}> = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
-
-  if (loading) {
-    return <LoadingScreen />;
+  if (loading) return <LoadingScreen />;
+  if (!user || !allowedRoles.includes(user.role)) {
+    return <Navigate to="/dashboard" replace />;
   }
+  return <>{children}</>;
+};
+
+// Main App Content
+const AppContent: React.FC = () => {
+  const { user } = useAuth();
 
   return (
     <Router>
       <div className="App">
         <Routes>
-          {/* Public Route - Login Page */}
-          <Route 
-            path="/login" 
-            element={
-              <PublicRoute>
-                <Login />
-              </PublicRoute>
-            } 
-          />
+          <Route path="/login" element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          } />
           
-          {/* Protected Routes - All authenticated pages */}
-          <Route 
-            path="/*" 
-            element={
-              <ProtectedRoute>
-                <Layout userRole={user?.role || 'employee'}>
-                  <Routes>
-                    {/* Common routes for all roles */}
-                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                    <Route path="/dashboard" element={<Dashboard userRole={user?.role || 'employee'} />} />
-                    <Route path="/profile" element={<ProfileSettings />} />
-
-                    {/* Employee specific routes */}
-                    {user?.role === 'employee' && (
-                      <>
-                        <Route path="/apply-leave" element={<ApplyLeave />} />
-                        <Route path="/leave-history" element={<LeaveHistory />} />
-                      </>
-                    )}
-
-                    {/* Manager specific routes */}
-                    {user?.role === 'manager' && (
-                      <>
-                        <Route path="/pending-requests" element={<PendingRequests />} />
-                        <Route path="/approvals-history" element={<ApprovalsHistory />} />
-                        <Route path="/team-overview" element={<TeamOverview />} />
-                        <Route path="/reports" element={<ManagerReports />} />
-                      </>
-                    )}
-
-                    {/* HR Admin specific routes */}
-                    {user?.role === 'hr-admin' && (
-                      <>
-                        <Route path="/hr-approvals" element={<HRApprovals />} />
-                        <Route path="/leave-overview" element={<LeaveOverview />} />
-                        <Route path="/user-management" element={<UserManagement />} />
-                        <Route path="/leave-types" element={<LeaveTypes />} />
-                        <Route path="/system-config" element={<SystemConfig />} />
-                        <Route path="/reports" element={<HrReports />} />
-                      </>
-                    )}
+          <Route path="/*" element={
+            <ProtectedRoute>
+              <Layout userRole={user?.role || 'employee'}>
+                <Routes>
+                  {/* Common routes */}
+                  <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/profile" element={<AboutMe />} />
                   
-                    {/* Catch all - redirect to dashboard */}
-                    <Route path="*" element={<Navigate to="/dashboard" replace />} />
-                  </Routes>
-                </Layout>
-              </ProtectedRoute>
-            } 
-          />
+                  {/* Employee routes */}
+                  <Route path="/apply-leave" element={
+                    <RoleRoute allowedRoles={['employee']}>
+                      <ApplyLeave />
+                    </RoleRoute>
+                  } />
+                  <Route path="/leave-history" element={
+                    <RoleRoute allowedRoles={['employee']}>
+                      <LeaveHistory />
+                    </RoleRoute>
+                  } />
+                  
+                  {/* Manager routes */}
+                  <Route path="/pending-requests" element={
+                    <RoleRoute allowedRoles={['manager']}>
+                      <PendingRequests />
+                    </RoleRoute>
+                  } />
+                  
+                  {/* HR Admin routes */}
+                  <Route path="/hr-approvals" element={
+                    <RoleRoute allowedRoles={['hr-admin']}>
+                      <HRApprovals />
+                    </RoleRoute>
+                  } />
+                  <Route path="/user-management" element={
+                    <RoleRoute allowedRoles={['hr-admin']}>
+                      <UserManagement />
+                    </RoleRoute>
+                  } />
+                  <Route path="/leave-overview" element={
+                    <RoleRoute allowedRoles={['hr-admin']}>
+                      <LeaveOverview />
+                    </RoleRoute>
+                  } />
+                  <Route path="/leave-types" element={
+                    <RoleRoute allowedRoles={['hr-admin']}>
+                      <LeaveTypes />
+                    </RoleRoute>
+                  } />
+                  <Route path="/system-config" element={
+                    <RoleRoute allowedRoles={['hr-admin']}>
+                      <SystemConfig />
+                    </RoleRoute>
+                  } />
+                  <Route path="/hr-reports" element={
+                    <RoleRoute allowedRoles={['hr-admin']}>
+                      <HrReports />
+                    </RoleRoute>
+                  } />
+                  
+                  {/* Catch all */}
+                  <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                </Routes>
+              </Layout>
+            </ProtectedRoute>
+          } />
         </Routes>
       </div>
     </Router>

@@ -1,59 +1,27 @@
+// Authentication middleware
 import jwt from 'jsonwebtoken';
-import { prisma } from '../config/database.js';
 
-export const authenticate = async (req, res, next) => {
-  try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
-    
-    if (!token) {
-      return res.status(401).json({ 
-        success: false, 
-        message: 'Access denied. No token provided.' 
-      });
-    }
+const JWT_SECRET = process.env.JWT_SECRET || 'a3af209ef7207b8d1546cd868258620f';
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret-key');
-    
-    const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        department: true,
-        position: true,
-        status: true,
-        managerId: true
-      }
-    });
+export const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
 
-    if (!user || user.status !== 'ACTIVE') {
-      return res.status(401).json({ 
-        success: false, 
-        message: 'Invalid token or user inactive' 
-      });
-    }
-
-    req.user = user;
-    next();
-  } catch (error) {
-    console.error('Auth middleware error:', error);
-    res.status(401).json({ 
+  if (!token) {
+    return res.status(401).json({ 
       success: false, 
-      message: 'Invalid token' 
+      message: 'Access token required' 
     });
   }
-};
 
-export const authorize = (...roles) => {
-  return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) {
       return res.status(403).json({ 
         success: false, 
-        message: 'Access denied: Insufficient permissions' 
+        message: 'Invalid token' 
       });
     }
+    req.user = user;
     next();
-  };
+  });
 };

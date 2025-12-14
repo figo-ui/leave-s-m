@@ -1,19 +1,14 @@
 // src/routes/notifications.js
 import express from 'express';
-import { authenticate } from '../middleware/auth.js';
-import {
-  getNotifications,
-  markAsRead,
-  markAllAsRead
-} from '../controllers/notificationController.js';
+import { notificationController } from '../controllers/notificationController.js';
+import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// All routes require authentication
-router.use(authenticate);
-
-router.get('/', getNotifications);
-router.put('/:id/read', markAsRead);
-router.put('/read-all', markAllAsRead);
+router.get('/', authenticateToken, notificationController.getNotifications);
+router.get('/stats', authenticateToken, notificationController.getNotificationStats);
+router.patch('/:id/read', authenticateToken, notificationController.markAsRead);
+router.post('/read-all', authenticateToken, notificationController.markAllAsRead);
+router.delete('/:id', authenticateToken, notificationController.deleteNotification);
 
 export default router;

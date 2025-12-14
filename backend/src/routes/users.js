@@ -1,24 +1,14 @@
+// Open and check src/routes/users.js - it should look like this:
 import express from 'express';
-import { authenticate, authorize } from '../middleware/auth.js';
-import { getUsers, createUser, updateUser } from '../controllers/userController.js';
+import { userController } from '../controllers/userController.js';
+import { authenticateToken } from '../middleware/auth.js';
+import { requireHR } from '../middleware/roleMiddleware.js';
 
 const router = express.Router();
 
-router.get('/profile', authenticate, async (req, res) => {
-  try {
-    const user = await prisma.user.findUnique({
-      where: { id: req.user.id },
-      include: { department: true, manager: { select: { name: true } } }
-    });
-    
-    res.json({ success: true, data: { user } });
-  } catch (error) {
-    res.status(500).json({ success: false, message: 'Error fetching profile' });
-  }
-});
-
-router.get('/', authenticate, authorize('HR_ADMIN'), getUsers);
-router.post('/', authenticate, authorize('HR_ADMIN'), createUser);
-router.put('/:id', authenticate, authorize('HR_ADMIN'), updateUser);
+// User management (HR only)
+router.get('/', authenticateToken, requireHR, userController.getUsers);
+router.post('/', authenticateToken, requireHR, userController.createUser);
+router.get('/managers/department/:department', authenticateToken, userController.getManagersByDepartment);
 
 export default router;

@@ -42,19 +42,21 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole, isMobileOpen, onClose }) =>
         { path: '/profile', label: 'Profile Settings', icon: '👤' }
       ],
       manager: [
+        { path: '/profile', label: 'Profile Settings', icon: '👤' },
         { path: '/dashboard', label: 'Dashboard', icon: '📊' },
-        { path: '/pending-requests', label: 'Pending Requests', icon: '⏳', badge: '5' },
+        { path: '/pending-requests', label: 'Pending Requests', icon: '⏳', },
         { path: '/approvals-history', label: 'Approvals History', icon: '✅' },
         { path: '/team-overview', label: 'Team Overview', icon: '👥' },
         { path: '/reports', label: 'Reports', icon: '📈' }
       ],
       'hr-admin': [
+         { path: '/profile', label: 'Profile Settings', icon: '👤' },
         { path: '/dashboard', label: 'Dashboard', icon: '📊' },
-        { path: '/leave-overview', label: 'Leave Overview', icon: '👁️', badge: '12' },
+        { path: '/leave-overview', label: 'Leave Overview', icon: '👁️', },
         { path: '/user-management', label: 'User Management', icon: '👥' },
         { path: '/leave-types', label: 'Leave Types', icon: '🏷️' },
         { path: '/system-config', label: 'Configuration', icon: '⚙️' },
-        { path: '/reports', label: 'Analytics', icon: '📊' },
+        { path: '/hr-reports', label: 'Reports', icon: '📈' },
         { path: '/hr-approvals', label: 'Approvals', icon: '✅' }
 
       ],
@@ -145,19 +147,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole, isMobileOpen, onClose }) =>
           )}
         </div>
 
-        {/* User Info Section */}
-        <div className="sidebar-user-section">
-          <div className="user-avatar">
-            <span>👤</span>
-          </div>
-          {isSidebarExpanded && (
-            <div className="user-info">
-              <div className="user-welcome">Welcome to</div>
-              <div className="user-portal">{getRoleDisplayName(userRole)}</div>
-            </div>
-          )}
-        </div>
-
+       
         {/* Navigation Menu */}
         <nav className="sidebar-nav">
           <div className="nav-section">
@@ -197,19 +187,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole, isMobileOpen, onClose }) =>
           </div>
         </nav>
 
-        {/* Quick Actions Section */}
-        {isSidebarExpanded && (
-          <div className="quick-actions">
-            <div className="action-item">
-              <span className="action-icon">📅</span>
-              <span className="action-text">Available: 18 days</span>
-            </div>
-            <div className="action-item">
-              <span className="action-icon">⏳</span>
-              <span className="action-text">Pending: 2 requests</span>
-            </div>
-          </div>
-        )}
+      
       </aside>
     </>
   );

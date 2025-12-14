@@ -1,9 +1,10 @@
+// src/routes/dashboard.js
 import express from 'express';
-import { authenticate } from '../middleware/auth.js';
-import { getDashboardStats } from '../controllers/dashboardController.js';
+import { dashboardController } from '../controllers/dashboardController.js';
+import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
-router.get('/stats', authenticate, getDashboardStats);
+router.get('/stats', authenticateToken, dashboardController.getDashboardStats);
 
 export default router;

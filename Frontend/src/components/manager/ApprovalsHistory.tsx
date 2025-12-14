@@ -1,79 +1,101 @@
 import React, { useState, useEffect } from 'react';
-import { LeaveService } from '../../utils/leaveService';
 import { useAuth } from '../../contexts/AuthContext';
+import { apiService } from '../../utils/api';
 import './ApprovalsHistory.css';
 
-interface LeaveApplication {
+interface ApprovalHistory {
   id: number;
-  employeeName: string;
-  employeeId: string;
-  department: string;
-  leaveType: string;
+  employee: {
+    name: string;
+    email: string;
+    department: string;
+  };
+  leaveType: {
+    name: string;
+  };
   startDate: string;
   endDate: string;
   days: number;
-  status: 'pending' | 'approved' | 'rejected' | 'hr_pending' | 'hr_approved' | 'hr_rejected';
   reason: string;
-  appliedDate: string;
+  status: string;
+  managerApprovedDate: string;
   managerNotes?: string;
-  managerApprovedDate?: string;
+  appliedDate: string;
 }
 
 const ApprovalsHistory: React.FC = () => {
   const { user } = useAuth();
-  const [approvalHistory, setApprovalHistory] = useState<LeaveApplication[]>([]);
-  const [filteredHistory, setFilteredHistory] = useState<LeaveApplication[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [approvals, setApprovals] = useState<ApprovalHistory[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [filter, setFilter] = useState<'all' | 'approved' | 'rejected'>('all');
+  const [dateRange, setDateRange] = useState<'all' | 'month' | 'quarter' | 'year'>('all');
 
   useEffect(() => {
-    fetchApprovalHistory();
+    loadApprovalsHistory();
   }, []);
 
-  useEffect(() => {
-    filterHistory();
-  }, [approvalHistory, filterStatus, searchTerm]);
-
-  const fetchApprovalHistory = () => {
-    setLoading(true);
-    const managerDepartment = user?.department || '';
-    const applications = LeaveService.getManagerApprovalHistory(managerDepartment);
-    setApprovalHistory(applications);
-    setLoading(false);
+  const loadApprovalsHistory = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      const response = await apiService.getApprovalsHistory();
+      if (response.success) {
+        setApprovals(response.data || []);
+      } else {
+        setError(response.message || 'Failed to load approvals history');
+      }
+    } catch (error: any) {
+      console.error('Error loading approvals history:', error);
+      setError(error.message || 'Failed to load approvals history');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const filterHistory = () => {
-    let filtered = approvalHistory;
+  const filteredApprovals = approvals.filter(approval => {
+    if (filter === 'approved') {
+      return approval.status === 'APPROVED';
+    } else if (filter === 'rejected') {
+      return approval.status === 'REJECTED';
+    }
+    return true;
+  });
 
-    // Status filter
-    if (filterStatus !== 'all') {
-      filtered = filtered.filter(leave => leave.status === filterStatus);
+  const getFilteredByDate = (approvalsList: ApprovalHistory[]) => {
+    const now = new Date();
+    let startDate: Date;
+
+    switch (dateRange) {
+      case 'month':
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        break;
+      case 'quarter':
+        const quarter = Math.floor(now.getMonth() / 3);
+        startDate = new Date(now.getFullYear(), quarter * 3, 1);
+        break;
+      case 'year':
+        startDate = new Date(now.getFullYear(), 0, 1);
+        break;
+      default:
+        return approvalsList;
     }
 
-    // Search filter
-    if (searchTerm) {
-      filtered = filtered.filter(leave =>
-        leave.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        leave.leaveType.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    setFilteredHistory(filtered);
+    return approvalsList.filter(approval => 
+      new Date(approval.managerApprovedDate) >= startDate
+    );
   };
 
-  const getStatusBadge = (status: string) => {
-    const statusConfig: { [key: string]: { class: string; label: string } } = {
-      pending: { class: 'status-pending', label: 'Pending' },
-      approved: { class: 'status-approved', label: 'Approved' },
-      rejected: { class: 'status-rejected', label: 'Rejected' },
-      hr_pending: { class: 'status-pending', label: 'HR Review' },
-      hr_approved: { class: 'status-approved', label: 'HR Approved' },
-      hr_rejected: { class: 'status-rejected', label: 'HR Rejected' }
-    };
-    
-    const config = statusConfig[status];
-    return <span className={`status-badge ${config.class}`}>{config.label}</span>;
+  const finalApprovals = getFilteredByDate(filteredApprovals);
+
+  const getStats = () => {
+    const total = approvals.length;
+    const approved = approvals.filter(a => a.status === 'APPROVED').length;
+    const rejected = approvals.filter(a => a.status === 'REJECTED').length;
+    const approvalRate = total > 0 ? Math.round((approved / total) * 100) : 0;
+
+    return { total, approved, rejected, approvalRate };
   };
 
   const formatDate = (dateString: string) => {
@@ -84,126 +106,217 @@ const ApprovalsHistory: React.FC = () => {
     });
   };
 
-  const getStatusCounts = () => {
-    return {
-      all: approvalHistory.length,
-      pending: approvalHistory.filter(leave => leave.status === 'pending').length,
-      approved: approvalHistory.filter(leave => leave.status === 'approved').length,
-      rejected: approvalHistory.filter(leave => leave.status === 'rejected').length,
-      hr_pending: approvalHistory.filter(leave => leave.status === 'hr_pending').length,
-    };
+  const formatDateTime = (dateString: string) => {
+    return new Date(dateString).toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
-  const statusCounts = getStatusCounts();
+  const getStatusBadge = (status: string) => {
+    if (status === 'APPROVED') {
+      return <span className="status-badge approved">✅ Approved</span>;
+    } else if (status === 'REJECTED') {
+      return <span className="status-badge rejected">❌ Rejected</span>;
+    }
+    return <span className="status-badge pending">⏳ {status}</span>;
+  };
+
+  const stats = getStats();
+
+  if (loading) {
+    return (
+      <div className="approvals-history">
+        <div className="page-header">
+          <h1>Approvals History</h1>
+          <p>Track your leave request decisions and patterns</p>
+        </div>
+        <div className="loading-state">
+          <div className="loading-spinner"></div>
+          <p>Loading approvals history...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="approvals-history">
+        <div className="page-header">
+          <h1>Approvals History</h1>
+          <p>Track your leave request decisions and patterns</p>
+        </div>
+        <div className="error-state">
+          <h3>Unable to Load History</h3>
+          <p>{error}</p>
+          <button onClick={loadApprovalsHistory} className="retry-btn">
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="approvals-history">
       <div className="page-header">
-        <h2>My Approval History</h2>
-        <p>Leave applications you have reviewed from your department</p>
-        <button onClick={fetchApprovalHistory} className="refresh-button">
-          🔄 Refresh
-        </button>
+        <div className="header-content">
+          <div>
+            <h1>Approvals History</h1>
+            <p>Track your leave request decisions and patterns</p>
+          </div>
+          <div className="header-actions">
+            <button 
+              className="refresh-btn" 
+              onClick={loadApprovalsHistory} 
+              disabled={loading}
+            >
+              🔄 Refresh
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* Quick Stats */}
-      <div className="quick-stats">
+      {/* Statistics Cards */}
+      <div className="stats-grid">
         <div className="stat-card">
-          <div className="stat-number">{statusCounts.all}</div>
-          <div className="stat-label">Total Reviewed</div>
+          <div className="stat-icon total">📋</div>
+          <div className="stat-content">
+            <div className="stat-number">{stats.total}</div>
+            <div className="stat-label">Total Decisions</div>
+          </div>
         </div>
-        <div className="stat-card approved">
-          <div className="stat-number">{statusCounts.approved}</div>
-          <div className="stat-label">Approved</div>
+        
+        <div className="stat-card">
+          <div className="stat-icon approved">✅</div>
+          <div className="stat-content">
+            <div className="stat-number">{stats.approved}</div>
+            <div className="stat-label">Approved</div>
+          </div>
         </div>
-        <div className="stat-card rejected">
-          <div className="stat-number">{statusCounts.rejected}</div>
-          <div className="stat-label">Rejected</div>
+        
+        <div className="stat-card">
+          <div className="stat-icon rejected">❌</div>
+          <div className="stat-content">
+            <div className="stat-number">{stats.rejected}</div>
+            <div className="stat-label">Rejected</div>
+          </div>
         </div>
-        <div className="stat-card pending">
-          <div className="stat-number">{statusCounts.hr_pending}</div>
-          <div className="stat-label">With HR</div>
+        
+        <div className="stat-card">
+          <div className="stat-icon rate">📈</div>
+          <div className="stat-content">
+            <div className="stat-number">{stats.approvalRate}%</div>
+            <div className="stat-label">Approval Rate</div>
+          </div>
         </div>
       </div>
 
-      {/* Filters Section */}
+      {/* Filters */}
       <div className="filters-section">
         <div className="filter-group">
-          <input
-            type="text"
-            placeholder="Search by employee or leave type..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
-          />
+          <label>Status Filter:</label>
+          <select 
+            value={filter} 
+            onChange={(e) => setFilter(e.target.value as any)}
+            className="filter-select"
+          >
+            <option value="all">All Decisions</option>
+            <option value="approved">Approved Only</option>
+            <option value="rejected">Rejected Only</option>
+          </select>
+        </div>
+        
+        <div className="filter-group">
+          <label>Time Period:</label>
+          <select 
+            value={dateRange} 
+            onChange={(e) => setDateRange(e.target.value as any)}
+            className="filter-select"
+          >
+            <option value="all">All Time</option>
+            <option value="month">This Month</option>
+            <option value="quarter">This Quarter</option>
+            <option value="year">This Year</option>
+          </select>
         </div>
 
-        <div className="filter-group">
-          <select 
-            value={filterStatus} 
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="status-filter"
-          >
-            <option value="all">All Status</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
-            <option value="hr_pending">With HR</option>
-          </select>
+        <div className="results-count">
+          Showing {finalApprovals.length} of {approvals.length} decisions
         </div>
       </div>
 
-      {/* Approval History Table */}
-      <div className="history-table-container">
-        {loading ? (
-          <div className="loading-container">
-            <div className="loading-spinner"></div>
-            <p>Loading approval history...</p>
-          </div>
-        ) : filteredHistory.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-icon">📋</div>
-            <h3>No approval history found</h3>
-            <p>You haven't reviewed any leave applications yet.</p>
+      {/* Approvals List */}
+      <div className="approvals-list">
+        {finalApprovals.length === 0 ? (
+          <div className="no-data">
+            <div className="no-data-icon">📝</div>
+            <h3>No Approval History</h3>
+            <p>No leave request decisions found for the selected filters.</p>
           </div>
         ) : (
-          <table className="history-table">
-            <thead>
-              <tr>
-                <th>Employee</th>
-                <th>Leave Type</th>
-                <th>Leave Period</th>
-                <th>Duration</th>
-                <th>Applied Date</th>
-                <th>Status</th>
-                <th>Your Notes</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredHistory.map(leave => (
-                <tr key={leave.id} className="history-row">
-                  <td>
-                    <div className="employee-info">
-                      <div className="employee-name">{leave.employeeName}</div>
-                      <div className="employee-id">ID: {leave.employeeId}</div>
+          finalApprovals.map((approval) => (
+            <div key={approval.id} className="approval-card">
+              <div className="approval-header">
+                <div className="employee-info">
+                  <div className="employee-avatar">
+                    {approval.employee.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                  </div>
+                  <div className="employee-details">
+                    <h4>{approval.employee.name}</h4>
+                    <p>{approval.employee.department}</p>
+                    <span className="employee-email">{approval.employee.email}</span>
+                  </div>
+                </div>
+                <div className="approval-meta">
+                  {getStatusBadge(approval.status)}
+                  <span className="decision-date">
+                    Decided: {formatDateTime(approval.managerApprovedDate)}
+                  </span>
+                </div>
+              </div>
+
+              <div className="approval-details">
+                <div className="leave-info">
+                  <div className="info-grid">
+                    <div className="info-item">
+                      <span className="label">Leave Type:</span>
+                      <span className="value">{approval.leaveType.name}</span>
                     </div>
-                  </td>
-                  <td className="leave-type">{leave.leaveType}</td>
-                  <td>
-                    <div className="date-range">
-                      <div>{formatDate(leave.startDate)}</div>
-                      <div>to {formatDate(leave.endDate)}</div>
+                    <div className="info-item">
+                      <span className="label">Dates:</span>
+                      <span className="value">
+                        {formatDate(approval.startDate)} - {formatDate(approval.endDate)}
+                      </span>
                     </div>
-                  </td>
-                  <td className="days">{leave.days} days</td>
-                  <td>{formatDate(leave.appliedDate)}</td>
-                  <td>{getStatusBadge(leave.status)}</td>
-                  <td className="notes-cell">
-                    {leave.managerNotes || 'No notes provided'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    <div className="info-item">
+                      <span className="label">Duration:</span>
+                      <span className="value">{approval.days} days</span>
+                    </div>
+                    <div className="info-item">
+                      <span className="label">Applied:</span>
+                      <span className="value">{formatDate(approval.appliedDate)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="reason-section">
+                  <span className="label">Reason:</span>
+                  <p className="reason-text">{approval.reason}</p>
+                </div>
+
+                {approval.managerNotes && (
+                  <div className="notes-section">
+                    <span className="label">Your Notes:</span>
+                    <p className="notes-text">{approval.managerNotes}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))
         )}
       </div>
     </div>

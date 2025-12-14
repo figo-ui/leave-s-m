@@ -1,0 +1,479 @@
+/* Add these styles */
+
+/* Editable field indicators */
+.readonly-badge {
+  font-size: 11px;
+  background: #f0f0f0;
+  color: #666;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 8px;
+  font-weight: normal;
+}
+
+.info-value-with-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.edit-field-btn {
+  background: none;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 12px;
+  opacity: 0.7;
+  transition: all 0.2s;
+}
+
+.edit-field-btn:hover {
+  opacity: 1;
+  background: #f5f5f5;
+}
+
+.edit-phone-container {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.edit-phone-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.save-btn.small,
+.cancel-btn.small {
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+.avatar-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.avatar-preview {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.avatar-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.avatar-hint {
+  font-size: 13px;
+  color: #666;
+  margin: 0;
+}
+
+/* Role badges */
+.role-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.role-badge.role-employee {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.role-badge.role-manager {
+  background: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.role-badge.role-hr-admin {
+  background: #e8f5e8;
+  color: #2e7d32;
+}
+
+.role-badge.role-super-admin {
+  background: #fff3e0;
+  color: #ef6c00;
+}
+
+/* Action buttons */
+.action-btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  background: white;
+  color: #333;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.password-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+}
+
+.password-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.security-btn {
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.security-btn:hover {
+  background: #e0e0e0;
+}
+
+/* Action cards */
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.action-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.action-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  border-color: #667eea;
+}
+
+.action-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.action-label {
+  font-weight: 600;
+  color: #333;
+}
+
+/* Modal styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.password-modal {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}/* Add these to your existing AboutMe.css */
+
+/* Password modal integration styles */
+.password-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* Enhanced message styles */
+.success-message,
+.error-message {
+  display: flex;
+  align-items: center;
+  padding: 14px 20px;
+  border-radius: 10px;
+  margin-bottom: 24px;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.success-message {
+  background: #d1fae5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+}
+
+.error-message {
+  background: #fee;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+}
+
+.message-icon {
+  font-size: 20px;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.message-text {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.message-close {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0 0 0 12px;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.message-close:hover {
+  opacity: 1;
+}
+
+/* Enhanced phone editing */
+.edit-phone-container {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.edit-phone-container input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.edit-phone-container input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.edit-phone-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.save-btn.small {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.save-btn.small:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.save-btn.small:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.cancel-btn.small {
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  color: #666;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancel-btn.small:hover:not(:disabled) {
+  background: #e0e0e0;
+}
+
+/* Contact button enhancement */
+.contact-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  text-decoration: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.contact-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+  text-decoration: none;
+}
+
+/* Security button enhancement */
+.security-btn {
+  width: 100%;
+  text-align: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.security-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+}
+
+/* Responsive improvements for AboutMe */
+@media (max-width: 768px) {
+  .profile-header-section {
+    flex-direction: column;
+    text-align: center;
+    gap: 20px;
+  }
+  
+  .profile-basic-info {
+    align-items: center;
+  }
+  
+  .profile-stats {
+    justify-content: center;
+  }
+  
+  .profile-actions {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .action-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .profile-details-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .edit-phone-container {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .edit-phone-actions {
+    width: 100%;
+  }
+  
+  .save-btn.small,
+  .cancel-btn.small {
+    flex: 1;
+  }
+}
+
+/* Print styles */
+@media print {
+  .about-me-header,
+  .profile-actions,
+  .contact-btn,
+  .security-btn,
+  .actions-grid,
+  .message-close {
+    display: none !important;
+  }
+  
+  .info-card {
+    break-inside: avoid;
+    border: 1px solid #ddd;
+    margin-bottom: 20px;
+  }
+}

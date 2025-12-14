@@ -1,7 +1,6 @@
-// prisma/schema.prisma
+// schema.prisma
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -9,250 +8,47 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ============= USER MODEL =============
 model User {
-  id            Int       @id @default(autoincrement())
-  employeeId    String?   @unique // ADD THIS FIELD
-  email         String    @unique
-  password      String
-  name          String
-  role          UserRole  @default(EMPLOYEE)
-  department    String
-  position      String
-  phone         String?
-  joinDate      DateTime? @default(now()) // CHANGED: Added default
-  status        UserStatus @default(ACTIVE)
-  avatar        String?
+  id           Int       @id @default(autoincrement())
+  email        String    @unique
+  password     String
+  name         String
+  role         UserRole  @default(EMPLOYEE)
+  department   String
+  position     String?
+  phone        String?
+  avatar       String?
+  status       UserStatus @default(ACTIVE)
+  joinDate     DateTime? @default(now())
   
-  // Manager-Employee relationships
-  managerId     Int?
-  manager       User?     @relation("UserManages", fields: [managerId], references: [id])
-  employees     User[]    @relation("UserManages")
+  // Manager relationship (self-referencing)
+  managerId    Int?
+  manager      User?     @relation("ManagedBy", fields: [managerId], references: [id])
+  subordinates User[]    @relation("ManagedBy")
   
   // Leave relationships
-  leaves        Leave[]   @relation("EmployeeLeaves")
-  managerApprovals Leave[] @relation("ManagerApprovals")
-  hrApprovals      Leave[] @relation("HRApprovals")
+  leaves       Leave[]   @relation("EmployeeLeaves")
+  leavesManaged Leave[]  @relation("ManagerLeaves") // Leaves this manager approved
+  leavesHRApproved Leave[] @relation("HRLeaves") // Leaves this HR admin approved
   
-  // Other relationships
+  // Leave balances
+  leaveBalances LeaveBalance[]
+  
+  // Notifications
   notifications Notification[]
-  leaveBalances LeaveBalance[]
-  auditLogs     AuditLog[]
   
   // Timestamps
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  // Indexes for better performance
-  @@index([email])
-  @@index([role])
-  @@index([status])
-  @@index([managerId])
-  @@index([department])
-  @@map("users")
-}
-
-model Leave {
-  id                Int       @id @default(autoincrement())
-  
-  // Employee who applied for leave
-  employeeId        Int
-  employee          User      @relation("EmployeeLeaves", fields: [employeeId], references: [id], onDelete: Cascade)
-  
-  // Leave type
-  leaveTypeId       Int
-  leaveType         LeaveType @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
-  
-  // Leave details
-  startDate         DateTime
-  endDate           DateTime
-  days              Int
-  reason            String?
-  attachment        String?
-  
-  // Status and workflow - UPDATED to match backend
-  status            LeaveStatus @default(PENDING_MANAGER)
-  currentApprover   ApproverRole @default(MANAGER)
-  appliedDate       DateTime  @default(now())
-  
-  // Manager approval - UPDATED fields
-  managerApproved   Boolean?  @default(false)
-  managerApprovedBy Int?
-  manager           User?     @relation("ManagerApprovals", fields: [managerApprovedBy], references: [id])
-  managerNotes      String?
-  managerApprovedDate DateTime?
-  
-  // HR approval - UPDATED fields
-  hrApproved        Boolean?  @default(false)
-  hrApprovedBy      Int?
-  hrAdmin           User?     @relation("HRApprovals", fields: [hrApprovedBy], references: [id])
-  hrNotes           String?
-  hrApprovedDate    DateTime?
-  
-  // Timestamps
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-
-  // Indexes for better query performance
-  @@index([employeeId])
-  @@index([status])
-  @@index([startDate])
-  @@index([endDate])
-  @@index([appliedDate])
-  @@index([managerApprovedBy])
-  @@index([hrApprovedBy])
-  @@index([currentApprover])
-  @@map("leaves")
-}
-
-model LeaveType {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
-  maxDays     Int
-  description String?
-  isActive    Boolean  @default(true)
-  color       String?  @default("#3B82F6")
-  requiresHRApproval Boolean @default(false)
-  
-  // ADD THESE FIELDS to match backend
-  carryOver   Boolean  @default(false)
-  requiresApproval Boolean @default(true)
-  
-  // Relationships
-  leaves      Leave[]
-  leaveBalances LeaveBalance[]
-  
-  // Timestamps
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([isActive])
-  @@index([name])
-  @@map("leave_types")
-}
-
-model LeaveBalance {
-  id          Int    @id @default(autoincrement())
-  
-  // User and leave type
-  userId      Int
-  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  leaveTypeId Int
-  leaveType   LeaveType @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
-  
-  // Balance details
-  totalDays   Int
-  usedDays    Int     @default(0)
-  remainingDays Int
-  year        Int     @default(2024)
-  
-  // Timestamps
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Unique constraint and indexes
-  @@unique([userId, leaveTypeId, year])
-  @@index([userId])
-  @@index([leaveTypeId])
-  @@index([year])
-  @@index([remainingDays])
-  @@map("leave_balances")
-}
-
-model Notification {
-  id        Int       @id @default(autoincrement())
-  
-  // Recipient
-  userId    Int
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  // Notification details
-  type      NotificationType
-  title     String
-  message   String
-  isRead    Boolean   @default(false)
-  priority  Priority  @default(MEDIUM)
-  actionUrl String?   // URL for frontend navigation
-  relatedId String?   // ID of related entity (leave, user, etc.)
-  
-  // Timestamps
-  createdAt DateTime  @default(now())
-  readAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
   
   // Indexes
-  @@index([userId])
-  @@index([type])
-  @@index([isRead])
-  @@index([createdAt])
-  @@index([userId, isRead])
-  @@map("notifications")
+  @@index([managerId])
+  @@index([department])
+  @@index([status])
+  @@index([role])
 }
 
-model SystemSettings {
-  id          Int     @id @default(autoincrement())
-  key         String  @unique
-  value       String
-  description String?
-  category    String  @default("general")
-  isPublic    Boolean @default(false)
-  
-  // Timestamps
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([key])
-  @@index([category])
-  @@map("system_settings")
-}
-
-model AuditLog {
-  id          Int       @id @default(autoincrement())
-  
-  // Actor
-  userId      Int?
-  user        User?     @relation(fields: [userId], references: [id])
-  userEmail   String?   // Store email in case user is deleted
-  
-  // Action details
-  action      String    // e.g., "leave_created", "user_updated"
-  entityType  String    // e.g., "Leave", "User"
-  entityId    String    // ID of the affected entity
-  oldValues   Json?     // Previous values
-  newValues   Json?     // New values
-  description String?
-  ipAddress   String?
-  userAgent   String?
-  
-  // Timestamps
-  createdAt   DateTime  @default(now())
-  
-  // Indexes for auditing and reporting
-  @@index([userId])
-  @@index([action])
-  @@index([entityType])
-  @@index([entityId])
-  @@index([createdAt])
-  @@map("audit_logs")
-}
-
-model Holiday {
-  id          Int      @id @default(autoincrement())
-  name        String
-  date        DateTime
-  description String?
-  isRecurring Boolean  @default(true)
-  year        Int?
-  
-  // Timestamps
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([date])
-  @@index([year])
-  @@index([isRecurring])
-  @@map("holidays")
-}
-
-// ENUMS - UPDATED to match backend
 enum UserRole {
   EMPLOYEE
   MANAGER
@@ -264,44 +60,188 @@ enum UserStatus {
   ACTIVE
   INACTIVE
   SUSPENDED
+  TERMINATED
 }
 
-// UPDATED LeaveStatus to match backend requirements
+// ============= LEAVE TYPE MODEL =============
+model LeaveType {
+  id                   Int        @id @default(autoincrement())
+  name                 String     @unique
+  maxDays              Int        @default(15)
+  description          String?
+  color                String?    @default("#3B82F6")
+  requiresHRApproval   Boolean    @default(true)
+  carryOver            Boolean    @default(false)
+  requiresApproval     Boolean    @default(true)
+  isActive             Boolean    @default(true)
+  
+  // Relationships
+  leaves               Leave[]
+  leaveBalances        LeaveBalance[]
+  
+  // Timestamps
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+}
+
+// ============= LEAVE MODEL =============
+model Leave {
+  id                 Int           @id @default(autoincrement())
+  employeeId         Int
+  leaveTypeId        Int
+  startDate          DateTime
+  endDate            DateTime
+  days               Int           // Total days of leave
+  reason             String
+  status             LeaveStatus   @default(PENDING_MANAGER)
+  currentApprover    String?       @default("MANAGER") // "MANAGER", "HR", "SYSTEM"
+  
+  // Approval tracking
+  appliedDate        DateTime      @default(now())
+  managerApproved    Boolean?      @default(false)
+  managerApprovedBy  Int?
+  managerApprovedDate DateTime?
+  managerNotes       String?
+  
+  hrApproved         Boolean?      @default(false)
+  hrApprovedBy       Int?
+  hrApprovedDate     DateTime?
+  hrNotes            String?
+  
+  // Rejection tracking
+  rejectedBy         Int?
+  rejectedDate       DateTime?
+  rejectionReason    String?
+  
+  // Relationships
+  employee           User          @relation("EmployeeLeaves", fields: [employeeId], references: [id])
+  leaveType          LeaveType     @relation(fields: [leaveTypeId], references: [id])
+  manager            User?         @relation("ManagerLeaves", fields: [managerApprovedBy], references: [id])
+  hrAdmin            User?         @relation("HRLeaves", fields: [hrApprovedBy], references: [id])
+  
+  // Timestamps
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  
+  // Indexes
+  @@index([employeeId])
+  @@index([leaveTypeId])
+  @@index([status])
+  @@index([startDate])
+  @@index([endDate])
+  @@index([managerApprovedBy])
+  @@index([hrApprovedBy])
+  @@unique([employeeId, startDate, endDate])
+}
+
 enum LeaveStatus {
   PENDING_MANAGER
   PENDING_HR
-  APPROVED
+  APPROVED        // Manager approved (1st step)
+  HR_APPROVED     // HR approved (2nd step - final)
   REJECTED
   CANCELLED
-  WITHDRAWN
-  HR_APPROVED    // ADDED
-  HR_REJECTED    // ADDED
 }
 
-enum ApproverRole {
-  MANAGER
-  HR
-  SYSTEM
+// ============= LEAVE BALANCE MODEL =============
+model LeaveBalance {
+  id            Int     @id @default(autoincrement())
+  userId        Int
+  leaveTypeId   Int
+  year          Int     @default(2024)
+  totalDays     Int     @default(0)
+  usedDays      Int     @default(0)
+  remainingDays Int     @default(0)
+  
+  // Relationships
+  user          User    @relation(fields: [userId], references: [id])
+  leaveType     LeaveType @relation(fields: [leaveTypeId], references: [id])
+  
+  // Composite unique constraint
+  @@unique([userId, leaveTypeId, year])
+  
+  // Indexes
+  @@index([userId])
+  @@index([leaveTypeId])
+  @@index([year])
+}
+
+// ============= NOTIFICATION MODEL =============
+model Notification {
+  id           Int             @id @default(autoincrement())
+  userId       Int
+  type         NotificationType
+  title        String
+  message      String
+  actionUrl    String?
+  relatedId    String?         // Related entity ID (e.g., leaveId)
+  isRead       Boolean         @default(false)
+  priority     NotificationPriority @default(MEDIUM)
+  
+  // Relationships
+  user         User            @relation(fields: [userId], references: [id])
+  
+  // Timestamps
+  createdAt    DateTime        @default(now())
+  readAt       DateTime?
+  
+  // Indexes
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@index([type])
 }
 
 enum NotificationType {
-  INFO
-  SUCCESS
-  WARNING
-  ERROR
-  LEAVE_APPLICATION
+   LEAVE_PENDING
   LEAVE_APPROVED
   LEAVE_REJECTED
-  LEAVE_CANCELLED
-  LEAVE_PENDING
   SYSTEM_ALERT
   PASSWORD_RESET
   PROFILE_UPDATE
+  LEAVE_REMINDER
+  PASSWORD_CHANGE  // Add this line
 }
 
-enum Priority {
+enum NotificationPriority {
   LOW
   MEDIUM
   HIGH
-  URGENT
+  CRITICAL
+}
+
+// ============= SYSTEM SETTINGS MODEL =============
+model SystemSettings {
+  id          Int       @id @default(autoincrement())
+  key         String    @unique
+  value       String
+  description String?
+  category    String    @default("general")
+  isPublic    Boolean   @default(false)
+  
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Indexes
+  @@index([category])
+  @@index([isPublic])
+}
+
+// ============= HOLIDAY MODEL (Optional) =============
+model Holiday {
+  id          Int       @id @default(autoincrement())
+  name        String
+  date        DateTime
+  description String?
+  recurring   Boolean   @default(true)
+  country     String?   @default("Ethiopia")
+  
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Indexes
+  @@index([date])
+  @@index([recurring])
 }

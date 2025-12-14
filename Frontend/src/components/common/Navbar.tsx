@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import Notifications from './Notifications';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import './Navbar.css';
 
@@ -12,6 +12,8 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -38,48 +40,38 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
     setIsProfileOpen(!isProfileOpen);
   };
 
+  const handleNavigation = (path: string) => {
+    navigate(path);
+    setIsProfileOpen(false);
+  };
+
   const getWelcomeMessage = () => {
     if (!user) return 'Welcome';
-    
-    const name = user.name || user.firstName || 'User';
-    return `Welcome, ${name}`;
+    return `Welcome, ${user.name}`;
   };
 
   const getUserRole = () => {
     if (!user) return 'Employee';
-    
-    const role = user.role || 'employee';
-    return role.charAt(0).toUpperCase() + role.slice(1);
+    return user.role.charAt(0).toUpperCase() + user.role.slice(1);
   };
 
   const getUserInitials = () => {
     if (!user) return 'U';
-    
-    const firstName = user.firstName || '';
-    const lastName = user.lastName || '';
-    
-    if (firstName && lastName) {
-      return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
-    }
-    
-    return user.name ? user.name.charAt(0).toUpperCase() : 'U';
-  };
-
-  const getUserFullName = () => {
-    if (!user) return 'User';
-    return `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'User';
+    return user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U';
   };
 
   return (
     <nav className="navbar">
       <div className="navbar-left">
-        {/* Hamburger Menu - Only visible on mobile */}
+        {/* Hamburger Menu */}
         <button 
           className="mobile-menu-toggle"
           onClick={onMenuToggle}
           aria-label="Toggle menu"
         >
-          ☰
+          <span className="hamburger-line"></span>
+          <span className="hamburger-line"></span>
+          <span className="hamburger-line"></span>
         </button>
         
         <div className="navbar-brand">
@@ -105,65 +97,81 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
       </div>
 
       <div className="navbar-right">
-        
-        {/* User Profile Dropdown - Chrome Style */}
+        {/* User Profile Dropdown */}
         <div className="user-profile-dropdown" ref={dropdownRef}>
           <button 
-            className="profile-trigger"
+            className={`profile-trigger ${isProfileOpen ? 'active' : ''}`}
             onClick={handleProfileClick}
             aria-label="User profile menu"
           >
             <div className="profile-avatar">
-              {getUserInitials()}
+              {user?.avatar ? (
+                <img src={user.avatar} alt={user.name} className="avatar-image" />
+              ) : (
+                <span className="avatar-initials">{getUserInitials()}</span>
+              )}
             </div>
+            <span className="profile-arrow">▼</span>
           </button>
 
           {isProfileOpen && (
-            <div className="chrome-profile-menu">
+            <div className="profile-menu">
               {/* User Header */}
               <div className="profile-header">
                 <div className="profile-avatar-large">
-                  {getUserInitials()}
+                  {user?.avatar ? (
+                    <img src={user.avatar} alt={user.name} className="avatar-image-large" />
+                  ) : (
+                    <span className="avatar-initials-large">{getUserInitials()}</span>
+                  )}
                 </div>
                 <div className="profile-info">
-                  <div className="profile-name">{getUserFullName()}</div>
+                  <div className="profile-name">{user?.name}</div>
                   <div className="profile-email">{user?.email}</div>
+                  <div className="profile-role-badge">{getUserRole()}</div>
                 </div>
               </div>
 
+              <div className="menu-divider"></div>
+
+              {/* Quick Profile Section */}
               <div className="menu-section">
-                <button className="menu-item">
+                <div className="section-label">Profile</div>
+                <button 
+                  className="menu-item primary"
+                  onClick={() => handleNavigation('/about-me')}
+                >
+                  <span className="menu-icon">👤</span>
+                  <span className="menu-text">About Me</span>
+                  <span className="menu-arrow">→</span>
+                </button>
+                
+                <button 
+                  className="menu-item"
+                  onClick={() => handleNavigation('/profile-settings')}
+                >
+                  <span className="menu-icon">⚙️</span>
+                  <span className="menu-text">Profile Settings</span>
+                </button>
+              </div>
+
+              <div className="menu-divider"></div>
+
+              {/* Security Section */}
+              <div className="menu-section">
+                <div className="section-label">Security</div>
+                <button 
+                  className="menu-item"
+                  onClick={() => handleNavigation('/security')}
+                >
                   <span className="menu-icon">🔐</span>
                   <span className="menu-text">Password & Security</span>
                 </button>
-                
-                <button className="menu-item">
-                  <span className="menu-icon">👤</span>
-                  <span className="menu-text">Manage Your Account</span>
-                </button>
-                
-                <button className="menu-item">
-                  <span className="menu-icon">🎨</span>
-                  <span className="menu-text">Customize Profile</span>
-                </button>
-                
-                <button className="menu-item">
-                  <span className="menu-icon">🔄</span>
-                  <span className="menu-text">Sync is on</span>
-                </button>
               </div>
 
               <div className="menu-divider"></div>
 
-              <div className="menu-section">
-                <button className="menu-item">
-                  <span className="menu-icon">⚙️</span>
-                  <span className="menu-text">Manage Profiles</span>
-                </button>
-              </div>
-
-              <div className="menu-divider"></div>
-
+              {/* Help & Support Section */}
               <div className="menu-section">
                 <button className="menu-item">
                   <span className="menu-icon">❓</span>
@@ -171,7 +179,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
                 </button>
                 
                 <button className="menu-item">
-                  <span className="menu-icon">🌐</span>
+                  <span className="menu-icon">ℹ️</span>
                   <span className="menu-text">About System</span>
                 </button>
                 
@@ -182,6 +190,14 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
                   <span className="menu-icon">🚪</span>
                   <span className="menu-text">Sign Out</span>
                 </button>
+              </div>
+
+              {/* Footer */}
+              <div className="menu-footer">
+                <div className="system-info">
+                  <span className="system-version">v2.1.0</span>
+                  <span className="system-status">• All systems operational</span>
+                </div>
               </div>
             </div>
           )}

@@ -52,8 +52,44 @@ export interface LeaveApplication {
   attachment?: string;
 }
 
-export type LeaveStatus = 'pending' | 'approved' | 'rejected';
+// Enhanced Leave type with workflow information
+export interface Leave {
+  id: number;
+  employeeId: number;
+  leaveTypeId: number;
+  startDate: string;
+  endDate: string;
+  days: number;
+  reason: string;
+  status: LeaveStatus;
+  currentApprover: 'MANAGER' | 'HR' | 'SYSTEM';
+  appliedDate: string;
+  managerApproved?: boolean;
+  managerApprovedBy?: number;
+  managerApprovedDate?: string;
+  managerNotes?: string;
+  hrApproved?: boolean;
+  hrApprovedBy?: number;
+  hrApprovedDate?: string;
+  hrNotes?: string;
+  employee?: User;
+  leaveType?: LeaveType;
+  manager?: User;
+  hrAdmin?: User;
+}
 
+export type LeaveStatus = 
+  | 'PENDING_MANAGER' 
+  | 'PENDING_HR' 
+  | 'APPROVED' 
+  | 'HR_APPROVED' 
+  | 'REJECTED';
+
+export interface LeaveAction {
+  type: 'approve' | 'reject';
+  role: 'manager' | 'hr';
+  notes?: string;
+}
 export interface LeaveType {
   id: number;
   name: string;
@@ -84,6 +120,25 @@ export interface MenuItem {
   icon: string;
    badge?: string;
 }
+interface PendingLeave {
+  id: number;
+  employee: {
+    name: string;
+    email: string;
+    department: string;
+    position: string;
+  };
+  leaveType: {
+    name: string;
+    color: string;
+  };
+  startDate: string;
+  endDate: string;
+  days: number;
+  reason: string;
+  appliedDate: string;
+}
+
 
 // Props Types
 export interface LayoutProps {
@@ -140,6 +195,76 @@ export interface ProfileFormData {
   currentPassword: string;
   newPassword: string;
   confirmPassword: string;
+}
+// Enhanced Leave type with workflow information
+export interface Leave {
+  id: number;
+  employeeId: number;
+  leaveTypeId: number;
+  startDate: string;
+  endDate: string;
+  days: number;
+  reason: string;
+  status: LeaveStatus;
+  currentApprover: 'MANAGER' | 'HR' | 'SYSTEM';
+  appliedDate: string;
+  managerApproved?: boolean;
+  managerApprovedBy?: number;
+  managerApprovedDate?: string;
+  managerNotes?: string;
+  hrApproved?: boolean;
+  hrApprovedBy?: number;
+  hrApprovedDate?: string;
+  hrNotes?: string;
+  employee?: User;
+  leaveType?: LeaveType;
+  manager?: User;
+  hrAdmin?: User;
+}
+
+
+export interface LeaveAction {
+  type: 'approve' | 'reject';
+  role: 'manager' | 'hr';
+  notes?: string;
+}
+
+
+
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  department: string;
+  position?: string;
+  phone?: string;
+  status: string;
+  avatar?: string;
+  joinDate?: string;
+  createdAt?: string;
+  manager?: {
+    name: string;
+    email: string;
+  };
+}
+
+export interface AuthUser {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  department: string;
+  position?: string;
+  phone?: string;
+  status: string;
+  avatar?: string;
+  joinDate?: string;
+  managerId?: number;
+  manager?: {
+    name: string;
+    email: string;
+  };
 }
 
 export interface LeaveBalance {

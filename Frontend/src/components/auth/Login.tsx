@@ -45,23 +45,9 @@ const Login: React.FC = () => {
 
     const success = await login(credentials);
     if (!success) {
-      // Error is already set in the AuthContext, so we don't need to set it here
+      // Error is already set in the AuthContext
       console.log('Login failed');
     }
-  };
-
-  // Demo credentials helper - UPDATED WITH REAL PASSWORDS
-  const fillDemoCredentials = (role: 'employee' | 'manager' | 'hr-admin') => {
-    const demoCredentials = {
-      employee: { email: 'employee@bultum.edu.et', password: 'password123' },
-      manager: { email: 'manager@bultum.edu.et', password: 'password123' },
-      'hr-admin': { email: 'hr@bultum.edu.et', password: 'password123' }
-    };
-    
-    setCredentials(demoCredentials[role]);
-    // Clear any existing errors when filling demo credentials
-    setLocalError('');
-    clearError();
   };
 
   // Display either local validation errors or AuthContext errors
@@ -98,11 +84,11 @@ const Login: React.FC = () => {
             </div>
           )}
 
-          {/* Email Field - CHANGED from Username to Email */}
+          {/* Email Field */}
           <div className="form-group">
             <label htmlFor="email">University Email</label>
             <input
-              type="email" // CHANGED to email type for better validation
+              type="email"
               id="email"
               name="email"
               value={credentials.email}
@@ -146,55 +132,8 @@ const Login: React.FC = () => {
           </button>
         </form>
 
-        {/* Demo Credentials Section - UPDATED */}
-        <div className="demo-section">
-          <div className="demo-header">
-            <h3>Demo Access</h3>
-            <p>Quick login with test accounts:</p>
-          </div>
-          
-          <div className="demo-buttons">
-            <button 
-              type="button"
-              className="demo-btn employee"
-              onClick={() => fillDemoCredentials('employee')}
-              disabled={loading}
-            >
-              <span className="demo-icon">👨‍💼</span>
-              Employee Login
-            </button>
-            
-            <button 
-              type="button"
-              className="demo-btn manager"
-              onClick={() => fillDemoCredentials('manager')}
-              disabled={loading}
-            >
-              <span className="demo-icon">👔</span>
-              Manager Login
-            </button>
-            
-            <button 
-              type="button"
-              className="demo-btn hr"
-              onClick={() => fillDemoCredentials('hr-admin')}
-              disabled={loading}
-            >
-              <span className="demo-icon">🏢</span>
-              HR Admin Login
-            </button>
-          </div>
-
-          <div className="demo-credentials-info">
-            <p><strong>All demo accounts use password:</strong> <code>password123</code></p>
-          </div>
-        </div>
-
         <div className="login-footer">
           <p>For account assistance, contact the HR department</p>
-          <p className="technical-info">
-            <small>Backend: localhost:5000 | Database: PostgreSQL</small>
-          </p>
         </div>
       </div>
     </div>

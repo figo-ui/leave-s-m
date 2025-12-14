@@ -1,32 +1,22 @@
+// src/routes/leaves.js
 import express from 'express';
-import { authenticate, authorize } from '../middleware/auth.js';
-import {
-  applyLeave,
-  getLeaveHistory,
-  getPendingLeaves,
-  approveLeave,
-  getLeaveTypes,
-  getEmployeeLeaveHistory,
-  getManagerPendingLeaves,
-  getHRPendingLeaves
-} from '../controllers/leaveController.js';
+import { leaveController } from '../controllers/leaveController.js';
+import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Employee routes
-router.post('/apply', authenticate, applyLeave);
-router.get('/history', authenticate, getEmployeeLeaveHistory); // Updated
-router.get('/my-leaves', authenticate, getEmployeeLeaveHistory); // Alias
+// Leave application and history
+router.post('/apply', authenticateToken, leaveController.applyLeave);
+router.get('/history', authenticateToken, leaveController.getLeaveHistory);
+router.get('/pending', authenticateToken, leaveController.getPendingRequests);
+router.get('/leave-balances', authenticateToken, leaveController.getLeaveBalances);
 
-// Manager routes
-router.get('/pending', authenticate, authorize('MANAGER', 'HR_ADMIN'), getManagerPendingLeaves); // Updated
-router.get('/manager/pending', authenticate, authorize('MANAGER'), getManagerPendingLeaves);
+// Manager approvals
+router.post('/:id/approve', authenticateToken, leaveController.approveLeave);
+router.post('/:id/reject', authenticateToken, leaveController.rejectLeave);
 
-// HR Admin routes
-router.get('/hr/pending', authenticate, authorize('HR_ADMIN'), getHRPendingLeaves);
-router.put('/:id/approve', authenticate, authorize('MANAGER', 'HR_ADMIN'), approveLeave);
-
-// Common routes
-router.get('/types', authenticate, getLeaveTypes);
+// HR approvals
+router.post('/:id/hr-approve', authenticateToken, leaveController.approveHRLeave);
+router.post('/:id/hr-reject', authenticateToken, leaveController.rejectHRLeave);
 
 export default router;

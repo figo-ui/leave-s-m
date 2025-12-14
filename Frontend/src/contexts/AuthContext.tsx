@@ -1,200 +1,343 @@
-import React, { createContext, useState, useContext, useEffect, useMemo } from 'react';
-
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  role: 'employee' | 'manager' | 'hr-admin' | 'super-admin';
-  department: string;
-  position: string;
-  phone?: string;
-  joinDate?: string;
-  status: 'active' | 'inactive' | 'suspended';
-  avatar?: string;
-  managerId?: number;
-  manager?: {
-    id: number;
-    name: string;
-    email: string;
-  };
-}
-
-interface LoginCredentials {
-  email: string;
-  password: string;
-}
+// contexts/AuthContext.tsx
+import React, { createContext, useState, useContext, useEffect, useMemo, useCallback } from 'react';
+import { User, LoginCredentials } from '../types';
+import { apiService, AuthResponse } from '../utils/api';
 
 interface AuthContextType {
   user: User | null;
-  login: (credentials: LoginCredentials) => Promise<boolean>;
+  login: (credentials: LoginCredentials) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
+  updateUser: (userData: User) => void;
+  refreshUser: () => Promise<void>;
   isAuthenticated: boolean;
   loading: boolean;
+  initializing: boolean;
   error: string;
   clearError: () => void;
+  clearSuccess: () => void;
+  success: string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const API_BASE_URL = 'http://localhost:5000/api';
+// Persistent auth state
+interface AuthState {
+  user: User | null;
+  token: string | null;
+  lastChecked: number;
+}
+
+const STORAGE_KEY = 'auth_state';
+
+const getStoredAuthState = (): AuthState => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (error) {
+    console.error('Failed to parse stored auth state:', error);
+  }
+  
+  return {
+    user: null,
+    token: null,
+    lastChecked: 0
+  };
+};
+
+const setStoredAuthState = (state: AuthState) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (error) {
+    console.error('Failed to store auth state:', error);
+  }
+};
+
+const clearStoredAuthState = () => {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+  } catch (error) {
+    console.error('Failed to clear auth state:', error);
+  }
+};
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [initializing, setInitializing] = useState<boolean>(true);
+  const [error, setError] = useState<string>('');
+  const [success, setSuccess] = useState<string>('');
 
-  useEffect(() => {
-    checkAuthStatus();
+  // Transform backend user data to frontend format
+  const transformBackendUser = useCallback((backendUser: any): User => {
+    return {
+      id: backendUser.id,
+      name: backendUser.name,
+      email: backendUser.email,
+      role: backendUser.role,
+      department: backendUser.department,
+      position: backendUser.position || '',
+      phone: backendUser.phone || '',
+      status: backendUser.status,
+      joinDate: backendUser.joinDate,
+      avatar: backendUser.avatar,
+      managerId: backendUser.managerId,
+      manager: backendUser.manager,
+      leaveBalances: backendUser.leaveBalances || []
+    };
   }, []);
 
-  const checkAuthStatus = async () => {
+  // Validate token with backend
+  const validateToken = useCallback(async (token: string): Promise<boolean> => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setLoading(false);
-        return;
+      const response = await apiService.getCurrentUser();
+      return response.success;
+    } catch (error) {
+      console.error('Token validation failed:', error);
+      return false;
+    }
+  }, []);
+
+  // Load user from backend
+  const loadUser = useCallback(async (): Promise<User | null> => {
+    try {
+      const response = await apiService.getCurrentUser();
+      
+      if (response.success && response.data) {
+        const userData = transformBackendUser(response.data.user);
+        return userData;
       }
+      
+      return null;
+    } catch (error) {
+      console.error('Failed to load user:', error);
+      return null;
+    }
+  }, [transformBackendUser]);
 
-      try {
-        const testResponse = await fetch(`${API_BASE_URL}/test`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
+  // Initialize auth state
+  const initializeAuth = useCallback(async () => {
+    try {
+      setInitializing(true);
+      
+      const storedState = getStoredAuthState();
+      const token = localStorage.getItem('token');
+      
+      console.log('🔄 Initializing auth state...', {
+        hasStoredState: !!storedState.user,
+        hasToken: !!token,
+        tokenValid: token ? apiService.isAuthenticated() : false
+      });
+
+      // If we have a token, validate it and load user
+      if (token && apiService.isAuthenticated()) {
+        const isValid = await validateToken(token);
+        
+        if (isValid) {
+          const userData = await loadUser();
+          
+          if (userData) {
+            setUser(userData);
+            setStoredAuthState({
+              user: userData,
+              token,
+              lastChecked: Date.now()
+            });
+            console.log('✅ Auth initialized successfully');
+          } else {
+            console.warn('❌ Failed to load user data');
+            clearStoredAuthState();
           }
-        });
-
-        if (testResponse.ok) {
-          console.log('✅ Token is valid');
         } else {
-          localStorage.removeItem('token');
+          console.warn('❌ Token validation failed');
+          clearStoredAuthState();
+        }
+      } else {
+        console.log('🔐 No valid token found');
+        clearStoredAuthState();
+      }
+    } catch (error) {
+      console.error('💥 Auth initialization failed:', error);
+      clearStoredAuthState();
+    } finally {
+      setInitializing(false);
+    }
+  }, [validateToken, loadUser]);
+
+  // Initialize on mount
+  useEffect(() => {
+    initializeAuth();
+  }, [initializeAuth]);
+
+  // Auto-refresh user data periodically
+  useEffect(() => {
+    if (!user) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const userData = await loadUser();
+        if (userData) {
+          setUser(userData);
+          setStoredAuthState({
+            user: userData,
+            token: localStorage.getItem('token'),
+            lastChecked: Date.now()
+          });
         }
       } catch (error) {
-        console.error('Token validation failed:', error);
-        localStorage.removeItem('token');
+        console.error('Failed to refresh user data:', error);
       }
+    }, 5 * 60 * 1000); // Refresh every 5 minutes
 
-      setLoading(false);
-    } catch (error) {
-      console.error('Auth check failed:', error);
-      localStorage.removeItem('token');
-      setLoading(false);
-    }
-  };
+    return () => clearInterval(interval);
+  }, [user, loadUser]);
 
-  const login = async (credentials: LoginCredentials): Promise<boolean> => {
+  const login = useCallback(async (
+    credentials: LoginCredentials
+  ): Promise<{ success: boolean; message?: string }> => {
     try {
       setLoading(true);
       setError('');
+      setSuccess('');
+      setUser(null);
 
-      console.log('🔄 Attempting login with:', credentials);
+      console.log('🔐 Attempting login for:', credentials.email);
 
-      // Test backend connection first
-      try {
-        const testResponse = await fetch(`${API_BASE_URL}/test`);
-        const testData = await testResponse.json();
-        console.log('✅ Backend test response:', testData);
-        
-        if (!testResponse.ok) {
-          throw new Error(`Backend test failed: ${testResponse.status}`);
-        }
-      } catch (testError) {
-        console.error('❌ Backend is NOT reachable:', testError);
-        setError('Backend server is not running. Please start the backend on port 5000.');
-        setLoading(false);
-        return false;
-      }
-
-      console.log('📤 Sending login request to:', `${API_BASE_URL}/auth/login`);
+      const response = await apiService.login(credentials);
       
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(credentials),
-      });
-
-      console.log('📡 Response status:', response.status);
-      console.log('📡 Response headers:', response.headers);
-
-      const data = await response.json();
-      console.log('📦 Full response data:', data);
-
-      if (!response.ok) {
-        console.log('❌ Login failed with status:', response.status);
-        console.log('❌ Error message:', data.message);
-        
-        if (response.status === 401) {
-          setError(data.message || 'Invalid email or password. Please check your credentials.');
-        } else if (response.status === 400) {
-          setError(data.message || 'Invalid request data. Please check your input.');
-        } else {
-          setError(data.message || `Login failed with status: ${response.status}`);
-        }
-        return false;
-      }
-
-      if (data.success && data.data.token) {
-        console.log('✅ Login successful! Token received');
-        localStorage.setItem('token', data.data.token);
-        
-        // Transform backend user data to frontend format
-        const userData: User = {
-          id: data.data.user.id,
-          name: data.data.user.name,
-          email: data.data.user.email,
-          role: data.data.user.role as 'employee' | 'manager' | 'hr-admin' | 'super-admin',
-          department: data.data.user.department,
-          position: data.data.user.position,
-          status: data.data.user.status as 'active' | 'inactive' | 'suspended',
-          phone: data.data.user.phone,
-          joinDate: data.data.user.joinDate,
-          avatar: data.data.user.avatar,
-          managerId: data.data.user.managerId,
-          manager: data.data.user.manager
-        };
+      if (response.success && response.data) {
+        const userData = transformBackendUser(response.data.user);
         
         setUser(userData);
-        setError('');
-        console.log('✅ User data set:', userData);
-        return true;
+        setStoredAuthState({
+          user: userData,
+          token: response.data.token,
+          lastChecked: Date.now()
+        });
+        
+        setSuccess('Login successful!');
+        
+        console.log('✅ Login successful:', {
+          email: userData.email,
+          role: userData.role,
+          managerId: userData.managerId
+        });
+        
+        return { success: true };
       } else {
-        console.log('❌ Login response indicates failure');
-        setError(data.message || 'Login failed. Please try again.');
-        return false;
+        const errorMessage = response.message || 'Login failed. Please try again.';
+        setError(errorMessage);
+        return { success: false, message: errorMessage };
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('💥 Login error:', error);
+      
+      let errorMessage = 'An unexpected error occurred during login.';
+      
       if (error instanceof TypeError) {
-        setError('Network error: Cannot connect to server. Make sure backend is running on port 5000.');
-      } else {
-        setError('An unexpected error occurred during login.');
+        errorMessage = 'Cannot connect to server. Please make sure the backend is running on port 5000.';
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
       }
-      return false;
+      
+      setError(errorMessage);
+      return { success: false, message: errorMessage };
     } finally {
       setLoading(false);
     }
-  };
+  }, [transformBackendUser]);
 
-  const logout = () => {
-    localStorage.removeItem('token');
+  const logout = useCallback(() => {
+    console.log('🚪 Logging out user');
+    
     setUser(null);
     setError('');
-    console.log('🚪 User logged out');
-  };
+    setSuccess('');
+    
+    // Clear all storage and caches
+    clearStoredAuthState();
+    apiService.logout(false);
+    
+    // Redirect to login
+    window.location.href = '/login';
+  }, []);
 
-  const clearError = () => {
+  const updateUser = useCallback((userData: User) => {
+    setUser(userData);
+    setStoredAuthState({
+      user: userData,
+      token: localStorage.getItem('token'),
+      lastChecked: Date.now()
+    });
+  }, []);
+
+  const refreshUser = useCallback(async () => {
+    try {
+      console.log('🔄 Refreshing user data...');
+      
+      const userData = await loadUser();
+      if (userData) {
+        setUser(userData);
+        setStoredAuthState({
+          user: userData,
+          token: localStorage.getItem('token'),
+          lastChecked: Date.now()
+        });
+        console.log('✅ User data refreshed');
+      }
+    } catch (error) {
+      console.error('Failed to refresh user:', error);
+    }
+  }, [loadUser]);
+
+  const clearError = useCallback(() => {
     setError('');
-  };
+  }, []);
 
+  const clearSuccess = useCallback(() => {
+    setSuccess('');
+  }, []);
+
+  // Memoize the context value to prevent unnecessary re-renders
   const contextValue = useMemo(() => ({
     user,
     login,
     logout,
-    isAuthenticated: !!user,
+    updateUser,
+    refreshUser,
+    isAuthenticated: !!user && apiService.isAuthenticated(),
     loading,
+    initializing,
     error,
-    clearError
-  }), [user, loading, error]);
+    success,
+    clearError,
+    clearSuccess
+  }), [
+    user,
+    login,
+    logout,
+    updateUser,
+    refreshUser,
+    loading,
+    initializing,
+    error,
+    success,
+    clearError,
+    clearSuccess
+  ]);
+
+  // Show loading state during initialization
+  if (initializing) {
+    return (
+      <div className="auth-initializing">
+        <div className="loading-spinner large"></div>
+        <p>Initializing authentication...</p>
+      </div>
+    );
+  }
 
   return (
     <AuthContext.Provider value={contextValue}>
@@ -209,4 +352,39 @@ export function useAuth() {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
+}
+
+// Higher-order component for protected routes
+export function withAuth<P extends object>(
+  Component: React.ComponentType<P>,
+  requiredRole?: string
+) {
+  return function ProtectedComponent(props: P) {
+    const { isAuthenticated, user, initializing } = useAuth();
+
+    if (initializing) {
+      return (
+        <div className="auth-loading">
+          <div className="loading-spinner"></div>
+          <p>Checking authentication...</p>
+        </div>
+      );
+    }
+
+    if (!isAuthenticated) {
+      window.location.href = '/login';
+      return null;
+    }
+
+    if (requiredRole && user?.role !== requiredRole) {
+      return (
+        <div className="unauthorized">
+          <h2>Access Denied</h2>
+          <p>You don't have permission to access this page.</p>
+        </div>
+      );
+    }
+
+    return <Component {...props} />;
+  };
 }
