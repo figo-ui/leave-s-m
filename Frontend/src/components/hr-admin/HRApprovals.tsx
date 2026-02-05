@@ -4,7 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { apiService } from '../../utils/api';
 import { Leave, User } from '../../types';
 import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
+
 import './HRApprovals.css';
 
 interface HRApprovalData {
@@ -86,7 +86,7 @@ const HRApprovals: React.FC = () => {
         const allLeaves = response.data;
         
         const approved = allLeaves.filter((leave: Leave) => 
-          leave.status === 'HR_APPROVED' || leave.status === 'APPROVED'
+          Leave.status === 'HR_APPROVED' || leave.status === 'APPROVED'
         ).map((leave: Leave) => ({
           leave,
           employee: leave.employee || {} as User,

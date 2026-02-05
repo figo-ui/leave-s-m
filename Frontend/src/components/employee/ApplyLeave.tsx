@@ -5,7 +5,7 @@ import { LeaveType, LeaveBalance } from '../../types';
 import './ApplyLeave.css';
 
 interface LeaveFormData {
-  leaveTypeId: string;
+ 
   startDate: string;
   endDate: string;
   reason: string;
@@ -483,18 +483,18 @@ const ApplyLeave: React.FC = () => {
                       .filter(type => type.isActive)
                       .map(type => {
                         const typeBalance = getLeaveBalance(type.id);
-                        const remaining = typeBalance ? typeBalance.remainingDays : type.maxDays;
-                        const isLowBalance = typeBalance && typeBalance.remainingDays <= 3;
+                        const remaining = typeBalance ? typeBalance.remaining : type.maxDays;
+                        const isLowBalance = typeBalance && typeBalance.remaining <= 3;
                         
                         return (
                           <option 
                             key={type.id} 
                             value={type.id.toString()}
-                            disabled={typeBalance ? typeBalance.remainingDays <= 0 : false}
+                            disabled={typeBalance ? typeBalance.remaining <= 0 : false}
                           >
                             {type.name} ({remaining}/{type.maxDays} days)
                             {type.requiresHRApproval && ' - HR Approval'}
-                            {typeBalance && typeBalance.remainingDays <= 0 && ' - No Balance'}
+                            {typeBalance && typeBalance.remaining <= 0 && ' - No Balance'}
                           </option>
                         );
                       })
@@ -507,9 +507,9 @@ const ApplyLeave: React.FC = () => {
                     <div className="leave-type-info">
                       <p className="type-description">{selectedType.description}</p>
                       {balance ? (
-                        <div className={`balance-info ${balance.remainingDays <= 3 ? 'low-balance' : ''}`}>
-                          <strong>Your Balance:</strong> {balance.remainingDays} of {balance.totalDays} days remaining
-                          {balance.remainingDays <= 3 && (
+                        <div className={`balance-info ${balance.remaining <= 3 ? 'low-balance' : ''}`}>
+                          <strong>Your Balance:</strong> {balance.remaining} of {balance.total} days remaining
+                          {balance.remaining <= 3 && (
                             <span className="low-balance-warning"> ⚠️ Low balance</span>
                           )}
                         </div>
@@ -566,10 +566,10 @@ const ApplyLeave: React.FC = () => {
                     <strong>Total Days: {days} day{days !== 1 ? 's' : ''}</strong>
                     {selectedType && balance && (
                       <span className={`balance-status ${
-                        days > balance.remainingDays ? 'warning' : 
-                        balance.remainingDays - days <= 3 ? 'caution' : 'success'
+                        days > balance.remaining ? 'warning' : 
+                        balance.remaining - days <= 3 ? 'caution' : 'success'
                       }`}>
-                        ({balance.remainingDays - days} days will remain)
+                        ({balance.remaining - days} days will remain)
                       </span>
                     )}
                     {selectedType && !balance && (
@@ -585,7 +585,7 @@ const ApplyLeave: React.FC = () => {
                     </div>
                   )}
                   
-                  {selectedType && balance && days <= balance.remainingDays && days <= selectedType.maxDays && (
+                  {selectedType && balance && days <= balance.remaining && days <= selectedType.maxDays && (
                     <div className="validation-message success">
                       ✅ Within allowed limits for {selectedType.name}
                     </div>

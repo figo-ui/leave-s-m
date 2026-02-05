@@ -2,17 +2,17 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { DashboardStats, LeaveBalance, Leave } from '../types';
+import { DashboardStats, Leave,TeamMember } from '../types';
 import { apiService } from '../utils/api';
 import './Dashboard.css';
 
 // Add these new interfaces
 interface EnhancedDashboardStats extends DashboardStats {
   upcomingLeaves?: Leave[];
-  teamOnLeave?: any[];
+  teamOnLeave?: number;
   leaveUtilization?: number;
   notifications?: number;
-  recentApprovals?: any[];
+  recentApprovals?:number;
 }
 
 interface QuickAction {
@@ -59,7 +59,7 @@ const Dashboard: React.FC = () => {
   const [recentActivities, setRecentActivities] = useState<ActivityItem[]>([]);
   const [leaveBalances, setLeaveBalances] = useState<LeaveBalanceCard[]>([]);
   const [upcomingLeaves, setUpcomingLeaves] = useState<Leave[]>([]);
-  const [teamOnLeave, setTeamOnLeave] = useState<any[]>([]);
+  const [teamOnLeave, setTeamOnLeave] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
@@ -102,6 +102,7 @@ const Dashboard: React.FC = () => {
     return baseConfig[userRole as keyof typeof baseConfig] || baseConfig.employee;
   }, [userRole]);
 
+  console.log(roleConfig);
   // Enhanced data loading with caching
   const loadDashboardData = useCallback(async () => {
     try {
@@ -121,13 +122,17 @@ const Dashboard: React.FC = () => {
 
       await Promise.all(loaders);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error loading dashboard data:', error);
+       if (error instanceof Error) {
       setError(error.message || 'Failed to load dashboard data');
-    } finally {
-      setLoading(false);
+    } else {
+      setError('Failed to load dashboard data');
     }
-  }, [userRole]);
+  } finally {
+    setLoading(false);
+  }
+}, [userRole]);
 
   const loadDashboardStats = async () => {
     try {
@@ -161,7 +166,7 @@ const Dashboard: React.FC = () => {
           break;
 
         case 'hr-admin':
-        case 'super-admin':
+        
           response = await apiService.getLeaveOverview();
           if (response.success && response.data) {
             activities = response.data.slice(0, 6);
@@ -175,27 +180,38 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const loadLeaveBalances = async () => {
-    try {
-      if (userRole === 'employee') {
-        const response = await apiService.getLeaveBalances();
-        if (response.success && response.data) {
-          const balances: LeaveBalanceCard[] = response.data.map((balance: any) => ({
-            type: balance.leaveType?.name || 'Leave',
-            used: balance.usedDays || 0,
-            total: balance.totalDays || 0,
-            remaining: balance.remainingDays || 0,
-            percentage: balance.totalDays ? Math.round((balance.usedDays / balance.totalDays) * 100) : 0,
-            color: balance.leaveType?.color || '#3498db'
-          }));
-          setLeaveBalances(balances);
-        }
+const loadLeaveBalances = async () => {
+  try {
+    if (userRole === 'employee') {
+      const response = await apiService.getLeaveBalances();
+      if (response.success && response.data) {
+        // Cast to unknown first to avoid direct any usage
+        const apiData = response.data as unknown[];
+        
+        const balances: LeaveBalanceCard[] = apiData.map((balance) => {
+          const balanceItem = balance as {
+            leaveType?: { name?: string; color?: string };
+            usedDays?: number;
+            totalDays?: number;
+            remainingDays?: number;
+          };
+          
+          return {
+            type: balanceItem.leaveType?.name || 'Leave',
+            used: balanceItem.usedDays || 0,
+            total: balanceItem.totalDays || 0,
+            remaining: balanceItem.remainingDays || 0,
+            percentage: balanceItem.totalDays ? Math.round((balanceItem.usedDays || 0) / balanceItem.totalDays * 100) : 0,
+            color: balanceItem.leaveType?.color || '#3498db'
+          };
+        });
+        setLeaveBalances(balances);
       }
-    } catch (error) {
-      console.error('Error loading leave balances:', error);
     }
-  };
-
+  } catch (error) {
+    console.error('Error loading leave balances:', error);
+  }
+};
   const loadUpcomingLeaves = async () => {
     try {
       const today = new Date();
@@ -207,7 +223,7 @@ const Dashboard: React.FC = () => {
         const upcoming = response.data.filter((leave: Leave) => {
           const startDate = new Date(leave.startDate);
           return startDate >= today && startDate <= nextMonth && 
-                (leave.status === 'APPROVED' || leave.status === 'HR_APPROVED');
+                (leave.status|| leave.status === 'APPROVED');
         }).slice(0, 3);
         setUpcomingLeaves(upcoming);
       }
@@ -216,27 +232,31 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const loadTeamOnLeave = async () => {
-    try {
-      if (userRole === 'manager') {
-        const response = await apiService.getManagerTeamOverview();
-        if (response.success && response.data) {
-          const todayOnLeave = response.data.filter((member: any) => {
-            return member.leaves?.some((leave: any) => {
-              const start = new Date(leave.startDate);
-              const end = new Date(leave.endDate);
-              const today = new Date();
-              return today >= start && today <= end;
-            });
-          }).slice(0, 5);
-          setTeamOnLeave(todayOnLeave);
-        }
+ const loadTeamOnLeave = async () => {
+  try {
+    if (userRole === 'manager') {
+      const response = await apiService.getManagerTeamOverview();
+      if (response.success && response.data) {
+        // Cast the data properly and avoid 'any'
+        const teamMembers = response.data as TeamMember[];
+        
+        const todayOnLeave = teamMembers.filter((member: TeamMember) => {
+          return member.leaves?.some((leave: Leave) => {
+            const start = new Date(leave.startDate);
+            const end = new Date(leave.endDate);
+            const today = new Date();
+            return today >= start && today <= end;
+          });
+        }).slice(0, 5);
+        
+        // Make sure setTeamOnLeave expects TeamMember[], not number[]
+        setTeamOnLeave(todayOnLeave);
       }
-    } catch (error) {
-      console.error('Error loading team on leave:', error);
     }
-  };
-
+  } catch (error) {
+    console.error('Error loading team on leave:', error);
+  }
+};
   // Auto-refresh every 30 seconds
   useEffect(() => {
     const interval = setInterval(() => {

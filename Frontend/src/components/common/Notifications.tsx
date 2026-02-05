@@ -3,16 +3,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { NotificationService } from '../../utils/notificationService';
 import './Notifications.css';
 
-interface Notification {
-  id: number;
-  userId: string;
-  title: string;
-  message: string;
-  type: 'info' | 'success' | 'warning' | 'error';
-  read: boolean;
-  createdAt: string;
-  relatedTo: string;
-}
+
+
 
 const Notifications: React.FC = () => {
   const { user } = useAuth();

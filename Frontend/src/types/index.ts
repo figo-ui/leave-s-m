@@ -1,17 +1,33 @@
-// User and Auth Types
+export type NotificationCategory =
+  | 'info'
+  | 'success'
+  | 'warning'
+  | 'error'
+  | 'alert'
+  | 'urgent';
+
+  
+export type UserStatus = 'active' | 'inactive';
+
 export interface User {
   id: number;
   name: string;
   email: string;
-  password?: string;
   role: UserRole;
-  department: string;
-  position: string;
+  status?: UserStatus;
+  department?: string;
+  position?: string;
   phone?: string;
-  joinDate?: string;
-  status: 'active' | 'inactive';
   avatar?: string;
+  joinDate?: string;
   managerId?: number;
+  manager?: {
+    id?: number;
+    name: string;
+    email: string;
+  };
+
+  leaveBalances?: LeaveBalance[];
 }
 
 export type UserRole = 'employee' | 'manager' | 'hr-admin';
@@ -34,68 +50,53 @@ export interface SystemConfigProps {
   onSettingsUpdate?: (settings: SystemSettings) => void;
 }
 // Leave Types
+export type LeaveStatus = 'pending' | 'approved' | 'rejected';
+
 export interface LeaveApplication {
   id: number;
-  employeeId: number;
-  employeeName: string;
+
+  employeeId?: number;
+  employeeName?: string;
   employeeDepartment: string;
-  leaveType: string;
-  startDate: string;
-  endDate: string;
-  days: number;
-  reason: string;
-  status: LeaveStatus;
-  appliedDate: string;
-  approvedBy?: string;
-  approvedDate?: string;
-  comments?: string;
-  attachment?: string;
-}
 
-// Enhanced Leave type with workflow information
-export interface Leave {
-  id: number;
-  employeeId: number;
-  leaveTypeId: number;
-  startDate: string;
-  endDate: string;
-  days: number;
-  reason: string;
-  status: LeaveStatus;
-  currentApprover: 'MANAGER' | 'HR' | 'SYSTEM';
-  appliedDate: string;
-  managerApproved?: boolean;
-  managerApprovedBy?: number;
-  managerApprovedDate?: string;
-  managerNotes?: string;
-  hrApproved?: boolean;
-  hrApprovedBy?: number;
-  hrApprovedDate?: string;
-  hrNotes?: string;
   employee?: User;
-  leaveType?: LeaveType;
-  manager?: User;
-  hrAdmin?: User;
+
+  leaveType?: string;
+  leaveTypeId?: number;
+
+  startDate: string;
+  endDate: string;
+  days: number;
+  appliedDate:string;
+  reason?: string;
+  status: LeaveStatus;
+
+  managerNotes?: string;
+  hrNotes?: string;
+
+  managerApprovedDate?: string;
+  hrApprovedDate?: string;
+
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-export type LeaveStatus = 
-  | 'PENDING_MANAGER' 
-  | 'PENDING_HR' 
-  | 'APPROVED' 
-  | 'HR_APPROVED' 
-  | 'REJECTED';
+/* Common alias used across UI */
 
-export interface LeaveAction {
-  type: 'approve' | 'reject';
-  role: 'manager' | 'hr';
-  notes?: string;
-}
+
 export interface LeaveType {
   id: number;
   name: string;
-  maxDays: number;
   description?: string;
-  isActive: boolean;
+
+  maxDays: number;
+  carryOver: boolean;
+
+  requiresApproval: boolean;
+  requiresHRApproval: boolean;
+  isActive:string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // Form Types
@@ -104,6 +105,7 @@ export interface LeaveFormData {
   startDate: string;
   endDate: string;
   reason: string;
+  leaveTypeId:string;
 }
 
 export interface UserFormData {
@@ -120,38 +122,20 @@ export interface MenuItem {
   icon: string;
    badge?: string;
 }
-interface PendingLeave {
-  id: number;
-  employee: {
-    name: string;
-    email: string;
-    department: string;
-    position: string;
-  };
-  leaveType: {
-    name: string;
-    color: string;
-  };
-  startDate: string;
-  endDate: string;
-  days: number;
-  reason: string;
-  appliedDate: string;
-}
 
 
 // Props Types
 export interface LayoutProps {
   children: React.ReactNode;
-  userRole: UserRole;
+  userRole: string;
 }
 export interface SidebarProps {
-   userRole: UserRole;
+   userRole: string;
   isMobileOpen?: boolean;
   onClose?: () => void;
 }
 export interface DashboardProps {
-  userRole: UserRole;
+  userRole: string;
 }
 // Add these to your existing types
 export interface LoginCredentials {
@@ -220,6 +204,7 @@ export interface Leave {
   leaveType?: LeaveType;
   manager?: User;
   hrAdmin?: User;
+      leaves?: Leave[];
 }
 
 
@@ -231,23 +216,6 @@ export interface LeaveAction {
 
 
 
-export interface User {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-  department: string;
-  position?: string;
-  phone?: string;
-  status: string;
-  avatar?: string;
-  joinDate?: string;
-  createdAt?: string;
-  manager?: {
-    name: string;
-    email: string;
-  };
-}
 
 export interface AuthUser {
   id: number;
@@ -281,6 +249,7 @@ export interface TeamMember {
   position: string;
   department: string;
   leavesTaken: number;
+  todayOnLeave:number;
   remainingLeaves: number;
   onLeave: boolean;
   avatar?: string;
@@ -367,13 +336,23 @@ export interface LeaveOverviewStats {
 }
 
 // Dashboard Stats Types
+
 export interface DashboardStats {
   pendingRequests?: number;
+  pendingApprovals?: number;
   availableLeaves?: number;
   leavesTaken?: number;
-  teamOnLeave?: number;
+  teamSize?: number;
+  totalEmployees?: number;
+  onLeaveToday?: number;
   approvalRate?: number;
-  recentActivity?: LeaveApplication[];
+  systemAlerts?: number;
+
+
+}
+
+export interface EnhancedDashboardStats extends DashboardStats {
+  trend?: 'up' | 'down' | 'neutral';
 }
 
 // Filter Types
@@ -394,7 +373,7 @@ export interface ApiResponse<T> {
   success: boolean;
   data?: T;
   message?: string;
-  error?: string;
+  error?: string[];
 }
 
 export interface PaginatedResponse<T> {
@@ -408,14 +387,17 @@ export interface PaginatedResponse<T> {
 // Notification Types
 export interface Notification {
   id: number;
-  type: 'leave_application' | 'approval' | 'rejection' | 'system';
   title: string;
   message: string;
-  isRead: boolean;
-  createdAt: string;
-  link?: string;
-}
 
+  userId?: number | 'all';
+  relatedTo: string;
+
+  type: NotificationCategory;
+  isRead?: boolean;
+
+  createdAt?: string;
+}
 // Calendar Types
 export interface CalendarEvent {
   id: number;
@@ -468,11 +450,3 @@ export interface TeamPerformanceReport {
   onTimeCompletion: number;
 }
 
-// Update the report data structure
-export interface ReportData {
-  'department-usage': DepartmentUsageReport[];
-  'leave-types': LeaveTypeAnalysisReport[];
-  'team-performance': TeamPerformanceReport[];
-  'employee-trends': any[];
-  'compliance': 
-}

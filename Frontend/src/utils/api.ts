@@ -5,7 +5,7 @@ import {
   LeaveType, 
   LeaveBalance, 
   DashboardStats, 
-  SystemSetting, 
+  SystemSettings, 
   Notification, 
   TeamMember, 
   ReportData 
@@ -1043,6 +1043,9 @@ class ApiService {
   async getManagerTeamOverview(): Promise<ApiResponse<TeamMember[]>> {
     return this.get<TeamMember[]>('/manager/team-overview');
   }
+  async getDashboardStats() {
+  return this.request<DashboardStats>('/dashboard/stats');
+}
 
   async getApprovalsHistory(): Promise<ApiResponse<Leave[]>> {
     return this.get<Leave[]>('/manager/approvals-history');

@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
 import { apiService } from '../../utils/api';
 import { LeaveApplication, LeaveBalance } from '../../types';
 import './LeaveHistory.css';
 
 
 const LeaveHistory: React.FC = () => {
-  const { user } = useAuth();
+
   const [leaveHistory, setLeaveHistory] = useState<LeaveApplication[]>([]);
   const [filteredHistory, setFilteredHistory] = useState<LeaveApplication[]>([]);
   const [leaveBalances, setLeaveBalances] = useState<LeaveBalance[]>([]);

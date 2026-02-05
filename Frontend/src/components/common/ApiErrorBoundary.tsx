@@ -1,5 +1,5 @@
 // components/common/ApiErrorBoundary.tsx
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import  { Component, ErrorInfo, ReactNode } from 'react';
 import { apiService } from '../../utils/api';
 
 interface Props {
