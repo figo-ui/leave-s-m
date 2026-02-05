@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { apiService } from '../../utils/api';
+import { useTranslation } from 'react-i18next';
+import { LanguageCode } from '../../types';
 import AvatarUpload from '../common/AvatarUpload';
 import './ProfileSettings.css';
 
@@ -16,10 +18,12 @@ interface UserProfile {
   avatar?: string;
   status?: string;
   joinDate?: string;
+  language?: LanguageCode;
 }
 
 const ProfileSettings: React.FC = () => {
   const { user, updateUser } = useAuth();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -34,7 +38,8 @@ const ProfileSettings: React.FC = () => {
     position: user?.position || '',
     avatar: user?.avatar || '',
     status: user?.status || 'active',
-    joinDate: user?.joinDate || ''
+    joinDate: user?.joinDate || '',
+    language: (user?.language as LanguageCode) || 'en'
   });
 
   const [passwordData, setPasswordData] = useState({
@@ -60,12 +65,13 @@ const ProfileSettings: React.FC = () => {
         name: user.name,
         email: user.email,
         role: user.role,
-        department: user.department,
+        department: user.department || '',
         phone: user.phone || '',
         position: user.position || '',
         avatar: user.avatar || '',
-        status: user.status,
-        joinDate: user.joinDate
+        status: user.status || 'active',
+        joinDate: user.joinDate || '',
+        language: (user.language as LanguageCode) || 'en'
       });
     }
   }, [user]);
@@ -80,7 +86,7 @@ const ProfileSettings: React.FC = () => {
   const handleAvatarUpdate = (updatedUser: any) => {
     updateUser(updatedUser);
     setProfile(prev => ({ ...prev, avatar: updatedUser.avatar }));
-    showSuccessMessage('Profile picture updated successfully!');
+    showSuccessMessage(t('profile.avatar_updated'));
   };
 
   const handlePhoneNumberChange = (value: string) => {
@@ -112,11 +118,11 @@ const ProfileSettings: React.FC = () => {
     setError('');
     
     try {
-      const response = await apiService.updateProfile({phone: phone});
+      const response = await apiService.updateProfile({ phone: phone || undefined });
       
       if (response.success && response.data) {
         updateUser(response.data);
-        showSuccessMessage('Phone number updated successfully!');
+        showSuccessMessage(t('profile.phone_updated'));
         setIsEditingPhone(false);
       } else {
         setError(response.message || 'Failed to update phone number');
@@ -135,6 +141,29 @@ const ProfileSettings: React.FC = () => {
       phone: user?.phone || ''
     }));
     setError('');
+  };
+
+  const handleLanguageChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedLanguage = e.target.value as LanguageCode;
+    setProfile(prev => ({ ...prev, language: selectedLanguage }));
+
+    setLoading(true);
+    setError('');
+    setMessage('');
+
+    try {
+      const response = await apiService.updateProfile({ language: selectedLanguage });
+      if (response.success && response.data) {
+        updateUser(response.data);
+        showSuccessMessage(t('profile.language_updated'));
+      } else {
+        setError(response.message || 'Failed to update language');
+      }
+    } catch (error: any) {
+      setError(error.message || 'Failed to update language');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handlePasswordChange = async (e: React.FormEvent) => {
@@ -179,7 +208,7 @@ const ProfileSettings: React.FC = () => {
       });
 
       if (response.success) {
-        showSuccessMessage('Password changed successfully!');
+        showSuccessMessage(t('profile.password_changed'));
         // Reset form
         setPasswordData({
           currentPassword: '',
@@ -274,7 +303,7 @@ const ProfileSettings: React.FC = () => {
   return (
     <div className="profile-settings">
       <div className="profile-header">
-        <h1>Profile Settings</h1>
+        <h1>{t('profile.profile_settings')}</h1>
         <p>Manage your personal information and security settings</p>
       </div>
 
@@ -428,8 +457,8 @@ const ProfileSettings: React.FC = () => {
                 <div className="info-group read-only">
                   <label className="info-label">Status</label>
                   <div className="info-value">
-                    <span className={`status-badge ${profile.status.toLowerCase()}`}>
-                      {profile.status}
+                    <span className={`status-badge ${(profile.status || 'active').toLowerCase()}`}>
+                      {profile.status || 'active'}
                     </span>
                     <span className="readonly-badge">System Status</span>
                   </div>
@@ -492,6 +521,27 @@ const ProfileSettings: React.FC = () => {
                     </div>
                   )}
                   <div className="info-help">Your personal contact number (will not be shared publicly)</div>
+                </div>
+
+                {/* Language Selection */}
+                <div className="info-group editable">
+                  <label className="info-label">
+                    🌐 {t('profile.language_label')}
+                    <span className="editable-indicator">(You can edit)</span>
+                  </label>
+                  <div className="info-value-with-action">
+                    <select
+                      className="phone-input"
+                      value={profile.language || 'en'}
+                      onChange={handleLanguageChange}
+                      disabled={loading}
+                    >
+                      <option value="en">{t('languages.en')}</option>
+                      <option value="om">{t('languages.om')}</option>
+                      <option value="am">{t('languages.am')}</option>
+                    </select>
+                  </div>
+                  <div className="info-help">Choose the language you want to use in the system</div>
                 </div>
 
                 <div className="info-group read-only">

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate,  } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
 import './Navbar.css';
 
 // Import the logo image
@@ -12,6 +13,7 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
   const { user, logout } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
  
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -46,13 +48,13 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
   };
 
   const getWelcomeMessage = () => {
-    if (!user) return 'Welcome';
-    return `Welcome, ${user.name}`;
+    if (!user) return t('common.welcome_generic');
+    return t('common.welcome', { name: user.name });
   };
 
   const getUserRole = () => {
-    if (!user) return 'Employee';
-    return user.role.charAt(0).toUpperCase() + user.role.slice(1);
+    if (!user) return t('roles.employee');
+    return t(`roles.${user.role}`);
   };
 
   const getUserInitials = () => {
@@ -82,8 +84,8 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
               className="navbar-logo"
             />
             <div className="university-name">
-              <h2>ODA BULTUM UNIVERSITY</h2>
-              <p>Leave Management System</p>
+              <h2>{t('app.university_name')}</h2>
+              <p>{t('app.system_name')}</p>
             </div>
           </div>
         </div>
@@ -136,13 +138,13 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
 
               {/* Quick Profile Section */}
               <div className="menu-section">
-                <div className="section-label">Profile</div>
+                <div className="section-label">{t('common.profile')}</div>
                 <button 
                   className="menu-item primary"
                   onClick={() => handleNavigation('/about-me')}
                 >
                   <span className="menu-icon">👤</span>
-                  <span className="menu-text">About Me</span>
+                  <span className="menu-text">{t('nav.about_me')}</span>
                   <span className="menu-arrow">→</span>
                 </button>
                 
@@ -151,7 +153,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
                   onClick={() => handleNavigation('/profile-settings')}
                 >
                   <span className="menu-icon">⚙️</span>
-                  <span className="menu-text">Profile Settings</span>
+                  <span className="menu-text">{t('menu.profile_settings')}</span>
                 </button>
               </div>
 
@@ -159,13 +161,13 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
 
               {/* Security Section */}
               <div className="menu-section">
-                <div className="section-label">Security</div>
+                <div className="section-label">{t('common.security')}</div>
                 <button 
                   className="menu-item"
                   onClick={() => handleNavigation('/security')}
                 >
                   <span className="menu-icon">🔐</span>
-                  <span className="menu-text">Password & Security</span>
+                  <span className="menu-text">{t('nav.password_security')}</span>
                 </button>
               </div>
 
@@ -175,12 +177,12 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
               <div className="menu-section">
                 <button className="menu-item">
                   <span className="menu-icon">❓</span>
-                  <span className="menu-text">Help & Support</span>
+                  <span className="menu-text">{t('common.help_support')}</span>
                 </button>
                 
                 <button className="menu-item">
                   <span className="menu-icon">ℹ️</span>
-                  <span className="menu-text">About System</span>
+                  <span className="menu-text">{t('common.about_system')}</span>
                 </button>
                 
                 <button 
@@ -188,7 +190,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
                   onClick={handleLogout}
                 >
                   <span className="menu-icon">🚪</span>
-                  <span className="menu-text">Sign Out</span>
+                  <span className="menu-text">{t('common.sign_out')}</span>
                 </button>
               </div>
 

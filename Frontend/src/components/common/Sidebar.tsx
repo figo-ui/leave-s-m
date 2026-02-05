@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { SidebarProps, MenuItem, UserRole } from '../../types';
+import { useTranslation } from 'react-i18next';
 import './Sidebar.css';
 
 // Import logo
 import universityLogo from '../../assets/university-logo.png';
 
 const Sidebar: React.FC<SidebarProps> = ({ userRole, isMobileOpen, onClose }) => {
+  const { t } = useTranslation();
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -36,29 +38,39 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole, isMobileOpen, onClose }) =>
   const getMenuItems = (): MenuItem[] => {
     const menuItems: Record<UserRole, MenuItem[]> = {
       employee: [
-        { path: '/dashboard', label: 'Dashboard', icon: '📊' },
-        { path: '/apply-leave', label: 'Apply for Leave', icon: '📝' },
-        { path: '/leave-history', label: 'My Leave History', icon: '📋' },
-        { path: '/profile', label: 'Profile Settings', icon: '👤' }
+        { path: '/dashboard', label: t('menu.dashboard'), icon: '📊' },
+        { path: '/apply-leave', label: t('menu.apply_leave'), icon: '📝' },
+        { path: '/leave-history', label: t('menu.leave_history'), icon: '📋' },
+        { path: '/profile', label: t('menu.profile_settings'), icon: '👤' }
       ],
       manager: [
-        { path: '/profile', label: 'Profile Settings', icon: '👤' },
-        { path: '/dashboard', label: 'Dashboard', icon: '📊' },
-        { path: '/pending-requests', label: 'Pending Requests', icon: '⏳', },
-        { path: '/approvals-history', label: 'Approvals History', icon: '✅' },
-        { path: '/team-overview', label: 'Team Overview', icon: '👥' },
-        { path: '/reports', label: 'Reports', icon: '📈' }
+        { path: '/profile', label: t('menu.profile_settings'), icon: '👤' },
+        { path: '/dashboard', label: t('menu.dashboard'), icon: '📊' },
+        { path: '/pending-requests', label: t('menu.pending_requests'), icon: '⏳', },
+        { path: '/approvals-history', label: t('menu.approvals_history'), icon: '✅' },
+        { path: '/team-overview', label: t('menu.team_overview'), icon: '👥' },
+        { path: '/reports', label: t('menu.reports'), icon: '📈' }
       ],
       'hr-admin': [
-         { path: '/profile', label: 'Profile Settings', icon: '👤' },
-        { path: '/dashboard', label: 'Dashboard', icon: '📊' },
-        { path: '/leave-overview', label: 'Leave Overview', icon: '👁️', },
-        { path: '/user-management', label: 'User Management', icon: '👥' },
-        { path: '/leave-types', label: 'Leave Types', icon: '🏷️' },
-        { path: '/system-config', label: 'Configuration', icon: '⚙️' },
-        { path: '/hr-reports', label: 'Reports', icon: '📈' },
-        { path: '/hr-approvals', label: 'Approvals', icon: '✅' }
+         { path: '/profile', label: t('menu.profile_settings'), icon: '👤' },
+        { path: '/dashboard', label: t('menu.dashboard'), icon: '📊' },
+        { path: '/leave-overview', label: t('menu.leave_overview'), icon: '👁️', },
+        { path: '/user-management', label: t('menu.user_management'), icon: '👥' },
+        { path: '/leave-types', label: t('menu.leave_types'), icon: '🏷️' },
+        { path: '/system-config', label: t('menu.configuration'), icon: '⚙️' },
+        { path: '/hr-reports', label: t('menu.reports'), icon: '📈' },
+        { path: '/hr-approvals', label: t('menu.approvals'), icon: '✅' }
 
+      ],
+      'super-admin': [
+        { path: '/profile', label: t('menu.profile_settings'), icon: '👤' },
+        { path: '/dashboard', label: t('menu.dashboard'), icon: '📊' },
+        { path: '/leave-overview', label: t('menu.leave_overview'), icon: '👁️', },
+        { path: '/user-management', label: t('menu.user_management'), icon: '👥' },
+        { path: '/leave-types', label: t('menu.leave_types'), icon: '🏷️' },
+        { path: '/system-config', label: t('menu.configuration'), icon: '⚙️' },
+        { path: '/hr-reports', label: t('menu.reports'), icon: '📈' },
+        { path: '/hr-approvals', label: t('menu.approvals'), icon: '✅' }
       ],
     };
 
@@ -92,15 +104,6 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole, isMobileOpen, onClose }) =>
     }
   };
 
-  const getRoleDisplayName = (role: UserRole): string => {
-    const roleNames = {
-      employee: 'Employee Portal',
-      manager: 'Manager Portal',
-      'hr-admin': 'HR Admin Portal'
-    };
-    return roleNames[role];
-  };
-
   // Determine if sidebar should show expanded content
   const isSidebarExpanded = isHovered || !isCollapsed || (isMobile && isMobileOpen);
 
@@ -129,8 +132,8 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole, isMobileOpen, onClose }) =>
             />
             {isSidebarExpanded && (
               <div className="brand-text">
-                <div className="system-name">OBU Leave</div>
-                <div className="system-subtitle">Management System</div>
+                <div className="system-name">{t('app.system_short')}</div>
+                <div className="system-subtitle">{t('app.management_system')}</div>
               </div>
             )}
           </div>
@@ -140,7 +143,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole, isMobileOpen, onClose }) =>
             <button 
               className="sidebar-close"
               onClick={handleClose}
-              title="Close sidebar"
+              title={t('common.close_sidebar')}
             >
               ×
             </button>
@@ -152,7 +155,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole, isMobileOpen, onClose }) =>
         <nav className="sidebar-nav">
           <div className="nav-section">
             {isSidebarExpanded && (
-              <div className="section-label">LEAVE MANAGEMENT</div>
+              <div className="section-label">{t('nav.leave_management')}</div>
             )}
             <ul>
               {getMenuItems().map((item) => {

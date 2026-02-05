@@ -1,16 +1,17 @@
 // utils/api.ts
-import { 
-  User, 
-  Leave, 
-  LeaveType, 
+import {
+  User,
+  Leave,
+  LeaveType,
   UserRole,
-  LeaveBalance, 
-  DashboardStats, 
-   LeaveUsageReport,
-   SystemSettings,
-  Notification, 
-  TeamMember, 
-   
+  LeaveBalance,
+  DashboardStats,
+  LeaveUsageReport,
+  SystemSettings,
+  SystemSetting,
+  HRReportData,
+  Notification,
+  TeamMember,
 } from '../types';
 
 // Environment detection
@@ -93,17 +94,10 @@ export interface RequestConfig extends RequestInit {
 
 // Cache interface with LRU support
 interface CacheEntry {
-  data: string;
+  data: ApiResponse<any>;
   timestamp: number;
   expiresAt: number;
   hits: number;
-}
-
-// Queue item interface
-interface QueueItem {
-  resolve: (value: string) => void;
-  reject: (reason?: string) => void;
-  controller: AbortController;
 }
 
 // Performance metrics
@@ -120,7 +114,6 @@ class ApiService {
   private baseURL: string;
   private cache: Map<string, CacheEntry>;
   private pendingRequests: Map<string, Promise<any>>;
-  private requestQueue: Map<string, QueueItem[]>;
   private metrics: RequestMetrics[];
   private maxCacheSize: number;
   private offlineQueue: Array<() => Promise<void>>;
@@ -132,7 +125,6 @@ class ApiService {
     this.baseURL = getBaseURL();
     this.cache = new Map();
     this.pendingRequests = new Map();
-    this.requestQueue = new Map();
     this.metrics = [];
     this.maxCacheSize = 100; // Maximum cache entries
     this.offlineQueue = [];
@@ -424,6 +416,7 @@ class ApiService {
   }
 
   private async handleUnauthorized(response: Response): Promise<void> {
+    void response;
     // Try to refresh token first
     try {
       const newToken = await this.refreshToken();
@@ -773,7 +766,7 @@ class ApiService {
       }
       
       // Cache user data
-      this.setCache('current_user', { user: response.data.user }, 300000);
+      this.setCache('current_user', { success: true, data: { user: response.data.user } }, 300000);
       
       // Clear sensitive caches
       this.clearCache('/users');
@@ -785,7 +778,7 @@ class ApiService {
   async getCurrentUser(): Promise<ApiResponse<{ user: User }>> {
     // Check cache first with shorter TTL for user data
     const cached = this.getFromCache<{ user: User }>('current_user');
-    if (cached && (Date.now() - cached.timestamp) ) { // 1 minute
+    if (cached) {
       return cached;
     }
 
@@ -837,7 +830,6 @@ class ApiService {
   }
 
   async createUser(userData: {
-    id:number;
     name: string;
     email: string;
     role: UserRole;
@@ -848,8 +840,16 @@ class ApiService {
     managerId?: number | string;
   }): Promise<ApiResponse<User>> {
     // Normalize and clean the data before sending
-    const cleanData: User = {
-      id: userData.id,
+    const cleanData: {
+      name: string;
+      email: string;
+      role: UserRole;
+      department: string;
+      password: string;
+      position?: string;
+      phone?: string;
+      managerId?: number;
+    } = {
       name: userData.name.trim(),
       email: userData.email.toLowerCase().trim(),
       role: userData.role,
@@ -1010,12 +1010,13 @@ class ApiService {
     phone?: string;
     department?: string;
     position?: string;
+    language?: string;
   }): Promise<ApiResponse<User>> {
     const response = await this.put<User>('/profile', profileData);
     
     if (response.success && response.data) {
       // Update cached user data
-      this.setCache('current_user', { user: response.data }, 300000);
+      this.setCache('current_user', { success: true, data: { user: response.data } }, 300000);
     }
     
     return response;
@@ -1037,7 +1038,7 @@ class ApiService {
     const response = await this.delete<User>('/users/avatar');
     
     if (response.success && response.data) {
-      this.setCache('current_user', { user: response.data }, 300000);
+      this.setCache('current_user', { success: true, data: { user: response.data } }, 300000);
     }
     
     return response;
@@ -1070,27 +1071,27 @@ class ApiService {
   async getHrReportsAnalytics(params?: {
     startDate?: string;
     endDate?: string;
-  }): Promise<ApiResponse<LeaveUsageReport>> {
+  }): Promise<ApiResponse<HRReportData>> {
     const queryParams = new URLSearchParams();
     if (params?.startDate) queryParams.append('startDate', params.startDate);
     if (params?.endDate) queryParams.append('endDate', params.endDate);
     
     const endpoint = `/hr/reports/analytics${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-    return this.get<LeaveUsageReport>(endpoint);
+    return this.get<HRReportData>(endpoint);
   }
 
   async exportHrReport(params: {
     startDate?: string;
     endDate?: string;
     reportType: string;
-  }): Promise<ApiResponse<LeaveUsageReport>> {
+  }): Promise<ApiResponse<HRReportData>> {
     const queryParams = new URLSearchParams();
     if (params.startDate) queryParams.append('startDate', params.startDate);
     if (params.endDate) queryParams.append('endDate', params.endDate);
     queryParams.append('reportType', params.reportType);
     
     const endpoint = `/hr/reports/export?${queryParams.toString()}`;
-    return this.get<LeaveUsageReport>(endpoint);
+    return this.get<HRReportData>(endpoint);
   }
 
   async getLeaveTypes(): Promise<ApiResponse<LeaveType[]>> {
@@ -1125,6 +1126,33 @@ class ApiService {
     return response;
   }
 
+  async updateLeaveType(
+    leaveTypeId: number,
+    leaveTypeData: {
+      name?: string;
+      maxDays?: number;
+      description?: string;
+      color?: string;
+      requiresHRApproval?: boolean;
+      carryOver?: boolean;
+      requiresApproval?: boolean;
+    }
+  ): Promise<ApiResponse<LeaveType>> {
+    const data = {
+      ...leaveTypeData,
+      name: leaveTypeData.name?.trim(),
+      description: leaveTypeData.description?.trim()
+    };
+
+    const response = await this.put<LeaveType>(`/leave-types/${leaveTypeId}`, data);
+
+    if (response.success) {
+      this.clearCache('/leave-types');
+    }
+
+    return response;
+  }
+
   
   async deleteLeaveType(leaveTypeId: number): Promise<ApiResponse<void>> {
     const response = await this.delete<void>(`/leave-types/${leaveTypeId}`);
@@ -1137,14 +1165,14 @@ class ApiService {
   }
 
   // ==================== SYSTEM ENDPOINTS ====================
-  async getSystemSettings(): Promise<ApiResponse<SystemSettings[]>> {
-    return this.get<SystemSettings[]>('/system/settings');
+  async getSystemSettings(): Promise<ApiResponse<SystemSetting[]>> {
+    return this.get<SystemSetting[]>('/system/settings');
   }
 
   
 // In your ApiService class
-async updateSystemSetting(key: string, value: string): Promise<ApiResponse<SystemSettings>> {
-  const response = await this.put<SystemSettings>(`/system/settings/${key}`, { value });
+async updateSystemSetting(key: string, value: string): Promise<ApiResponse<SystemSetting>> {
+  const response = await this.put<SystemSetting>(`/system/settings/${key}`, { value });
   
   if (response.success) {
     this.clearCache('/system/settings');
@@ -1161,6 +1189,18 @@ async updateSystemSetting(key: string, value: string): Promise<ApiResponse<Syste
 
   async markNotificationAsRead(notificationId: number): Promise<ApiResponse<Notification>> {
     return this.patch<Notification>(`/notifications/${notificationId}/read`);
+  }
+
+  async markAllNotificationsAsRead(): Promise<ApiResponse<void>> {
+    return this.post<void>('/notifications/read-all', {});
+  }
+
+  async deleteNotification(notificationId: number): Promise<ApiResponse<void>> {
+    return this.delete<void>(`/notifications/${notificationId}`);
+  }
+
+  async getNotificationStats(): Promise<ApiResponse<{ unread: number; total: number }>> {
+    return this.get<{ unread: number; total: number }>('/notifications/stats');
   }
 
   // ==================== DEBUG ENDPOINTS ====================
@@ -1230,8 +1270,7 @@ async updateSystemSetting(key: string, value: string): Promise<ApiResponse<Syste
   async healthCheck(): Promise<boolean> {
     try {
       const response = await fetch(`${this.baseURL.replace('/api', '')}/health`, {
-        method: 'GET',
-        timeout: 5000
+        method: 'GET'
       });
       return response.ok;
     } catch {

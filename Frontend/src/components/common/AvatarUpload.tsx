@@ -1,11 +1,12 @@
 import React, { useRef, useState } from 'react';
 import { apiService } from '../../utils/api';
+import type { User } from '../../types';
 import './AvatarUpload.css';
 
 interface AvatarUploadProps {
   currentAvatar?: string;
   userName: string;
-  onAvatarUpdate: (user: string) => void;
+  onAvatarUpdate: (user: User) => void;
   size?: 'small' | 'medium' | 'large';
 }
 
@@ -77,7 +78,8 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
       }
     } catch (error: unknown) {
       console.error('Avatar upload error:', error);
-      setError(error.message || 'Failed to upload profile photo');
+      const message = error instanceof Error ? error.message : 'Failed to upload profile photo';
+      setError(message);
     } finally {
       setUploading(false);
       // Reset file input

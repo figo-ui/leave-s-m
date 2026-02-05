@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { apiService } from '../../utils/api';
+import type { Leave } from '../../types';
+import { useTranslation } from 'react-i18next';
 import './PendingRequests.css';
 
 interface PendingRequest {
@@ -40,6 +42,7 @@ interface PendingRequest {
 
 const PendingRequests: React.FC = () => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [pendingRequests, setPendingRequests] = useState<PendingRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -79,7 +82,46 @@ const PendingRequests: React.FC = () => {
       }
       
       if (response.success) {
-        const requests = response.data || [];
+        const requests = (response.data || []).map((leave: Leave) => ({
+          id: leave.id,
+          employee: {
+            id: leave.employee?.id ?? leave.employeeId ?? 0,
+            name: leave.employee?.name ?? 'Unknown',
+            email: leave.employee?.email ?? '',
+            department: leave.employee?.department ?? leave.department ?? 'Unassigned',
+            position: leave.employee?.position ?? '',
+            avatar: leave.employee?.avatar,
+            manager: leave.employee?.manager
+              ? { name: leave.employee.manager.name, email: leave.employee.manager.email }
+              : undefined
+          },
+          leaveType: typeof leave.leaveType === 'string'
+            ? {
+                id: leave.leaveTypeId ?? 0,
+                name: leave.leaveType,
+                color: '#667eea',
+                requiresHRApproval: false
+              }
+            : {
+                id: leave.leaveType?.id ?? leave.leaveTypeId ?? 0,
+                name: leave.leaveType?.name || 'Unknown',
+                color: leave.leaveType?.color,
+                requiresHRApproval: leave.leaveType?.requiresHRApproval ?? false
+              },
+          startDate: leave.startDate,
+          endDate: leave.endDate,
+          days: leave.days,
+          reason: leave.reason || '',
+          status: leave.status,
+          appliedDate: leave.appliedDate,
+          currentApprover: String(leave.currentApprover),
+          managerNotes: leave.managerNotes,
+          hrNotes: leave.hrNotes,
+          managerApprovedBy: leave.managerApprovedBy,
+          managerApprovedDate: leave.managerApprovedDate,
+          hrApprovedBy: leave.hrApprovedBy,
+          hrApprovedDate: leave.hrApprovedDate
+        }));
         console.log('✅ Requests loaded:', requests.length);
         
         setPendingRequests(requests);
@@ -223,7 +265,7 @@ const PendingRequests: React.FC = () => {
         )
       );
       
-      const successful = results.filter((result, index) => 
+      const successful = results.filter(result => 
         result.status === 'fulfilled' && result.value.success
       ).length;
       
@@ -267,7 +309,7 @@ const PendingRequests: React.FC = () => {
         )
       );
       
-      const successful = results.filter((result, index) => 
+      const successful = results.filter(result => 
         result.status === 'fulfilled' && result.value.success
       ).length;
       
@@ -290,14 +332,6 @@ const PendingRequests: React.FC = () => {
         ? prev.filter(id => id !== requestId)
         : [...prev, requestId]
     );
-  };
-
-  const selectAllRequests = () => {
-    if (bulkActions.length === filteredRequests.length) {
-      setBulkActions([]);
-    } else {
-      setBulkActions(filteredRequests.map(req => req.id));
-    }
   };
 
   // Enhanced utility functions
@@ -353,7 +387,7 @@ const PendingRequests: React.FC = () => {
     }
     
     if (isHRPending) {
-      return '✅ Manager Approved → ⏳ HR Review';
+      return t('pending_requests.status.manager_to_hr');
     }
     
     return 'Pending Review';
@@ -442,13 +476,13 @@ const PendingRequests: React.FC = () => {
       <div className="pending-requests">
         <div className="page-header">
           <h1>
-            {user?.role === 'manager' ? 'Pending Manager Approvals' : 'Pending HR Approvals'}
+            {user?.role === 'manager' ? t('pending_requests.titles.manager') : t('pending_requests.titles.hr')}
           </h1>
-          <p>Loading leave requests...</p>
+          <p>{t('pending_requests.loading')}</p>
         </div>
         <div className="loading-state">
           <div className="loading-spinner"></div>
-          <p>Loading pending requests...</p>
+          <p>{t('pending_requests.loading_pending')}</p>
         </div>
       </div>
     );
@@ -458,15 +492,15 @@ const PendingRequests: React.FC = () => {
     return (
       <div className="pending-requests">
         <div className="page-header">
-          <h1>Pending Leave Requests</h1>
-          <p>Review and approve leave applications</p>
+          <h1>{t('pending_requests.title')}</h1>
+          <p>{t('pending_requests.subtitle')}</p>
         </div>
         <div className="error-state">
           <div className="error-icon">⚠️</div>
-          <h3>Unable to Load Requests</h3>
+          <h3>{t('pending_requests.errors.unable')}</h3>
           <p>{error}</p>
           <button onClick={loadPendingRequests} className="retry-btn">
-            🔄 Try Again
+            🔄 {t('common.try_again')}
           </button>
         </div>
       </div>
@@ -479,12 +513,12 @@ const PendingRequests: React.FC = () => {
         <div className="header-content">
           <div>
             <h1>
-              {user?.role === 'manager' ? 'Pending Manager Approvals' : 'Pending HR Approvals'}
+              {user?.role === 'manager' ? t('pending_requests.titles.manager') : t('pending_requests.titles.hr')}
             </h1>
             <p>
               {user?.role === 'manager' 
-                ? 'First-level approval for your team members' 
-                : 'Final approval for manager-reviewed requests'
+                ? t('pending_requests.subtitles.manager')
+                : t('pending_requests.subtitles.hr')
               }
             </p>
           </div>
@@ -492,15 +526,15 @@ const PendingRequests: React.FC = () => {
             <div className="stat-badges">
               <span className="stat-badge total">
                 <span className="stat-number">{stats.total}</span>
-                <span className="stat-label">Total</span>
+                <span className="stat-label">{t('pending_requests.stats.total')}</span>
               </span>
               <span className="stat-badge urgent">
                 <span className="stat-number">{stats.urgent}</span>
-                <span className="stat-label">Urgent</span>
+                <span className="stat-label">{t('pending_requests.stats.urgent')}</span>
               </span>
               <span className="stat-badge hr-pending">
                 <span className="stat-number">{stats.requiresHR}</span>
-                <span className="stat-label">Requires HR</span>
+                <span className="stat-label">{t('pending_requests.stats.requires_hr')}</span>
               </span>
             </div>
           </div>
@@ -511,7 +545,7 @@ const PendingRequests: React.FC = () => {
             onClick={loadPendingRequests} 
             disabled={loading}
           >
-            {loading ? '🔄 Loading...' : '🔄 Refresh'}
+            {loading ? `🔄 ${t('common.loading')}` : `🔄 ${t('dashboard.refresh')}`}
           </button>
         </div>
       </div>
@@ -522,7 +556,7 @@ const PendingRequests: React.FC = () => {
           <div className="search-box">
             <input
               type="text"
-              placeholder="Search by employee, department, or reason..."
+              placeholder={t('pending_requests.search_placeholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"
@@ -535,11 +569,11 @@ const PendingRequests: React.FC = () => {
               onChange={(e) => setFilter(e.target.value as any)}
               className="filter-select"
             >
-              <option value="all">All Requests ({stats.total})</option>
-              <option value="urgent">Urgent ({stats.urgent})</option>
-              <option value="requires-hr">Requires HR ({stats.requiresHR})</option>
+              <option value="all">{t('pending_requests.filters.all', { count: stats.total })}</option>
+              <option value="urgent">{t('pending_requests.filters.urgent', { count: stats.urgent })}</option>
+              <option value="requires-hr">{t('pending_requests.filters.requires_hr', { count: stats.requiresHR })}</option>
               {user?.role === 'manager' && (
-                <option value="requires-manager">First Approval ({stats.total - stats.requiresHR})</option>
+                <option value="requires-manager">{t('pending_requests.filters.first_approval', { count: stats.total - stats.requiresHR })}</option>
               )}
             </select>
           </div>
@@ -550,10 +584,10 @@ const PendingRequests: React.FC = () => {
               onChange={(e) => setSortBy(e.target.value as any)}
               className="filter-select"
             >
-              <option value="urgency">Sort by Urgency</option>
-              <option value="date">Sort by Date</option>
-              <option value="employee">Sort by Employee</option>
-              <option value="department">Sort by Department</option>
+              <option value="urgency">{t('pending_requests.sort.urgency')}</option>
+              <option value="date">{t('pending_requests.sort.date')}</option>
+              <option value="employee">{t('pending_requests.sort.employee')}</option>
+              <option value="department">{t('pending_requests.sort.department')}</option>
             </select>
           </div>
         </div>
@@ -562,7 +596,7 @@ const PendingRequests: React.FC = () => {
         {bulkActions.length > 0 && (
           <div className="bulk-actions-bar">
             <div className="bulk-info">
-              <strong>{bulkActions.length}</strong> requests selected
+              {t('pending_requests.bulk.selected', { count: bulkActions.length })}
             </div>
             <div className="bulk-buttons">
               <button
@@ -570,20 +604,20 @@ const PendingRequests: React.FC = () => {
                 onClick={handleBulkApprove}
                 disabled={actionLoading === -1}
               >
-                {actionLoading === -1 ? 'Processing...' : `✅ Approve ${bulkActions.length}`}
+                {actionLoading === -1 ? t('pending_requests.bulk.processing') : `✅ ${t('pending_requests.bulk.approve', { count: bulkActions.length })}`}
               </button>
               <button
                 className="bulk-reject-btn"
                 onClick={handleBulkReject}
                 disabled={actionLoading === -1}
               >
-                {actionLoading === -1 ? 'Processing...' : `❌ Reject ${bulkActions.length}`}
+                {actionLoading === -1 ? t('pending_requests.bulk.processing') : `❌ ${t('pending_requests.bulk.reject', { count: bulkActions.length })}`}
               </button>
               <button
                 className="bulk-clear-btn"
                 onClick={() => setBulkActions([])}
               >
-                Clear Selection
+                {t('pending_requests.bulk.clear')}
               </button>
             </div>
           </div>
@@ -596,18 +630,18 @@ const PendingRequests: React.FC = () => {
             {user?.role === 'manager' ? '✅' : '👥'}
           </div>
           <h3>
-            {searchTerm ? "No matching requests found" :
+            {searchTerm ? t('pending_requests.empty.matching') :
              user?.role === 'manager' 
-              ? "No Pending Manager Approvals"
-              : "No Pending HR Approvals"
+              ? t('pending_requests.empty.manager')
+              : t('pending_requests.empty.hr')
             }
           </h3>
           <p>
             {searchTerm 
-              ? "Try adjusting your search criteria"
+              ? t('pending_requests.empty.try_adjust')
               : user?.role === 'manager'
-                ? "All leave requests have been processed."
-                : "No manager-approved requests pending HR review."
+                ? t('pending_requests.empty.processed')
+                : t('pending_requests.empty.hr_review')
             }
           </p>
           {(searchTerm || filter !== 'all') && (
@@ -615,7 +649,7 @@ const PendingRequests: React.FC = () => {
               onClick={() => { setSearchTerm(''); setFilter('all'); }}
               className="clear-filters-btn"
             >
-              Clear Filters
+              {t('pending_requests.clear_filters')}
             </button>
           )}
         </div>
@@ -664,11 +698,11 @@ const PendingRequests: React.FC = () => {
                   
                   <div className="request-meta">
                     <div className={`urgency-badge ${urgency}`}>
-                      {urgency === 'overdue' && '⏰ Overdue'}
-                      {urgency === 'critical' && '🚨 Starts Today'}
-                      {urgency === 'high' && '🚨 Urgent'}
-                      {urgency === 'medium' && '⚠️ Soon'}
-                      {urgency === 'low' && '📅 Upcoming'}
+                      {urgency === 'overdue' && t('pending_requests.urgency.overdue')}
+                      {urgency === 'critical' && t('pending_requests.urgency.starts_today')}
+                      {urgency === 'high' && t('pending_requests.urgency.urgent')}
+                      {urgency === 'medium' && t('pending_requests.urgency.soon')}
+                      {urgency === 'low' && t('pending_requests.urgency.upcoming')}
                     </div>
                     <div className="workflow-status">
                       {getWorkflowStatus(request)}
@@ -688,16 +722,16 @@ const PendingRequests: React.FC = () => {
                     
                     <div className="date-info">
                       <strong>{formatDate(request.startDate)} - {formatDate(request.endDate)}</strong>
-                      <span>({request.days} day{request.days !== 1 ? 's' : ''})</span>
+                      <span>({request.days} {t('dashboard.days')})</span>
                     </div>
                     
                     <div className="time-info">
                       {daysUntilStart < 0 ? (
-                        <span className="overdue-text">{Math.abs(daysUntilStart)} days overdue</span>
+                        <span className="overdue-text">{t('pending_requests.time.overdue', { days: Math.abs(daysUntilStart) })}</span>
                       ) : daysUntilStart === 0 ? (
-                        <span className="starts-today">Starts today</span>
+                        <span className="starts-today">{t('pending_requests.time.starts_today')}</span>
                       ) : (
-                        <span>{daysUntilStart} days until start</span>
+                        <span>{t('pending_requests.time.until_start', { days: daysUntilStart })}</span>
                       )}
                     </div>
                   </div>
@@ -722,8 +756,8 @@ const PendingRequests: React.FC = () => {
                       <textarea
                         placeholder={
                           user?.role === 'manager'
-                            ? "Add approval notes..."
-                            : "Add final approval notes..."
+                            ? t('pending_requests.notes.manager')
+                            : t('pending_requests.notes.hr')
                         }
                         value={approvalNotes[request.id] || ''}
                         onChange={(e) => setApprovalNotes(prev => ({
@@ -747,7 +781,7 @@ const PendingRequests: React.FC = () => {
                             disabled={actionLoading === request.id}
                           >
                             {actionLoading === request.id ? '...' : 
-                             request.leaveType.requiresHRApproval ? '✅ Forward to HR' : '✅ Final Approve'
+                             request.leaveType.requiresHRApproval ? t('pending_requests.actions.forward_hr') : t('pending_requests.actions.final_approve')
                             }
                           </button>
                           <button
@@ -758,7 +792,7 @@ const PendingRequests: React.FC = () => {
                             }}
                             disabled={actionLoading === request.id}
                           >
-                            {actionLoading === request.id ? '...' : '❌ Reject'}
+                            {actionLoading === request.id ? '...' : t('pending_requests.actions.reject')}
                           </button>
                         </>
                       )}
@@ -773,7 +807,7 @@ const PendingRequests: React.FC = () => {
                             }}
                             disabled={actionLoading === request.id}
                           >
-                            {actionLoading === request.id ? '...' : '✅ Final Approve'}
+                            {actionLoading === request.id ? '...' : t('pending_requests.actions.final_approve')}
                           </button>
                           <button
                             className="btn-reject"
@@ -783,7 +817,7 @@ const PendingRequests: React.FC = () => {
                             }}
                             disabled={actionLoading === request.id}
                           >
-                            {actionLoading === request.id ? '...' : '❌ Reject'}
+                            {actionLoading === request.id ? '...' : t('pending_requests.actions.reject')}
                           </button>
                         </>
                       )}
@@ -796,7 +830,7 @@ const PendingRequests: React.FC = () => {
                           setShowDetailsModal(true);
                         }}
                       >
-                        📋 Details
+                        📋 {t('pending_requests.details')}
                       </button>
                     </div>
                   </div>
@@ -812,7 +846,7 @@ const PendingRequests: React.FC = () => {
         <div className="modal-overlay" onClick={() => setShowDetailsModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>Leave Request Details</h3>
+              <h3>{t('pending_requests.details_title')}</h3>
               <button className="close-btn" onClick={() => setShowDetailsModal(false)}>
                 ×
               </button>
@@ -821,44 +855,44 @@ const PendingRequests: React.FC = () => {
               {/* Enhanced details content */}
               <div className="detail-sections">
                 <div className="detail-section">
-                  <h4>Employee Information</h4>
+                  <h4>{t('hr_approvals.employee_info')}</h4>
                   <div className="detail-grid">
                     <div className="detail-item">
-                      <label>Name:</label>
+                      <label>{t('about_me.full_name')}:</label>
                       <span>{selectedRequest.employee.name}</span>
                     </div>
                     <div className="detail-item">
-                      <label>Department:</label>
+                      <label>{t('about_me.department')}:</label>
                       <span>{selectedRequest.employee.department}</span>
                     </div>
                     <div className="detail-item">
-                      <label>Position:</label>
+                      <label>{t('about_me.position')}:</label>
                       <span>{selectedRequest.employee.position}</span>
                     </div>
                     <div className="detail-item">
-                      <label>Email:</label>
+                      <label>{t('about_me.email')}:</label>
                       <span>{selectedRequest.employee.email}</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="detail-section">
-                  <h4>Leave Details</h4>
+                  <h4>{t('apply_leave.sections.details')}</h4>
                   <div className="detail-grid">
                     <div className="detail-item">
-                      <label>Type:</label>
+                      <label>{t('apply_leave.fields.leave_type')}:</label>
                       <span>{selectedRequest.leaveType.name}</span>
                     </div>
                     <div className="detail-item">
-                      <label>Duration:</label>
-                      <span>{selectedRequest.days} days</span>
+                      <label>{t('leave_history.columns.duration')}:</label>
+                      <span>{selectedRequest.days} {t('dashboard.days')}</span>
                     </div>
                     <div className="detail-item">
-                      <label>Dates:</label>
+                      <label>{t('leave_history.columns.applied_date')}:</label>
                       <span>{formatDate(selectedRequest.startDate)} - {formatDate(selectedRequest.endDate)}</span>
                     </div>
                     <div className="detail-item">
-                      <label>Status:</label>
+                      <label>{t('leave_history.columns.status')}:</label>
                       <span className={`status-${selectedRequest.status.toLowerCase()}`}>
                         {selectedRequest.status.replace('_', ' ')}
                       </span>
@@ -867,7 +901,7 @@ const PendingRequests: React.FC = () => {
                 </div>
 
                 <div className="detail-section">
-                  <h4>Reason</h4>
+                  <h4>{t('leave_history.columns.reason')}</h4>
                   <p className="reason-detail">{selectedRequest.reason}</p>
                 </div>
               </div>

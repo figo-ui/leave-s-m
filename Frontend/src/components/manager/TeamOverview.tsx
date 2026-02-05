@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { apiService } from '../../utils/api';
 import type{ User, Leave, LeaveBalance } from '../../types';
+import { useTranslation } from 'react-i18next';
 import './TeamOverview.css';
 
 interface TeamMember extends User {
@@ -22,6 +23,7 @@ interface TeamStats {
 
 const TeamOverview: React.FC = () => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
@@ -32,11 +34,6 @@ const TeamOverview: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterDepartment, setFilterDepartment] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'table' | 'calendar'>('grid');
-  const [dateRange, setDateRange] = useState<{ start: Date; end: Date }>({
-    start: new Date(),
-    end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
-  });
-
   // Load team members
   useEffect(() => {
     if (user && (user.role === 'manager' || user.role === 'hr-admin' || user.role === 'super-admin')) {
@@ -61,11 +58,11 @@ const TeamOverview: React.FC = () => {
         setTeamMembers(members);
         calculateStats(members);
       } else {
-        setError(response.message || 'Failed to load team members');
+        setError(response.message || t('team_overview.errors.load_failed'));
       }
     } catch (error: any) {
       console.error('Error loading team members:', error);
-      setError(error.message || 'Failed to load team members');
+      setError(error.message || t('team_overview.errors.load_failed'));
     } finally {
       setLoading(false);
     }
@@ -120,8 +117,6 @@ const TeamOverview: React.FC = () => {
   };
 
   const calculateStats = (members: TeamMember[]) => {
-    const today = new Date();
-    
     const stats: TeamStats = {
       totalMembers: members.length,
       onLeaveToday: members.filter(m => m.currentLeave).length,
@@ -130,7 +125,8 @@ const TeamOverview: React.FC = () => {
         ? members.reduce((sum, m) => sum + (m.totalLeavesTaken || 0), 0) / members.length
         : 0,
       departmentBreakdown: members.reduce((acc, m) => {
-        acc[m.department] = (acc[m.department] || 0) + 1;
+        const department = m.department || t('team_overview.unassigned');
+        acc[department] = (acc[department] || 0) + 1;
         return acc;
       }, {} as { [key: string]: number })
     };
@@ -161,7 +157,7 @@ const TeamOverview: React.FC = () => {
 
   // Get unique departments for filter
   const departments = useMemo(() => {
-    return Array.from(new Set(teamMembers.map(m => m.department))).sort();
+    return Array.from(new Set(teamMembers.map(m => m.department || 'Unassigned'))).sort();
   }, [teamMembers]);
 
   // Handle member selection
@@ -175,7 +171,7 @@ const TeamOverview: React.FC = () => {
     if (member.currentLeave) {
       return (
         <span className="status-badge on-leave">
-          ⏸️ On Leave
+          ⏸️ {t('dashboard.on_leave')}
         </span>
       );
     }
@@ -183,57 +179,34 @@ const TeamOverview: React.FC = () => {
     if (member.upcomingLeaves && member.upcomingLeaves.length > 0) {
       return (
         <span className="status-badge upcoming-leave">
-          📅 Upcoming Leave
+          📅 {t('team_overview.upcoming_leave')}
         </span>
       );
     }
 
     return (
       <span className="status-badge available">
-        ✅ Available
+        ✅ {t('team_overview.available')}
       </span>
     );
   };
 
   // Get days until next leave
   const getDaysUntilLeave = (member: TeamMember): string => {
-    if (!member.upcomingLeaves || member.upcomingLeaves.length === 0) return 'No upcoming leave';
+    if (!member.upcomingLeaves || member.upcomingLeaves.length === 0) return t('team_overview.no_upcoming');
     
     const nextLeave = member.upcomingLeaves[0];
     const leaveDate = new Date(nextLeave.startDate);
     const today = new Date();
     const daysUntil = Math.ceil((leaveDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
     
-    return `${daysUntil} day${daysUntil !== 1 ? 's' : ''} until leave`;
+    return t('team_overview.days_until_leave', { days: daysUntil });
   };
 
-  // Handle approve/reject leave
-  const handleLeaveAction = async (leaveId: number, action: 'approve' | 'reject', notes?: string) => {
-    try {
-      setError('');
-      
-      const response = action === 'approve' 
-        ? await apiService.approveLeave(leaveId, notes)
-        : await apiService.rejectLeave(leaveId, notes);
-      
-      if (response.success) {
-        // Refresh team data
-        await loadTeamMembers();
-        if (selectedMember) {
-          // Update selected member if they're the one we acted on
-          const updatedMember = teamMembers.find(m => 
-            m.upcomingLeaves?.some(l => l.id === leaveId) || 
-            m.currentLeave?.id === leaveId
-          );
-          if (updatedMember) setSelectedMember(updatedMember);
-        }
-      } else {
-        setError(response.message || `Failed to ${action} leave`);
-      }
-    } catch (error: any) {
-      console.error(`Error ${action}ing leave:`, error);
-      setError(error.message || `Failed to ${action} leave`);
-    }
+  const getLeaveTypeName = (leaveType?: string | { name?: string }) => {
+    if (!leaveType) return t('leave_history.unknown');
+    if (typeof leaveType === 'string') return leaveType;
+    return leaveType.name || t('leave_history.unknown');
   };
 
   // Render loading state
@@ -241,12 +214,12 @@ const TeamOverview: React.FC = () => {
     return (
       <div className="team-overview">
         <div className="page-header">
-          <h1>Team Overview</h1>
-          <p>Loading team information...</p>
+          <h1>{t('team_overview.title')}</h1>
+          <p>{t('team_overview.loading_info')}</p>
         </div>
         <div className="loading-state">
           <div className="loading-spinner"></div>
-          <p>Loading your team...</p>
+          <p>{t('team_overview.loading_team')}</p>
         </div>
       </div>
     );
@@ -259,35 +232,35 @@ const TeamOverview: React.FC = () => {
           <div className="header-title">
             <h1>Team Overview</h1>
             <span className="team-count-badge">
-              {teamMembers.length} team member{teamMembers.length !== 1 ? 's' : ''}
+              {t('team_overview.team_count', { count: teamMembers.length })}
             </span>
           </div>
           <div className="header-actions">
             <button 
               className="refresh-btn"
               onClick={loadTeamMembers}
-              title="Refresh team data"
+              title={t('dashboard.refresh')}
             >
-              🔄 Refresh
+              🔄 {t('dashboard.refresh')}
             </button>
             <div className="view-toggle">
               <button 
                 className={`view-btn ${viewMode === 'grid' ? 'active' : ''}`}
                 onClick={() => setViewMode('grid')}
               >
-                🟦 Grid
+                🟦 {t('team_overview.views.grid')}
               </button>
               <button 
                 className={`view-btn ${viewMode === 'table' ? 'active' : ''}`}
                 onClick={() => setViewMode('table')}
               >
-                📋 Table
+                📋 {t('team_overview.views.table')}
               </button>
               <button 
                 className={`view-btn ${viewMode === 'calendar' ? 'active' : ''}`}
                 onClick={() => setViewMode('calendar')}
               >
-                📅 Calendar
+                📅 {t('dashboard.calendar')}
               </button>
             </div>
           </div>
@@ -313,7 +286,7 @@ const TeamOverview: React.FC = () => {
               <div className="stat-icon">👥</div>
               <div className="stat-info">
                 <div className="stat-value">{stats.totalMembers}</div>
-                <div className="stat-label">Total Members</div>
+                <div className="stat-label">{t('team_overview.stats.total_members')}</div>
               </div>
             </div>
             
@@ -321,7 +294,7 @@ const TeamOverview: React.FC = () => {
               <div className="stat-icon">⏸️</div>
               <div className="stat-info">
                 <div className="stat-value">{stats.onLeaveToday}</div>
-                <div className="stat-label">On Leave Today</div>
+                <div className="stat-label">{t('team_overview.stats.on_leave_today')}</div>
               </div>
             </div>
             
@@ -329,7 +302,7 @@ const TeamOverview: React.FC = () => {
               <div className="stat-icon">📅</div>
               <div className="stat-info">
                 <div className="stat-value">{stats.upcomingLeaves}</div>
-                <div className="stat-label">Upcoming Leaves</div>
+                <div className="stat-label">{t('team_overview.stats.upcoming')}</div>
               </div>
             </div>
             
@@ -337,14 +310,14 @@ const TeamOverview: React.FC = () => {
               <div className="stat-icon">📊</div>
               <div className="stat-info">
                 <div className="stat-value">{stats.averageLeaveDays.toFixed(1)}</div>
-                <div className="stat-label">Avg Leave Days</div>
+                <div className="stat-label">{t('team_overview.stats.avg_leave')}</div>
               </div>
             </div>
           </div>
 
           {/* Department Breakdown */}
           <div className="department-breakdown">
-            <h3>Department Distribution</h3>
+            <h3>{t('team_overview.department_distribution')}</h3>
             <div className="department-chips">
               {Object.entries(stats.departmentBreakdown).map(([dept, count]) => (
                 <span key={dept} className="department-chip">
@@ -361,7 +334,7 @@ const TeamOverview: React.FC = () => {
         <div className="search-box">
           <input
             type="text"
-            placeholder="Search team members by name, email, or position..."
+            placeholder={t('team_overview.search_placeholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
@@ -376,8 +349,9 @@ const TeamOverview: React.FC = () => {
             className="filter-select"
           >
             <option value="all">All Status</option>
-            <option value="available">Available</option>
-            <option value="onLeave">On Leave</option>
+            <option value="all">{t('team_overview.filters.all_status')}</option>
+            <option value="available">{t('team_overview.available')}</option>
+            <option value="onLeave">{t('dashboard.on_leave')}</option>
           </select>
 
           <select 
@@ -385,7 +359,7 @@ const TeamOverview: React.FC = () => {
             onChange={(e) => setFilterDepartment(e.target.value)}
             className="filter-select"
           >
-            <option value="all">All Departments</option>
+            <option value="all">{t('team_overview.filters.all_departments')}</option>
             {departments.map(dept => (
               <option key={dept} value={dept}>{dept}</option>
             ))}
@@ -395,19 +369,19 @@ const TeamOverview: React.FC = () => {
 
       {/* Results Count */}
       <div className="results-info">
-        Showing {filteredMembers.length} of {teamMembers.length} team members
-        {(searchTerm || filterStatus !== 'all' || filterDepartment !== 'all') && ' (filtered)'}
+        {t('team_overview.showing', { shown: filteredMembers.length, total: teamMembers.length })}
+        {(searchTerm || filterStatus !== 'all' || filterDepartment !== 'all') && ` ${t('hr_approvals.filtered')}`}
       </div>
 
       {/* Team Members Display */}
       {filteredMembers.length === 0 ? (
         <div className="empty-state">
           <div className="empty-icon">👥</div>
-          <h3>No Team Members Found</h3>
+          <h3>{t('team_overview.empty_title')}</h3>
           <p>
             {searchTerm || filterStatus !== 'all' || filterDepartment !== 'all' 
-              ? 'Try adjusting your search or filters'
-              : 'No team members are assigned to you yet.'}
+              ? t('team_overview.empty_filtered')
+              : t('team_overview.empty_default')}
           </p>
         </div>
       ) : viewMode === 'grid' ? (
@@ -467,7 +441,7 @@ const TeamOverview: React.FC = () => {
                     </div>
                   ) : (
                     <div className="no-upcoming-leave">
-                      <span className="leave-label">No upcoming leave</span>
+                      <span className="leave-label">{t('team_overview.no_upcoming')}</span>
                     </div>
                   )}
                 </div>
@@ -481,12 +455,12 @@ const TeamOverview: React.FC = () => {
             <thead>
               <tr>
                 <th>Member</th>
-                <th>Position</th>
-                <th>Department</th>
-                <th>Status</th>
-                <th>Next Leave</th>
-                <th>Leave Balance</th>
-                <th>Actions</th>
+                <th>{t('about_me.position')}</th>
+                <th>{t('about_me.department')}</th>
+                <th>{t('leave_history.columns.status')}</th>
+                <th>{t('team_overview.next_leave')}</th>
+                <th>{t('dashboard.leave_balance')}</th>
+                <th>{t('leave_history.columns.actions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -518,9 +492,9 @@ const TeamOverview: React.FC = () => {
                   <td>
                     {member.leaveBalance && member.leaveBalance.length > 0 ? (
                       <div className="leave-balance-summary">
-                        {member.leaveBalance[0].remaining} days left
+                        {member.leaveBalance[0].remaining} {t('team_overview.days_left')}
                       </div>
-                    ) : 'N/A'}
+                    ) : t('hr_approvals.na')}
                   </td>
                   <td>
                     <div className="table-actions">
@@ -528,7 +502,7 @@ const TeamOverview: React.FC = () => {
                         className="action-btn view-btn"
                         onClick={() => handleMemberClick(member)}
                       >
-                        View Details
+                        {t('leave_history.view_details')}
                       </button>
                     </div>
                   </td>
@@ -544,7 +518,7 @@ const TeamOverview: React.FC = () => {
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">
-              <h2>Team Member Details</h2>
+              <h2>{t('team_overview.member_details')}</h2>
               <button 
                 className="close-btn"
                 onClick={() => {
@@ -602,34 +576,34 @@ const TeamOverview: React.FC = () => {
                   </div>
                   
                   <div className="detail-section">
-                    <h4>Leave Information</h4>
+                    <h4>{t('team_overview.leave_info')}</h4>
                     {selectedMember.leaveBalance && selectedMember.leaveBalance.length > 0 ? (
                       <div className="leave-balances">
-                        <h5>Leave Balances</h5>
+                        <h5>{t('team_overview.leave_balances')}</h5>
                         <div className="balance-grid">
                           {selectedMember.leaveBalance.map(balance => (
                             <div key={balance.leaveTypeId} className="balance-item">
                               <span className="balance-type">{balance.leaveType?.name}:</span>
                               <span className="balance-days">
-                                {balance.remaining} / {balance.total} days
+                                {balance.remaining} / {balance.total} {t('dashboard.days')}
                               </span>
                             </div>
                           ))}
                         </div>
                       </div>
                     ) : (
-                      <p>No leave balance information available.</p>
+                      <p>{t('team_overview.no_balance_info')}</p>
                     )}
                   </div>
                   
                   {selectedMember.currentLeave && (
                     <div className="detail-section">
-                      <h4>Current Leave</h4>
+                      <h4>{t('team_overview.current_leave')}</h4>
                       <div className="current-leave-details">
                         <div className="leave-info-item">
                           <span className="leave-label">Type:</span>
                           <span className="leave-value">
-                            {selectedMember.currentLeave.leaveType?.name}
+                            {getLeaveTypeName(selectedMember.currentLeave.leaveType)}
                           </span>
                         </div>
                         <div className="leave-info-item">
@@ -658,13 +632,13 @@ const TeamOverview: React.FC = () => {
                   
                   {selectedMember.upcomingLeaves && selectedMember.upcomingLeaves.length > 0 && (
                     <div className="detail-section">
-                      <h4>Upcoming Leaves</h4>
+                      <h4>{t('team_overview.upcoming_leaves')}</h4>
                       <div className="upcoming-leaves-list">
                         {selectedMember.upcomingLeaves.map(leave => (
                           <div key={leave.id} className="upcoming-leave-item">
                             <div className="leave-header">
-                              <span className="leave-type">{leave.leaveType?.name}</span>
-                              <span className="leave-days">{leave.days} days</span>
+                              <span className="leave-type">{getLeaveTypeName(leave.leaveType)}</span>
+                              <span className="leave-days">{leave.days} {t('dashboard.days')}</span>
                             </div>
                             <div className="leave-dates">
                               {new Date(leave.startDate).toLocaleDateString()} - {new Date(leave.endDate).toLocaleDateString()}
@@ -691,7 +665,7 @@ const TeamOverview: React.FC = () => {
                   setSelectedMember(null);
                 }}
               >
-                Close
+                {t('common.cancel')}
               </button>
             </div>
           </div>

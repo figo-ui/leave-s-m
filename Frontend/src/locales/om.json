@@ -1,0 +1,1230 @@
+{
+  "app": {
+    "university_name": "Yuunivarsiitii Odaa Bultum",
+    "system_name": "Sirna Bulchiinsa Eeyyama",
+    "system_short": "OBU Eeyyama",
+    "management_system": "Sirna Bulchiinsaa"
+  },
+  "common": {
+    "welcome": "Baga nagaan dhufte, {{name}}",
+    "welcome_generic": "Baga nagaan dhufte",
+    "role": "Gahee",
+    "profile": "Profaayilii",
+    "security": "Nageenya",
+    "help_support": "Gargaarsa fi Deeggarsa",
+    "about_system": "Waa'ee Sirnaa",
+    "sign_out": "Ba'i",
+    "close_sidebar": "Sidaabar cufi",
+    "language": "Afaan",
+    "save": "Olkaa'i",
+    "cancel": "Haquu",
+    "update": "Haaromsi",
+    "loading": "Fe'amaa jira...",
+    "try_again": "Irra deebi'ii yaali",
+    "na": "Hin jiru",
+    "yes": "Eeyyee",
+    "no": "Lakki",
+    "unknown": "Hin beekamu",
+    "days": {
+      "monday": "Wiixata",
+      "tuesday": "Kibxata",
+      "wednesday": "Roobii",
+      "thursday": "Kamisa",
+      "friday": "Jimaata",
+      "saturday": "Sanbata",
+      "sunday": "Dilbata"
+    }
+  },
+  "roles": {
+    "employee": "Hojjetaa",
+    "manager": "Bulchaa",
+    "hr-admin": "Bulchaa HR",
+    "super-admin": "Bulchaa Olaanaa"
+  },
+  "menu": {
+    "dashboard": "Daashboordii",
+    "apply_leave": "Eeyyamaaf Iyyadhu",
+    "leave_history": "Seenaa Eeyyama Koo",
+    "profile_settings": "Sirreeffama Profaayilii",
+    "pending_requests": "Gaaffilee Eegamaa",
+    "approvals_history": "Seenaa Raggaasisuu",
+    "team_overview": "Ibsa Gabaabaa Garee",
+    "reports": "Gabaasota",
+    "leave_overview": "Ibsa Gabaabaa Eeyyamaa",
+    "user_management": "Bulchiinsa Fayyadamtootaa",
+    "leave_types": "Gosa Eeyyamaa",
+    "configuration": "Qindaa'ina",
+    "approvals": "Raggaasisuu"
+  },
+  "nav": {
+    "leave_management": "BULCHIINSA EEYYAMAA",
+    "about_me": "Waa'ee Anaa",
+    "password_security": "Jecha Icciitii fi Nageenya"
+  },
+  "profile": {
+    "profile_settings": "Sirreeffama Profaayilii",
+    "personal_tab": "Odeeffannoo Dhuunfaa",
+    "security_tab": "Nageenya",
+    "phone_updated": "Lakkoofsi bilbilaa milkaa'inaan haaromfame!",
+    "avatar_updated": "Suuraan profaayilii haaromfame!",
+    "password_changed": "Jechi icciitii jijjiirame!",
+    "language_label": "Afaan Filatamaa",
+    "language_updated": "Afaan filatame milkaa'inaan haaromfame!"
+  },
+  "languages": {
+    "en": "Ingliffa",
+    "am": "Amaariffa",
+    "om": "Afaan Oromo"
+  },
+  "status": {
+    "pending_manager": "Hogganaa Eegamaa",
+    "pending_hr": "HR Eegamaa",
+    "approved": "Ragga'ame",
+    "hr_approved": "HR Ragga'ame",
+    "rejected": "Morman",
+    "cancelled": "Haqame"
+  },
+  "dashboard": {
+    "titles": {
+      "employee": "Daashboordii Hojjetaa",
+      "manager": "Daashboordii Bulchaa",
+      "hr_admin": "Daashboordii Bulchaa HR",
+      "super_admin": "Daashboordii Bulchaa Olaanaa"
+    },
+    "subtitles": {
+      "employee": "Daawwannaa bulchiinsa eeyyamaa kee",
+      "manager": "Bulchiinsa garee fi raggaasisuu eeyyamaa",
+      "hr_admin": "Bulchiinsa sirnaa fi xiinxala",
+      "super_admin": "Bulchiinsa sirnaa fi xiinxala"
+    },
+    "actions": {
+      "apply_leave": "Eeyyamaaf Iyyadhu",
+      "review_pending": "Gaaffilee eegamaa ilaali",
+      "hr_approvals": "Raggaasisuu HR"
+    },
+    "quick_actions": {
+      "title": "Tarkaanfii Ariifachiisaa",
+      "apply_desc": "Gaaffii eeyyamaa haaraa ergi",
+      "history_desc": "Eeyyama kee hunda ilaali",
+      "my_profile": "Profaayilii Koo",
+      "profile_desc": "Odeeffannoo dhuunfaa haaromsi",
+      "leave_balance": "Hafe Eeyyamaa",
+      "balance_desc": "Guyyoota hafan ilaali",
+      "pending_desc": "Gaaffilee garee ilaali",
+      "team_desc": "Miseensota garee ilaali",
+      "reports_desc": "Xiinxala oomishi",
+      "calendar": "Kaalaandarii",
+      "calendar_desc": "Kaalaandarii eeyyama garee",
+      "hr_approvals_desc": "Gaaffilee raggaasisuu dhumaa",
+      "users_desc": "Fayyadamtoota sirnaa bulchi",
+      "overview_desc": "Eeyyama sirnaa guutuu",
+      "system_settings": "Sirreeffama Sirnaa",
+      "settings_desc": "Sirna qindeessi",
+      "analytics": "Xiinxala",
+      "analytics_desc": "Gabaasota HR fi hubannoo",
+      "system_admin": "Bulchiinsa Sirnaa",
+      "system_admin_desc": "Bulchiinsa sirnaa",
+      "users_desc_all": "Fayyadamtoota hunda bulchi",
+      "audit_logs": "Galmeewwan Audit",
+      "audit_desc": "Galmeewwan hojii sirnaa",
+      "backup_restore": "Kuusaa fi Deebisuu",
+      "backup_desc": "Bulchiinsa odeeffannoo"
+    },
+    "greetings": {
+      "hello": "Akkam",
+      "morning": "Akkam bulte",
+      "afternoon": "Akkam oolte",
+      "evening": "Akkam galte",
+      "night": "Halkan gaarii"
+    },
+    "stats": {
+      "available_days": "Guyyoota Hafna",
+      "ready_to_use": "Fayyadamuuf qophaa'e",
+      "leaves_taken": "Eeyyama Fudhatame",
+      "this_year": "Bara kana",
+      "pending": "Eegamaa",
+      "awaiting_approval": "Raggaasisuu eegaa jira",
+      "utilization": "Fayyadama",
+      "usage_rate": "Saamuda fayyadama eeyyamaa",
+      "pending_requests": "Gaaffilee Eegamaa",
+      "require_attention": "Hubannoo barbaada",
+      "team_size": "Baay'ina Garee",
+      "active_members": "Miseensota hojii irratti",
+      "approval_rate": "Saamuda Raggaasisuu",
+      "overall_approval": "Raggaasisuu waliigalaa",
+      "on_leave": "Eeyyama irra jira",
+      "currently_out": "Amma alatti",
+      "total_employees": "Hojjettoota Waliigalaa",
+      "active_users": "Fayyadamtoota hojii irratti",
+      "on_leave_today": "Har'a eeyyama irratti",
+      "pending_hr": "HR Eegamaa",
+      "require_approval": "Raggaasisuu barbaada",
+      "system_alerts": "Akeekkachiisa Sirnaa",
+      "notifications": "Beeksisa"
+    },
+    "filters": {
+      "all": "Hunda",
+      "pending": "Eegamaa",
+      "approved": "Ragga'ame",
+      "rejected": "Morman"
+    },
+    "recent_activities": "Sochii Dhiyeenya",
+    "leave_request": "Gaaffii Eeyyamaa",
+    "days": "Guyyoota",
+    "no_activities": "Sochiin hin argamne",
+    "leave_balance": "Hafe Eeyyamaa",
+    "used": "Fayyadame",
+    "remaining": "Hafe",
+    "total": "Waliigalaa",
+    "leaves": "Eeyyama",
+    "on_leave": "Eeyyama irratti",
+    "calendar": "Kaalaandarii",
+    "days_short": {
+      "sun": "Dil",
+      "mon": "Wix",
+      "tue": "Kib",
+      "wed": "Roob",
+      "thu": "Kam",
+      "fri": "Jum",
+      "sat": "San"
+    },
+    "unable_to_load": "Daashboordii fe'uu hin dandeenye",
+    "refresh": "Haaromsi",
+    "refreshing": "Haaromsaa jira...",
+    "tabs": {
+      "overview": "Ibsa Gabaabaa",
+      "activities": "Sochii",
+      "team": "Garee"
+    }
+  },
+  "apply_leave": {
+    "title": "Eeyyamaaf Iyyadhu",
+    "subtitle": "Gaaffii eeyyamaa kee raggaasisuu bulchaaf ergi",
+    "subtitle_loading": "Gaaffii eeyyamaa kee raggaasisuu ergi",
+    "loading_info": "Odeeffannoo eeyyamaa fe'amaa jira...",
+    "loading_setup": "Unka iyyata eeyyamaa qopheessaa jira",
+    "sections": {
+      "details": "📅 Ibsa Eeyyamaa",
+      "additional": "📝 Odeeffannoo Dabalataa"
+    },
+    "fields": {
+      "leave_type": "Gosa Eeyyamaa",
+      "start_date": "Guyyaa Jalqabaa",
+      "end_date": "Guyyaa Xumuraa",
+      "reason": "Sababa Eeyyamaa",
+      "emergency_contact": "Quunnamtii Ariifachiisaa (Filannoo)",
+      "handover_notes": "Yaadota Handover (Filannoo)"
+    },
+    "placeholders": {
+      "select_leave_type": "Gosa Eeyyamaa Filadhu",
+      "reason": "Sababa eeyyamaa kee bal'inaan barreessi. Xiqqaatee qubee 10 barbaachisa.",
+      "emergency_contact": "Lakkoofsa bilbilaa quunnamtii ariifachiisaa",
+      "handover_notes": "Yaadota gabaabaa hojii dabarsuu..."
+    },
+    "help": {
+      "emergency_contact": "Yeroo ati hin jirretti quunnamtii ariifachiisaa",
+      "handover_notes": "Odeeffannoo barbaachisaa hiriyoota hojii si bakka bu'an"
+    },
+    "validation": {
+      "select_leave_type": "Gosa eeyyamaa filadhu",
+      "select_start_date": "Guyyaa jalqabaa filadhu",
+      "select_end_date": "Guyyaa xumuraa filadhu",
+      "start_date_past": "Guyyaan jalqabaa darbe ta'uu hin danda'u",
+      "end_date_after": "Guyyaan xumuraa guyyaa jalqabaa booda ta'uu qaba",
+      "reason_required": "Sababa eeyyamaa kenni",
+      "reason_min": "Sababni xiqqaatee qubee 10 ta'uu qaba",
+      "reason_max": "Sababni qubee 500 ol ta'uu hin qabu",
+      "insufficient_balance": "Hafe eeyyamaa gahaa miti. {{remaining}} guyyaa qabda, garuu {{requested}} guyyaa iyyatte.",
+      "max_days": "Gosti eeyyamaa kun guyyaa {{max}} ol hin hayyamu. Ati {{requested}} guyyaa filatte."
+    },
+    "errors": {
+      "load_leave_types": "Gosa eeyyamaa fe'uun hin milkoofne. Fuula haaromsi.",
+      "load_required_data": "Odeeffannoo barbaachisaa fe'uun hin milkoofne. Fuula haaromsi yookaan deeggarsa qunnami.",
+      "fix_validation": "Dursa dogoggora mirkaneessaa sirreessi.",
+      "auth_failed": "Mirkaneessi fayyadamaa hin milkoofne. Irra deebi'ii seeni.",
+      "submit_failed": "Iyyata eeyyamaa erguun hin milkoofne. Irra deebi'ii yaali.",
+      "balance_missing": "Galmeen hafe eeyyamaa hin argamne. Sirni ofumaan ni uuma. xiqqoo booda yaali.",
+      "service_unavailable": "Tajaajilli iyyata eeyyamaa yeroo ammaa hin jiru. Booda yaali yookaan deeggarsa IT qunnami.",
+      "network": "Dogoggora network. Quunnamtii internet kee mirkaneessi.",
+      "server": "Dogoggorri serverii uumame. Kun hafe eeyyamaa dhabamuu irraa ta'uu danda'a.",
+      "submission_failed": "Ergaa hin milkoofne",
+      "suggested_solutions": "Furmaata Tajaajilame:",
+      "solution_wait": "Xiqqoo eegaa irra deebi'ii yaali",
+      "solution_contact_hr": "Hafe eeyyamaa mirkaneessuuf HR qunnami",
+      "solution_select_other": "Gosa eeyyamaa biraa filuu yaali",
+      "solution_check_dates": "Guyyoonni sirrii fi daangaa keessatti ta'uu isaanii mirkaneessi",
+      "validation_error": "Dogoggora Mirkaneessaa"
+    },
+    "success": {
+      "header": "Iyyanni kee milkaa'inaan ergame!",
+      "submitted": "✅ Iyyanni eeyyamaa milkaa'inaan ergame!",
+      "details": "📋 Ibsa Iyyataa:",
+      "type": "• Gosa: {{type}}",
+      "duration": "• Turtii: {{days}} guyyaa",
+      "dates": "• Guyyoota: {{start}} - {{end}}",
+      "status": "• Haala: Raggaasisuu bulchaa eegaa jira",
+      "requires_hr": "• ⚠️ Raggaasisuu HR dabalataa barbaada",
+      "next_steps": "Bulchaan kee yeroo dhiyootti ni ilaala. Beeksisa sadarkaa sadarkaan ni argatta.",
+      "next_title": "📋 Maal itti aanuu?",
+      "step1_title": "Iyyanni Ergame",
+      "step1_desc": "Gaaffiin eeyyamaa kee fudhatameera",
+      "step2_title": "Gama Bulchaa",
+      "step2_desc": "Bulchaan gaafficha ni ilaala",
+      "step2_time": "Yeroo hedduu sa'aatii 24-48 keessatti",
+      "step3_title": "Raggaasisuu HR",
+      "step3_desc": "HR raggaasisuu dhumaa ni kenna",
+      "step3_time": "Ilaalcha dabalataa barbaada",
+      "step4_title": "Mirkaneessa Dhumaa",
+      "step4_desc": "Murtii dhumaa irratti beeksisa ni argatta"
+    },
+    "hr_approval": "Raggaasisuu HR",
+    "hr_approval_notice": "Gosti eeyyamaa kun raggaasisuu HR dabalataa barbaada",
+    "no_balance": "Hafe Hin Jiru",
+    "balance": {
+      "your_balance": "Hafe Keessan",
+      "of": "irraa",
+      "remaining": "guyyaa hafan",
+      "low": "Hafe xiqqaa",
+      "not_found": "Hafe hin argamne",
+      "using_default": "Hafe duraa {{days}} guyyaa fayyadame"
+    },
+    "total_days": "Guyyoota Waliigalaa: {{days}}",
+    "days_will_remain": "{{days}} guyyaa hafna",
+    "using_default_allocation": "Qoodinsa duraa fayyadame",
+    "exceeds_max": "Gosa eeyyamaa kanaaf guyyaa {{max}} ol ta'uu hin qabdu",
+    "within_limits": "Daangaa keessatti {{type}}",
+    "balance_auto_create": "Hafe eeyyamaa yeroo erguu ofumaan ni uumama",
+    "characters_count": "{{count}}/500 qubee",
+    "min_required": "xiqqaatee 10 barbaachisa",
+    "approaching_limit": "daangaa dhawaataa jira",
+    "submitting": "Iyyata ergaa jira...",
+    "submit": "Iyyata Eeyyamaa Ergi",
+    "validation_hint": "Maaloo qaamolee barbaachisoo hunda sirnaan guuti",
+    "quick_actions": "💡 Tarkaanfii Ariifachiisaa",
+    "actions": {
+      "clear_form": "Unka Haqi",
+      "fill_example": "Fakkeenya Guuti",
+      "refresh_data": "Daataa Haaromsi"
+    }
+  },
+  "leave_history": {
+    "title": "Seenaa Eeyyama Koo",
+    "subtitle": "Gaaffilee eeyyamaa kee hordofi fi bulchi",
+    "leave": "Eeyyama",
+    "remaining": "hafe",
+    "used": "fayyadame",
+    "total_applications": "Gaaffilee Waliigalaa",
+    "upcoming": "📅 Eeyyama Ragga'ame Dhiyoo",
+    "search_placeholder": "Gosa eeyyamaa, sababaa yookaan haala irratti barbaadi...",
+    "all_status": "Haala Hunda",
+    "loading": "Seenaa eeyyamaa fe'amaa jira...",
+    "empty_title": "Gaaffiin eeyyamaa hin argamne",
+    "empty_all": "Eeyyamaaf hin iyyanne. Eeyyama haaraa iyyadhu.",
+    "empty_filtered": "Gaaffiin eeyyamaa {{status}} hin argamne.",
+    "columns": {
+      "leave_type": "Gosa Eeyyamaa",
+      "start_date": "Guyyaa Jalqabaa",
+      "end_date": "Guyyaa Xumuraa",
+      "duration": "Turtii",
+      "applied_date": "Guyyaa Iyyataa",
+      "status": "Haala",
+      "reason": "Sababa",
+      "actions": "Tarkaanfii"
+    },
+    "view_details": "Ibsa Ilaali",
+    "details_title": "Ibsa Iyyata Eeyyamaa",
+    "manager_approved": "Bulchaan Ragga'ee",
+    "hr_approved": "HR Ragga'ee",
+    "manager_notes": "Yaadota Bulchaa",
+    "hr_notes": "Yaadota HR",
+    "hr_rejected": "HR Morman",
+    "unknown": "Hin beekamu",
+    "type_annual": "Waggaa",
+    "type_sick": "Dhukkuba",
+    "type_personal": "Dhuunfaa"
+  },
+  "about_me": {
+    "subtitle": "Profaayilii hojii fi odeeffannoo kee",
+    "loading": "Profaayilii kee fe'amaa jira...",
+    "unable_title": "Profaayilii fe'uu hin danda'ame",
+    "unable_subtitle": "Odeeffannoo profaayilii fe'uu keessatti dogoggorri uumameera.",
+    "status": "Haala",
+    "joined": "Seene",
+    "employee_id": "Maqaa Hojjetaa",
+    "personal_info": "👤 Odeeffannoo Dhuunfaa",
+    "professional_info": "💼 Odeeffannoo Hojii",
+    "reporting_manager": "👨‍💼 Hogganaa Gabaasaa",
+    "send_email": "Imeelii Ergi",
+    "system_info": "⚙️ Odeeffannoo Sirnaa",
+    "user_status": "Haala Fayyadamaa",
+    "account_type": "Gosa Akaawuntii",
+    "member_since": "Miseensa irraa",
+    "account_security": "Nageenya Akaawuntii",
+    "employment_duration": "Turtii Hojii",
+    "full_name": "Maqaa Guutuu",
+    "email": "Imeelii",
+    "phone": "Lakkoofsa Bilbilaa",
+    "phone_placeholder": "+251 91 234 5678",
+    "profile_picture": "Suuraa Profaayilii",
+    "avatar_hint": "Suuraa haaraa fe'uuf irratti cuqaasi",
+    "department": "Kutaa",
+    "position": "Iddoo hojii",
+    "role": "Gahee",
+    "cannot_edit": "Gulaaluu hin danda'u",
+    "university_email": "Imeelii Yuunivarsiitii",
+    "not_provided": "Hin kennamne",
+    "edit_phone": "Lakkoofsa bilbilaa gulaali",
+    "managed_by_hr": "HRn ni bulchama",
+    "not_specified": "Hin ibsamne",
+    "hr_admin": "Bulchaa HR",
+    "super_admin": "Bulchaa Sirnaa",
+    "years": "waggaa",
+    "months": "ji'a",
+    "less_than_month": "Ji'a tokko gadi",
+    "errors": {
+      "load_profile": "Profaayilii fe'uu hin milkoofne",
+      "invalid_phone": "Maaloo lakkoofsa bilbilaa sirrii galchi",
+      "update_phone": "Lakkoofsa bilbilaa haaromsuu hin milkoofne"
+    },
+    "password": {
+      "title": "Jecha Icciitii Jijjiiri",
+      "current": "Jecha Icciitii Ammaa",
+      "new": "Jecha Icciitii Haaraa",
+      "confirm": "Jecha Icciitii Haaraa Mirkaneessi",
+      "update": "Jecha Icciitii Haaromsi",
+      "updating": "Haaromsaa jira...",
+      "change": "Jecha Icciitii Jijjiiri",
+      "change_title": "Jechi icciitii kee jijjiiri",
+      "current_required": "Maaloo jecha icciitii ammaa galchi",
+      "new_required": "Maaloo jecha icciitii haaraa galchi",
+      "mismatch": "Jecha icciitii haaraan wal hin qixxaahu",
+      "min_length": "Jecha icciitii haaraa qubee 8 ol ta'uu qaba",
+      "failed": "Jecha icciitii jijjiiruun hin milkoofne"
+    }
+  },
+  "hr_approvals": {
+    "title": "Raggaasisuu HR",
+    "subtitle": "Gaaffilee eeyyamaa ilaali fi raggaasi",
+    "loading": "Gaaffilee eeyyamaa fe'amaa jira...",
+    "na": "Hin jiru",
+    "pending": "Eegamaa",
+    "approved": "Ragga'ame",
+    "rejected": "Morman",
+    "pending_hr": "Raggaasisuu HR eegaa jira",
+    "tabs": {
+      "pending": "Gaaffilee Eegamaa",
+      "approved": "Eeyyama Ragga'ame",
+      "rejected": "Eeyyama Morman"
+    },
+    "search_placeholder": "Maqaa, imeelii yookaan sababaan barbaadi...",
+    "all_departments": "Kutaa hunda",
+    "all_leave_types": "Gosa eeyyamaa hunda",
+    "sort": {
+      "date": "Guyyaa irratti dursi",
+      "employee": "Hojjetaa irratti dursi",
+      "days": "Guyyoota irratti dursi",
+      "asc": "↑ Olka'iinsa",
+      "desc": "↓ Gadibu'iinsa"
+    },
+    "showing": "{{shown}} keessaa {{total}} gaaffilee mul'isaa",
+    "filtered": "(filatame)",
+    "empty": {
+      "pending": "Gaaffiin eegamaa hin jiru",
+      "approved": "Eeyyama ragga'ame hin jiru",
+      "rejected": "Eeyyama morman hin jiru",
+      "processed": "Gaaffileen hundi xumuramaniiru.",
+      "no_records": "Galmeen kutaa kanaa hin jiru."
+    },
+    "hr_required": "Raggaasisuu HR barbaada",
+    "manager": "Bulchaa",
+    "applied_on": "Iyyate irratti",
+    "approve": "Raggaasi",
+    "reject": "Mormi",
+    "generate_certificate": "Ragaa Uumi",
+    "details_title": "Ibsa Gaaffii Eeyyamaa",
+    "employee_info": "Odeeffannoo Hojjetaa",
+    "manager_approval": "Raggaasisuu Bulchaa",
+    "timeline": "Seenaa Iyyataa",
+    "applied": "Iyyate",
+    "notes": "Yaadota",
+    "approve_leave": "Eeyyama Raggaasi",
+    "reject_leave": "Eeyyama Mormi",
+    "reject_title": "Gaaffii Eeyyamaa Mormi",
+    "reject_warning": "Gaaffii kana mormuuf mirkanaa'aa? Tarkaanfiin kun hin deebiu.",
+    "reject_reason": "Sababa Mormii",
+    "reject_placeholder": "Sababa bal'aa barreessi...",
+    "reject_help": "Yaada kana hojjetaa fi bulchaan isaa ni argu.",
+    "confirm_rejection": "Mormii Mirkaneessi",
+    "errors": {
+      "load_failed": "Raggaasisuu eeyyamaa fe'uun hin milkoofne.",
+      "approve_failed": "Eeyyama raggaasuun hin milkoofne.",
+      "reject_failed": "Eeyyama mormuun hin milkoofne.",
+      "pdf_failed": "PDF uumuun hin milkoofne."
+    }
+  },
+  "pending_requests": {
+    "title": "Gaaffilee Eeyyamaa Eegamaa",
+    "subtitle": "Gaaffilee eeyyamaa ilaali fi raggaasi",
+    "titles": {
+      "manager": "Raggaasisuu Bulchaa Eegamaa",
+      "hr": "Raggaasisuu HR Eegamaa"
+    },
+    "subtitles": {
+      "manager": "Raggaasisuu sadarkaa jalqabaa miseensota garee keetii",
+      "hr": "Raggaasisuu dhumaa gaaffilee bulchaan ilaalee"
+    },
+    "loading": "Gaaffilee eeyyamaa fe'amaa jira...",
+    "loading_pending": "Gaaffilee eegamaa fe'amaa jira...",
+    "errors": {
+      "unable": "Gaaffilee fe'uu hin danda'ame"
+    },
+    "stats": {
+      "total": "Waliigalaa",
+      "urgent": "Ariifachiisaa",
+      "requires_hr": "HR barbaada"
+    },
+    "search_placeholder": "Hojjetaa, kutaa yookaan sababaan barbaadi...",
+    "filters": {
+      "all": "Gaaffilee hunda ({{count}})",
+      "urgent": "Ariifachiisaa ({{count}})",
+      "requires_hr": "HR barbaada ({{count}})",
+      "first_approval": "Raggaasisuu jalqabaa ({{count}})"
+    },
+    "sort": {
+      "urgency": "Ariifachiisummaa irratti dursi",
+      "date": "Guyyaa irratti dursi",
+      "employee": "Hojjetaa irratti dursi",
+      "department": "Kutaa irratti dursi"
+    },
+    "bulk": {
+      "selected": "{{count}} gaaffilee filataman",
+      "processing": "Hojii irra jira...",
+      "approve": "Raggaasi {{count}}",
+      "reject": "Mormi {{count}}",
+      "clear": "Filannoo qulqulleessi"
+    },
+    "empty": {
+      "matching": "Gaaffiin wal fakkaatu hin argamne",
+      "manager": "Raggaasisuu bulchaa eegamaa hin jiru",
+      "hr": "Raggaasisuu HR eegamaa hin jiru",
+      "try_adjust": "Haala barbaacha kee jijjiiri",
+      "processed": "Gaaffileen hundi xumuramaniiru.",
+      "hr_review": "Gaaffiin HR ilaaluuf hin jiru."
+    },
+    "clear_filters": "Qulqulleessi",
+    "urgency": {
+      "overdue": "⏰ Darbe",
+      "starts_today": "🚨 Har'a jalqaba",
+      "urgent": "🚨 Ariifachiisaa",
+      "soon": "⚠️ Dhiyeenya",
+      "upcoming": "📅 Dhufu"
+    },
+    "time": {
+      "overdue": "{{days}} guyyaa darbe",
+      "starts_today": "Har'a jalqaba",
+      "until_start": "{{days}} guyyaa hanga jalqabaatti"
+    },
+    "notes": {
+      "manager": "Yaadota raggaasisuu galchi...",
+      "hr": "Yaadota raggaasisuu dhumaa galchi..."
+    },
+    "actions": {
+      "forward_hr": "✅ Gara HRtti ergi",
+      "final_approve": "✅ Raggaasisuu dhumaa",
+      "reject": "❌ Mormi"
+    },
+    "details": "Ibsa",
+    "details_title": "Ibsa Gaaffii Eeyyamaa",
+    "status": {
+      "manager_to_hr": "✅ Bulchaan raggaase → ⏳ HR ilaalaa"
+    }
+  },
+  "approvals_history": {
+    "title": "Seenaa Raggaasisuu",
+    "subtitle": "Murtii gaaffilee eeyyamaa kee hordofi",
+    "loading": "Seenaa raggaasisuu fe'amaa jira...",
+    "errors": {
+      "load_failed": "Seenaa raggaasisuu fe'uu hin milkoofne",
+      "unable": "Seenaa fe'uu hin danda'ame"
+    },
+    "stats": {
+      "total": "Murtii Waliigalaa",
+      "rate": "Saamuda Raggaasisuu"
+    },
+    "filters": {
+      "status": "Filannoo Haala:",
+      "all": "Murtii Hunda",
+      "approved": "Ragga'ame Qofa",
+      "rejected": "Morman Qofa",
+      "period": "Yeroo:",
+      "all_time": "Yeroo Hunda",
+      "month": "Ji'a Kana",
+      "quarter": "Kurmaana Kana",
+      "year": "Bara Kana"
+    },
+    "showing": "{{shown}} keessaa {{total}} murtii mul'isaa",
+    "empty_title": "Seenaa raggaasisuu hin jiru",
+    "empty_subtitle": "Murtiin filannoo filatameef hin argamne.",
+    "unassigned": "Hin ramadamne",
+    "decided": "Murteeffame",
+    "your_notes": "Yaadota kee"
+  },
+  "team_overview": {
+    "title": "Ibsa Gabaabaa Garee",
+    "loading_info": "Odeeffannoo garee fe'amaa jira...",
+    "loading_team": "Garee kee fe'amaa jira...",
+    "errors": {
+      "load_failed": "Miseensota garee fe'uu hin milkoofne"
+    },
+    "unassigned": "Hin ramadamne",
+    "upcoming_leave": "Eeyyama Dhufu",
+    "available": "Jira",
+    "no_upcoming": "Eeyyama dhufu hin jiru",
+    "starts_today": "Har'a jalqaba",
+    "starts_tomorrow": "Boru jalqaba",
+    "started_days_ago": "{{days}} guyyaa dura jalqabe",
+    "starts_in_days": "{{days}} guyyaa keessatti jalqaba",
+    "days_until_leave": "{{days}} guyyaa hanga eeyyamaa",
+    "team_count": "Miseensa garee {{count}}",
+    "views": {
+      "grid": "Grid",
+      "table": "Gabatee"
+    },
+    "stats": {
+      "total_members": "Miseensota Waliigalaa",
+      "on_leave_today": "Har'a eeyyama irratti",
+      "upcoming": "Eeyyama Dhufu",
+      "avg_leave": "Eeyyama giddugaleessa"
+    },
+    "department_distribution": "Raabsaa Kutaa",
+    "search_placeholder": "Maqaa, imeelii yookaan hojii irratti barbaadi...",
+    "filters": {
+      "all_status": "Haala Hunda",
+      "all_departments": "Kutaa hunda"
+    },
+    "showing": "{{shown}} keessaa {{total}} miseensota agarsiisaa",
+    "empty_title": "Miseensota garee hin argamne",
+    "empty_filtered": "Meeshaa barbaacha yookaan filannoo jijjiiri",
+    "empty_default": "Miseensota siif ramadaman hin jiran.",
+    "next_leave": "Eeyyama itti aanuu",
+    "days_left": "guyyaa hafe",
+    "member_details": "Ibsa Miseensa Garee",
+    "leave_info": "Odeeffannoo Eeyyamaa",
+    "leave_balances": "Hafe Eeyyamaa",
+    "no_balance_info": "Odeeffannoo hafe eeyyamaa hin jiru.",
+    "current_leave": "Eeyyama Ammaa",
+    "upcoming_leaves": "Eeyyama Dhufu"
+  },
+  "manager_reports": {
+    "title": "Gabaasota Bulchaa",
+    "subtitle": "Xiinxala fi hubannoo bulchiinsa eeyyamaa garee keetii",
+    "loading": "Daataa gabaasaa fe'amaa jira...",
+    "generating": "Gabaasota qopheessaa jira...",
+    "export": "Gabaasa Ergi",
+    "exporting": "Ergaa jira...",
+    "errors": {
+      "export_failed": "Erguun hin milkoofne. Irra deebi'ii yaali."
+    },
+    "date_range": "📅 Daangaa Guyyaa",
+    "from": "Irraa",
+    "to": "Hanga",
+    "filters": "🎯 Filannoo",
+    "all_employees": "Hojjettoota Hunda",
+    "quick_stats": {
+      "title": "Ibsa Ariifachiisaa",
+      "total_applications": "Gaaffilee Waliigalaa",
+      "approval_rate": "Saamuda Raggaasisuu",
+      "avg_processing_time": "Yeroo Hojii Giddugaleessa"
+    },
+    "report_period": "Yeroo Gabaasaa: {{start}} - {{end}}",
+    "refreshing": "🔄 Haaromsaa jira...",
+    "refresh": "🔄 Daataa Haaromsi",
+    "tabs": {
+      "overview": "Ibsa Gabaabaa",
+      "performance": "Raawwi Garee",
+      "analytics": "Xiinxala",
+      "details": "Ibsa Bal'aa"
+    },
+    "summary": {
+      "total_applications": "Gaaffilee Waliigalaa",
+      "approved": "Ragga'ame",
+      "rejected": "Morman",
+      "pending": "Eegamaa"
+    },
+    "charts": {
+      "applications_by_month": "Gaaffilee Ji'aan",
+      "applications_by_department": "Gaaffilee Kutaan",
+      "leave_type_distribution": "Raabsaa Gosa Eeyyamaa",
+      "leave_trends": "Arii Eeyyamaa"
+    },
+    "labels": {
+      "applications": "Gaaffilee",
+      "approval_rate_pct": "Saamuda Raggaasisuu %",
+      "avg_processing_time_days": "Yeroo Hojii Giddugaleessa (guyyoota)",
+      "approved": "Ragga'ame",
+      "rejected": "Morman"
+    },
+    "performance": {
+      "title": "Xiinxala Raawwi Garee",
+      "subtitle": "Lakkoofsa raawwi miseensota garee",
+      "highest_approval": "Saamuda raggaasisuu ol'aanaa",
+      "avg_applications": "Gaaffii giddugaleessa miseensotaaf",
+      "avg_duration": "Turtii eeyyamaa giddugaleessa",
+      "insights_title": "Hubannoo Raawwii",
+      "peak_period": "Yeroo eeyyamaa ol'aanaa",
+      "peak_period_desc": "Eeyyama baay'een {{period}} keessatti fudhatame",
+      "processing_efficiency": "Milkaa'ina Hojii",
+      "processing_efficiency_desc": "Yeroo raggaasisuu giddugaleessa: {{days}} guyyaa",
+      "most_common_type": "Gosa eeyyamaa baay'inaan fayyadame",
+      "most_common_type_desc": "{{type}} ({{percent}}% eeyyamaa hunda keessaa)"
+    },
+    "table": {
+      "employee": "Hojjetaa",
+      "applications": "Gaaffilee",
+      "approval_rate": "Saamuda Raggaasisuu",
+      "avg_duration": "Turtii Giddugaleessa",
+      "performance_score": "Sadarkaa Raawwii",
+      "days": "{{days}} guyyaa",
+      "score": "{{score}}/100"
+    },
+    "analytics": {
+      "title": "Xiinxala Olaanaa",
+      "department_comparison": "Walbira Qabii Kutaa",
+      "approval_distribution": "Raabsaa Saamuda Raggaasisuu",
+      "processing_time_trend": "Arii Yeroo Hojii",
+      "key_insights": "Hubannoo Ijoo",
+      "high_approval_title": "Saamuda raggaasisuu ol'aanaa:",
+      "high_approval_desc": "Gareen kee {{rate}}% raggaasisuu gaarii qaba",
+      "approval_rate_title": "Saamuda raggaasisuu:",
+      "approval_rate_desc": "Saamuda {{rate}}% fooyyeessuuf hojii ilaali",
+      "processing_time_title": "Yeroo hojii:",
+      "processing_time_desc": "Yeroo hojii giddugaleessa {{days}} guyyaa fooyya'uu danda'a",
+      "quick_processing_title": "Hojii ariifataa:",
+      "quick_processing_desc": "Eeyyama {{days}} guyyaa keessatti raawwatte",
+      "leave_distribution_title": "Raabsaa eeyyamaa:",
+      "leave_distribution_desc": "{{type}} eeyyama hunda keessaa %50 ol ta'a"
+    },
+    "details": {
+      "title": "Ibsa Gabaasaa Bal'aa",
+      "monthly_breakdown": "Bal'ina Ji'aa",
+      "department_performance": "Raawwi Kutaa",
+      "leave_type_analysis": "Xiinxala Gosa Eeyyamaa",
+      "executive_summary": "Ibsa Gabaabaa",
+      "summary_period": "Yeroo {{start}} hanga {{end}} keessatti, gareen kee gaaffilee eeyyamaa {{total}} hojjete.",
+      "summary_approval": "Saamuda raggaasisuu {{rate}}% fi yeroo hojii giddugaleessa {{days}} guyyaa dha.",
+      "summary_most_used": "{{type}} gosa eeyyamaa baay'inaan fayyadame, {{percent}}% gaaffilee hunda keessaa.",
+      "table": {
+        "month": "Ji'a",
+        "applications": "Gaaffilee",
+        "approved": "Ragga'ame",
+        "rejected": "Morman",
+        "approval_rate": "Saamuda Raggaasisuu",
+        "department": "Kutaa",
+        "performance": "Raawwi",
+        "leave_type": "Gosa Eeyyamaa",
+        "count": "Lakkoofsa",
+        "percentage": "Hima",
+        "avg_duration": "Turtii Giddugaleessa",
+        "days": "{{days}} guyyaa"
+      },
+      "performance": {
+        "excellent": "Baay'ee gaarii",
+        "good": "Gaarii",
+        "average": "Giddugaleessa",
+        "needs_improvement": "Fooyya'iinsa barbaada"
+      }
+    },
+    "csv": {
+      "metric": "Madaallii",
+      "value": "Gatii",
+      "total_applications": "Gaaffilee Waliigalaa",
+      "approved": "Ragga'ame",
+      "rejected": "Morman",
+      "pending": "Eegamaa",
+      "approval_rate": "Saamuda Raggaasisuu",
+      "avg_processing_time": "Yeroo Hojii Giddugaleessa",
+      "avg_processing_time_value": "{{days}} guyyaa",
+      "month": "Ji'a",
+      "applications": "Gaaffilee"
+    },
+    "updating": "Daataa gabaasaa haaromsaa jira..."
+  },
+  "hr_reports": {
+    "title": "Xiinxala fi Gabaasota HR",
+    "subtitle": "Xiinxala eeyyamaa dhaabbatichaa fi hubannoo",
+    "loading_data": "Daataa xiinxalaa HR fe'amaa jira...",
+    "error_title": "Gabaasa HR fe'uu hin danda'ame",
+    "no_data_title": "Daataa gabaasaa hin jiru",
+    "no_data_desc": "Daataan xiinxalaa HR hin fe'amne. Haaromsi yookaan deeggarsa qunnami.",
+    "try_again": "Irra deebi'ii yaali",
+    "load_data": "Daataa fe'i",
+    "period": "Yeroo: {{start}} - {{end}}",
+    "total_employees": "Hojjettoota Waliigalaa",
+    "exporting": "Ergaa jira...",
+    "export_report": "📥 Gabaasa Ergi",
+    "export_csv": "CSV Ergi",
+    "export_pdf": "PDF Ergi",
+    "export_excel": "Excel Ergi",
+    "export_pdf_soon": "Filannoon PDF yeroo dhihoo ni dabalama",
+    "export_excel_soon": "Filannoon Excel yeroo dhihoo ni dabalama",
+    "date_range": "Daangaa Guyyaa:",
+    "range": {
+      "month": "Ji'a",
+      "quarter": "Kurmaana",
+      "year": "Waggaa",
+      "custom": "Addaa"
+    },
+    "to": "hanga",
+    "apply": "Hojii irra oolchi",
+    "department": "Kutaa:",
+    "status_filter": "Filannoo Haala:",
+    "status": {
+      "all": "Haala hunda",
+      "approved": "Ragga'ame qofa",
+      "pending": "Eegamaa qofa",
+      "rejected": "Morman qofa"
+    },
+    "refresh_title": "Daataa haaromsi",
+    "refresh": "Haaromsi",
+    "tabs": {
+      "overview": "Ibsa Gabaabaa",
+      "analytics": "Xiinxala",
+      "compliance": "Hordoffii",
+      "employees": "Hojjettoota"
+    },
+    "metrics": {
+      "total_employees": "Hojjettoota Waliigalaa",
+      "change_from_last_period": "{{value}}% yeroo darbe irraa",
+      "total_leaves": "Eeyyama Waliigalaa",
+      "total_days": "{{days}} guyyaa waliigalaa",
+      "approval_rate": "Saamuda Raggaasisuu",
+      "change": "{{value}}% jijjiirama",
+      "on_leave_today": "Har'a eeyyama irratti",
+      "workforce_pct": "{{value}}% hojjattoota keessaa",
+      "pending_approvals": "Raggaasisuu Eegamaa",
+      "requires_attention": "Hubannoo barbaada",
+      "avg_leave_duration": "Turtii Eeyyamaa Giddugaleessa",
+      "avg_duration_value": "{{days}} guyyaa"
+    },
+    "department_performance": "Raawwi Kutaa",
+    "department_employees": "{{count}} hojjettoota",
+    "department": {
+      "leaves": "Eeyyama",
+      "approval_rate": "Saamuda Raggaasisuu",
+      "avg_duration": "Turtii Giddugaleessa",
+      "avg_duration_value": "{{days}}d"
+    },
+    "department_option": "{{department}} ({{count}} hojjettoota)",
+    "no_department_data": "Daataan kutaa hin jiru",
+    "monthly_trends": "Arii Ji'aa Eeyyamaa",
+    "last_6_months": "Ibsa ji'a 6 darban",
+    "trend_tooltip": "{{count}} eeyyama",
+    "no_trend_data": "Daataa ariifachiisaa hin jiru",
+    "leave_type_distribution": "Raabsaa Gosa Eeyyamaa",
+    "most_used_types": "Gosa eeyyamaa baay'inaan fayyadaman",
+    "no_leave_type_data": "Daataan gosa eeyyamaa hin jiru",
+    "leave_type_analytics": "Xiinxala Gosa Eeyyamaa",
+    "no_leave_type_analytics": "Daataan xiinxala gosa eeyyamaa hin jiru",
+    "table": {
+      "leave_type": "Gosa Eeyyamaa",
+      "total_requests": "Gaaffilee Waliigalaa",
+      "approved": "Ragga'ame",
+      "approval_rate": "Saamuda Raggaasisuu",
+      "avg_duration": "Turtii Giddugaleessa",
+      "utilization": "Fayyadama",
+      "avg_duration_value": "{{days}} guyyaa",
+      "rank": "Sadarkaa",
+      "employee": "Hojjetaa",
+      "department": "Kutaa",
+      "leaves_taken": "Eeyyama Fudhatame",
+      "total_days": "Guyyoota Waliigalaa",
+      "trend": "Arii"
+    },
+    "compliance": {
+      "score": "Sadarkaa Hordoffii",
+      "score_label": "Sadarkaa",
+      "level": {
+        "excellent": "Baay'ee Gaarii",
+        "good": "Gaarii",
+        "fair": "Giddugaleessa",
+        "needs_improvement": "Fooyya'iinsa barbaada"
+      },
+      "policy_violations": "Cabsaa Itti-fufiinsaa",
+      "late_applications": "Iyyannoo yeroo darbe",
+      "overlapping_leaves": "Eeyyama wal irratti bu'aa",
+      "high_frequency": "Hojjettoota eeyyama baay'inaan fudhatan",
+      "weighted": "{{value}} × {{weight}}",
+      "details": "Ibsa Hordoffii",
+      "violations_detected": "Cabsaa {{count}} argame",
+      "policy_violations_desc": "Daangaa ol'aanaa dabran, gosa hin hayyamne",
+      "late_submissions": "Ergaa yeroo darbe {{count}}",
+      "late_applications_desc": "Iyyannoo beeksisa gahaa hin qabne",
+      "overlaps_detected": "Walitti bu'iinsa {{count}} argame",
+      "overlapping_leaves_desc": "Eeyyama yeroo walfakkaatu irratti ragga'ame",
+      "employees_flagged": "Hojjettoota {{count}} filataman",
+      "high_frequency_desc": "Hojjettoota eeyyama baay'inaan fudhatan"
+    },
+    "top_employees": "Hojjettoota 10 kan guyyoota eeyyamaa baay'inaan fudhatan",
+    "days_badge": "{{days}} guyyaa",
+    "no_employee_data": "Daataan hubannoo hojjetaa hin jiru",
+    "employee_insights": "Hubannoo Hojjetaa",
+    "insights": {
+      "most_active_department": "Kutaa baay'inaan hojii irra jiru",
+      "most_active_department_desc": "Gaaffilee eeyyamaa baay'inaan dhiyeessan",
+      "highest_approval_rate": "Saamuda raggaasisuu ol'aanaa",
+      "highest_approval_rate_desc": "Adeemsa raggaasisuu gaarii",
+      "top_leave_taker": "Kan eeyyama baay'ee fudhate",
+      "top_leave_taker_desc": "Waliigala {{days}} guyyaa eeyyamaa",
+      "most_used_leave_type": "Gosa eeyyamaa baay'inaan fayyadame",
+      "most_used_leave_type_desc": "Gosa eeyyamaa baay'inaan iyyatame"
+    },
+    "errors": {
+      "load_failed": "Daataa gabaasaa HR fe'uu hin milkoofne",
+      "no_data_export": "Daataa erguuf hin jiru",
+      "export_failed": "Erguun hin milkoofne: {{message}}"
+    }
+  },
+  "leave_types": {
+    "title": "Bulchiinsa Gosa Eeyyamaa",
+    "subtitle": "Gosa eeyyamaa sirnicha keessatti jiran qindeessi",
+    "loading": "Gosa eeyyamaa fe'amaa jira...",
+    "add": "Gosa Eeyyamaa Dabaluu",
+    "add_title": "Gosa Eeyyamaa Haaraa Dabaluu",
+    "edit_title": "Gosa Eeyyamaa Gulaali",
+    "errors": {
+      "load_failed": "Gosa eeyyamaa fe'uun hin milkoofne",
+      "update_status": "Haala gosa eeyyamaa haaromsuun hin milkoofne",
+      "save_failed": "Gosa eeyyamaa olkaa'uun hin milkoofne",
+      "name_required": "Maqaan gosa eeyyamaa barbaachisa",
+      "max_days_min": "Guyyoonni ol’aanaa xiqqaatee 1 ta’uu qabu"
+    },
+    "messages": {
+      "activated": "Gosti eeyyamaa \"{{name}}\" hojiirra oole",
+      "deactivated": "Gosti eeyyamaa \"{{name}}\" dhaabbate",
+      "created": "Gosti eeyyamaa \"{{name}}\" uumame",
+      "updated": "Gosti eeyyamaa \"{{name}}\" haaromfame"
+    },
+    "form": {
+      "name": "Maqaa Gosa Eeyyamaa",
+      "name_placeholder": "Fakkeenya: Eeyyama Waggaa, Dhukkuba",
+      "max_days": "Guyyoota Ol’aanaa",
+      "description": "Ibsa",
+      "description_placeholder": "Ibsa gabaabaa gosa eeyyamaa kanaa...",
+      "color": "Halluu",
+      "requires_hr": "Raggaasisuu HR barbaada",
+      "requires_hr_help": "Gosti kun booda raggaasisuu HR dabalataa barbaada",
+      "carry_over": "Gara bara itti aanuutti dabarsuu hayyami",
+      "carry_over_help": "Guyyoota hin fayyadamin gara bara itti aanuutti dabarsu",
+      "requires_approval": "Raggaasisuu barbaada",
+      "requires_approval_help": "Gaaffileen eeyyamaa raggaasisuu bulchaa barbaadu",
+      "update": "Gosa Eeyyamaa Haaromsi",
+      "create": "Gosa Eeyyamaa Uumi"
+    },
+    "table": {
+      "title": "Gosa Eeyyamaa Jiraatan",
+      "total": "Waliigalaa: {{count}}",
+      "active": "Hojii irra: {{count}}",
+      "name": "Maqaa",
+      "max_days": "Guyyoota Ol’aanaa",
+      "hr_approval": "Raggaasisuu HR",
+      "carry_over": "Dabarsuu",
+      "status": "Haala",
+      "created": "Uumame",
+      "actions": "Tarkaanfii",
+      "days": "{{days}} guyyaa",
+      "active_label": "Hojii irra",
+      "inactive_label": "Dhaabbate",
+      "edit_title": "Gosa eeyyamaa gulaali",
+      "edit": "Gulaali",
+      "activate": "Hojiirra Oolchi",
+      "deactivate": "Dhaabbisi"
+    },
+    "empty": {
+      "title": "Gosa eeyyamaa hin qindoomne",
+      "subtitle": "Gosa eeyyamaa jalqabaa dabaluuun jalqabi.",
+      "add_first": "Gosa Eeyyamaa Jalqabaa Dabaluu"
+    }
+  },
+  "leave_overview": {
+    "title": "Ibsa Gabaabaa Eeyyamaa",
+    "subtitle": "Gaaffilee eeyyamaa hunda dhaabbaticha keessatti ilaali",
+    "loading": "Gaaffilee eeyyamaa fe'amaa jira...",
+    "refresh": "🔄 Haaromsi",
+    "refreshing": "🔄 Fe'amaa jira...",
+    "export_csv": "📊 CSV Ergi",
+    "exporting": "📊 Ergaa jira...",
+    "errors": {
+      "export_failed": "Daataa erguun hin milkoofne"
+    },
+    "stats": {
+      "total": "Gaaffilee Waliigalaa",
+      "pending": "Eegamaa",
+      "hr_pending": "({{count}} HR)",
+      "approved": "Ragga'ame",
+      "rejected": "Morman"
+    },
+    "filters": {
+      "search_placeholder": "Hojjettoota, kutaa, gosa eeyyamaa barbaadi...",
+      "all_departments": "Kutaa hunda",
+      "all_leave_types": "Gosa eeyyamaa hunda",
+      "all_time": "Yeroo hunda",
+      "today": "Har'a",
+      "last_7_days": "Guyyoota 7 darban",
+      "last_30_days": "Guyyoota 30 darban",
+      "per_page": "{{count}} fuula irratti"
+    },
+    "tabs": {
+      "all": "Gaaffilee Hunda ({{count}})",
+      "pending": "Eegamaa ({{count}})",
+      "hr_badge": "HR: {{count}}",
+      "approved": "Ragga'ame ({{count}})",
+      "rejected": "Morman ({{count}})"
+    },
+    "department_overview": "Ibsa Gabaabaa Kutaa",
+    "department": {
+      "total": "Waliigalaa:",
+      "approved": "Ragga'ame:",
+      "pending": "Eegamaa:",
+      "hr_pending": "({{count}} HR)",
+      "rejected": "Morman:"
+    },
+    "table": {
+      "title": "Gaaffilee Eeyyamaa",
+      "showing": "{{shown}} keessaa {{total}} gaaffilee mul'isaa",
+      "filtered": "(filatame)",
+      "auto_refresh": "Daqiiqaa 2 keessatti ofumaan haaromsa",
+      "employee": "Hojjetaa",
+      "department": "Kutaa",
+      "leave_type": "Gosa Eeyyamaa",
+      "leave_period": "Yeroo Eeyyamaa",
+      "duration": "Turtii",
+      "applied": "Iyyate",
+      "status": "Haala",
+      "approver": "Raggaasisuu",
+      "to": "hanga {{end}}",
+      "days": "{{count}} guyyaa",
+      "days_plural": "{{count}} guyyaa"
+    },
+    "empty": {
+      "title": "Gaaffiin hin argamne",
+      "all": "Gaaffiin filannoo ammaatiin hin jiru",
+      "by_status": "Gaaffiin {{status}} filannoo ammaatiin hin jiru",
+      "clear_filters": "Filannoo Hunda Haqi"
+    },
+    "pagination": {
+      "prev": "Dura",
+      "next": "Itti aanuu"
+    },
+    "approver": {
+      "manager": "Bulchaa",
+      "hr": "HR"
+    }
+  },
+  "user_management": {
+    "title": "Bulchiinsa Fayyadamtootaa",
+    "loading": "Fayyadamtoota fe'amaa jira...",
+    "user_count": "{{count}} fayyadamtoota",
+    "add_user": "Fayyadamaa Dabaluu",
+    "search_placeholder": "Maqaa yookaan imeelii irratti barbaadi...",
+    "refresh": "Haaromsi",
+    "filters": {
+      "all_roles": "Gahee hunda",
+      "all_departments": "Kutaa hunda"
+    },
+    "modal": {
+      "add_title": "Fayyadamaa Haaraa Dabaluu",
+      "basic_info": "Odeeffannoo Bu'uuraa",
+      "additional_details": "Ibsa Dabalataa",
+      "security": "Nageenya"
+    },
+    "fields": {
+      "full_name": "Maqaa Guutuu",
+      "email": "Imeelii",
+      "role": "Gahee",
+      "department": "Kutaa",
+      "position": "Iddoo hojii",
+      "phone": "Bilbilaa",
+      "manager": "Bulchaa Kenni",
+      "password": "Jecha Icciitii Jalqabaa"
+    },
+    "placeholders": {
+      "full_name": "Maqaa guutuu galchi (fkn: Obsa Mustefa)",
+      "email": "Imeelii ofumaan uumama",
+      "department": "Kutaa filadhu",
+      "new_department": "Maqaa kutaa haaraa galchi",
+      "position": "fkn: Injinera Softiweeraa",
+      "phone": "fkn: +1234567890",
+      "no_manager": "Bulchaa hin qabu (ofuma isaa)",
+      "password": "Jecha icciitii jalqabaa kaa'i"
+    },
+    "help": {
+      "full_name": "Maqaa fi maqaa abbaa galchi, imeelii ofumaan uumama",
+      "auto_generated": "Ofumaan uumame: {{email}}",
+      "valid_email": "✓ Imeelii OBU sirrii",
+      "no_managers": "Kutaa {{department}} keessatti bulchaa hin argamne",
+      "select_manager": "Kutaa waliin bulchaa filadhu",
+      "password_notice": "Fayyadamaan yeroo jalqabaatti jecha icciitii ni jijjiira"
+    },
+    "actions": {
+      "generate_email": "Imeelii haaraa uumi",
+      "add_department": "Kutaa Haaraa Dabaluu",
+      "generate_password": "Uumi",
+      "creating": "Uumaa jira...",
+      "create": "Fayyadamaa Uumi",
+      "activate": "Hojiirra Oolchi",
+      "deactivate": "Dhaabbisi",
+      "delete": "Haquu"
+    },
+    "table": {
+      "user": "Fayyadamaa",
+      "role": "Gahee",
+      "department": "Kutaa",
+      "position": "Iddoo hojii",
+      "join_date": "Guyyaa Makamaa",
+      "status": "Haala",
+      "actions": "Tarkaanfii",
+      "showing": "{{shown}} keessaa {{total}} fayyadamtoota mul'isaa",
+      "filtered": "(filatame)"
+    },
+    "empty": {
+      "title": "Fayyadamtoota hin argamne",
+      "filtered": "Filannoo yookaan barbaacha jijjiiri",
+      "default": "Fayyadamaa jalqabaa dabaluuun jalqabi.",
+      "add_first": "Fayyadamaa Jalqabaa Dabaluu"
+    },
+    "errors": {
+      "load_failed": "Fayyadamtoota fe'uu hin milkoofne",
+      "email_domain": "Maaloo @obu.edu.et fayyadami",
+      "required_fields": "Maaloo dirqama hunda guuti",
+      "email_used": "Imeelii kana {{name}} fayyadameera",
+      "email_exists_suggested": "Imeelii duraan jira. Filannoo: {{email}}",
+      "create_failed": "Fayyadamaa uumuu hin milkoofne",
+      "delete_failed": "Fayyadamaa haquu hin milkoofne",
+      "update_status": "Haala fayyadamaa haaromsuu hin milkoofne"
+    },
+    "messages": {
+      "created": "Fayyadamaan \"{{name}}\" imeelii {{email}} waliin uumame",
+      "deleted": "Fayyadamaa haquun milkaa'ee!",
+      "activated": "Fayyadamaa hojiirra oole!",
+      "deactivated": "Fayyadamaa dhaabbate!"
+    },
+    "status": {
+      "active": "Hojii irra",
+      "inactive": "Dhaabbate"
+    },
+    "confirm_delete": "Fayyadamaa kana haquu barbaadda? Tarkaanfiin kun hin deebiu."
+  },
+  "system_config": {
+    "title": "Qindaa'ina Sirnaa",
+    "subtitle": "Sirreeffamoota sirnaa waliigalaa bulchi",
+    "loading": "Qindaa'ina sirnaa fe'amaa jira...",
+    "unsaved_changes": "Jijjiirama hin olkaa'amne",
+    "unsaved_warning": "Jijjiirama hin olkaa'amne qabda. Olkaa'uu hin dagatin.",
+    "saving": "Olkaa'aa jira...",
+    "save": "Qindaa'ina Olkaa'i",
+    "discard": "Jijjiirama Haqi",
+    "reset": "Gara duraanii deebisi",
+    "errors": {
+      "load_failed": "Qindaa'ina sirnaa fe'uu hin milkoofne",
+      "save_failed": "Qindaa'ina sirnaa olkaa'uu hin milkoofne"
+    },
+    "messages": {
+      "saved": "Qindaa'inni sirnaa milkaa'inaan olkaa'ame!"
+    },
+    "validation": {
+      "max_consecutive": "Eeyyama itti fufaa ol'aanaa xiqqaatee 1 ta'uu qaba",
+      "advance_notice": "Guyyoonni beeksisa duraa xiqqaachuu hin qaban",
+      "carry_over_limit": "Daangaan dabarsuu xiqqaachuu hin qabu",
+      "max_leave_days": "Guyyoonni eeyyamaa waggaa keessatti xiqqaatee 1 ta'uu qaba",
+      "min_leave_duration": "Turtiin eeyyamaa xiqqaa xiqqaachuu hin qabu",
+      "auto_approve_max": "Auto-approve ol'aanaa xiqqaachuu hin qabu",
+      "approval_reminder": "Sa'aatii yaadachiisa raggaasisuu xiqqaatee 1 ta'uu qaba"
+    },
+    "sections": {
+      "leave_policies": {
+        "title": "Imaammata Eeyyamaa",
+        "subtitle": "Turtii eeyyamaa, beeksisa duraa, fi seera dabarsuu qindeessi"
+      },
+      "approvals": {
+        "title": "Qindaa'ina Raggaasisuu",
+        "subtitle": "Sirna raggaasisuu fi auto-approval qindeessi"
+      },
+      "notifications": {
+        "title": "Qindaa'ina Beeksisaa",
+        "subtitle": "Karaan beeksisaa fi warra fudhatan qindeessi"
+      },
+      "behavior": {
+        "title": "Amala Sirnaa",
+        "subtitle": "Seerota sirnaa fi qindaa'ina kaalaandarii qindeessi"
+      },
+      "ui": {
+        "title": "Qindaa'ina Fuula",
+        "subtitle": "Mul'ina fi amala fuula fayyadamaa qindeessi"
+      }
+    },
+    "fields": {
+      "max_consecutive": "Guyyoota Eeyyamaa Itti Fufaa Ol'aanaa",
+      "advance_notice": "Beeksisa Durfaanii (Guyyoota)",
+      "max_per_year": "Guyyoota Eeyyamaa Waggaa Ol'aanaa",
+      "min_duration": "Turtii Eeyyamaa Xiqqaa (Guyyoota)",
+      "carry_over_enabled": "Bara itti aanuutti dabarsuu hayyami",
+      "carry_over_limit": "Guyyoota Dabarsuu Ol'aanaa",
+      "auto_approve": "Eeyyama gabaabaa auto-raggaasi",
+      "auto_approve_max": "Auto-approve guyyaa ol'aanaa",
+      "require_manager": "Raggaasisuu Bulchaa barbaada",
+      "require_hr": "Raggaasisuu HR barbaada",
+      "approval_reminder": "Yaadachiisa Raggaasisuu (Sa'aatii)",
+      "notify_email": "Beeksisa Imeelii",
+      "notify_sms": "Beeksisa SMS",
+      "notify_managers": "Bulchaan beeksisi",
+      "notify_hr": "HR beeksisi",
+      "system_alerts": "Akeekkachiisa Sirnaa fi Gabaasota",
+      "allow_backdate": "Eeyyama backdate hayyami",
+      "allow_overlap": "Eeyyama wal irratti bu'aa hayyami",
+      "fiscal_start": "Guyyaa Jalqabaa Bara Maallaqaa",
+      "working_days": "Guyyoota hojii",
+      "holiday_calendar": "Kaalaandarii Ayyaanaa",
+      "theme": "Bifa",
+      "language": "Afaan",
+      "timezone": "Yeroo Naannoo"
+    },
+    "help": {
+      "max_consecutive": "Turtii eeyyamaa itti fufaa ol'aanaa",
+      "advance_notice": "Guyyaa beeksisa durfaanii eeyyama jalqabaa dura",
+      "max_per_year": "Guyyoota eeyyamaa waggaa keessatti hayyaman",
+      "min_duration": "Turtii eeyyamaa xiqqaa (0.5 = walakkaa guyyaa)",
+      "carry_over_enabled": "Guyyoota hin fayyadamin dabarsuu hayyami",
+      "carry_over_limit": "Guyyoota dabarsuu ol'aanaa bara itti aanu",
+      "auto_approve": "Eeyyama gabaabaa ofumaan raggaasi",
+      "auto_approve_max": "Turtii ol'aanaa auto-approve (guyyoota)",
+      "approval_reminder": "Sa'aatii kana booda yoo hin raggaane yaadachiisa ergi",
+      "system_alerts": "Akeekkachiisa fayyaa sirnaa fi gabaasota torbanitti",
+      "fiscal_start": "Guyyaa jalqabaa bara maallaqaa (hafe eeyyamaa irratti dhiibbaa qaba)",
+      "working_days": "Guyyoota hojii ta'uu qabani filadhu",
+      "holiday_calendar": "Kaalaandarii ayyaanaa herrega eeyyamaa ofumaan",
+      "timezone": "Yeroo naannoo agarsiisa guyyaa fi sa'aatii hunda"
+    },
+    "options": {
+      "calendar": {
+        "ethiopian": "Kaalaandarii Itoophiyaa",
+        "gregorian": "Kaalaandarii Girigooriyaa",
+        "custom": "Kaalaandarii Addaa"
+      },
+      "theme": {
+        "light": "Ifa",
+        "dark": "Dukkana",
+        "auto": "Ofumaan (Sirna)"
+      },
+      "timezone": {
+        "eat": "Yeroo Afrikaa Bahaa (EAT)",
+        "utc": "UTC"
+      }
+    }
+  },
+  "notifications": {
+    "title": "Beeksisoota",
+    "mark_all": "Hunda akka dubbifameetti mallatteessi",
+    "empty": "Beeksisni hin jiru",
+    "empty_hint": "Odeeffannoo gaaffilee eeyyamaa keetii asitti argatta"
+  }
+}

@@ -2,6 +2,7 @@
 import React, { createContext, useState, useContext, useEffect, useMemo, useCallback } from 'react';
 import { User, LoginCredentials } from '../types';
 import { apiService, } from '../utils/api';
+import i18n from '../i18n';
 
 interface AuthContextType {
   user: User | null;
@@ -82,6 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       position: backendUser.position || '',
       phone: backendUser.phone || '',
       status: backendUser.status,
+      language: backendUser.language || 'en',
       joinDate: backendUser.joinDate,
       avatar: backendUser.avatar,
       managerId: backendUser.managerId,
@@ -91,7 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Validate token with backend
-  const validateToken = useCallback(async (token: string): Promise<boolean> => {
+  const validateToken = useCallback(async (): Promise<boolean> => {
     try {
       const response = await apiService.getCurrentUser();
       return response.success;
@@ -134,13 +136,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // If we have a token, validate it and load user
       if (token && apiService.isAuthenticated()) {
-        const isValid = await validateToken(token);
+        const isValid = await validateToken();
         
         if (isValid) {
           const userData = await loadUser();
           
           if (userData) {
             setUser(userData);
+            const preferredLanguage = userData.language || localStorage.getItem('language') || 'en';
+            localStorage.setItem('language', preferredLanguage);
+            i18n.changeLanguage(preferredLanguage);
             setStoredAuthState({
               user: userData,
               token,
@@ -212,6 +217,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const userData = transformBackendUser(response.data.user);
         
         setUser(userData);
+        const preferredLanguage = userData.language || localStorage.getItem('language') || 'en';
+        localStorage.setItem('language', preferredLanguage);
+        i18n.changeLanguage(preferredLanguage);
         setStoredAuthState({
           user: userData,
           token: response.data.token,
@@ -267,6 +275,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const updateUser = useCallback((userData: User) => {
     setUser(userData);
+    if (userData.language) {
+      localStorage.setItem('language', userData.language);
+      i18n.changeLanguage(userData.language);
+    }
     setStoredAuthState({
       user: userData,
       token: localStorage.getItem('token'),
@@ -281,6 +293,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const userData = await loadUser();
       if (userData) {
         setUser(userData);
+        if (userData.language) {
+          localStorage.setItem('language', userData.language);
+          i18n.changeLanguage(userData.language);
+        }
         setStoredAuthState({
           user: userData,
           token: localStorage.getItem('token'),

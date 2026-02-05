@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import type { DashboardStats, Leave,TeamMember,LeaveType, UserRole } from '../types';
 import { apiService } from '../utils/api';
+import { useTranslation } from 'react-i18next';
 import './Dashboard.css';
 
 // Add these new interfaces
@@ -27,7 +28,7 @@ interface QuickAction {
 
 interface ActivityItem {
   id: number;
-  leaveType?: LeaveType;
+  leaveType?: LeaveType | string;
   startDate: string;
   endDate: string;
   days: number;
@@ -53,7 +54,12 @@ interface LeaveBalanceCard {
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [dashboardData, setDashboardData] = useState<DashboardStats>([]);
+  const { t, i18n } = useTranslation();
+  const [dashboardData, setDashboardData] = useState<EnhancedDashboardStats>({
+    title: '',
+    color: '',
+    subtitle: ''
+  });
   const [recentActivities, setRecentActivities] = useState<ActivityItem[]>([]);
   const [leaveBalances, setLeaveBalances] = useState<LeaveBalanceCard[]>([]);
   const [upcomingLeaves, setUpcomingLeaves] = useState<Leave[]>([]);
@@ -62,6 +68,7 @@ const Dashboard: React.FC = () => {
   const [error, setError] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
   const [activeTab, setActiveTab] = useState<'overview' | 'activities' | 'team'>('overview');
+  const [activityFilter, setActivityFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
 
   const userRole = user?.role || 'employee';
 
@@ -69,36 +76,36 @@ const Dashboard: React.FC = () => {
   const roleConfig = useMemo(() => {
     const baseConfig = {
       employee: {
-        title: 'Employee Dashboard',
-        subtitle: 'Your leave management portal',
+        title: t('dashboard.titles.employee'),
+        subtitle: t('dashboard.subtitles.employee'),
         primaryAction: '/apply-leave',
-        primaryActionText: 'Apply for Leave',
+        primaryActionText: t('dashboard.actions.apply_leave'),
         colorTheme: '#3498db'
       },
       manager: {
-        title: 'Manager Dashboard',
-        subtitle: 'Team management and leave approvals',
+        title: t('dashboard.titles.manager'),
+        subtitle: t('dashboard.subtitles.manager'),
         primaryAction: '/pending-requests',
-        primaryActionText: 'Review Pending Requests',
+        primaryActionText: t('dashboard.actions.review_pending'),
         colorTheme: '#27ae60'
       },
       'hr-admin': {
-        title: 'HR Admin Dashboard',
-        subtitle: 'System administration and analytics',
+        title: t('dashboard.titles.hr_admin'),
+        subtitle: t('dashboard.subtitles.hr_admin'),
         primaryAction: '/hr-approvals',
-        primaryActionText: 'HR Approvals',
+        primaryActionText: t('dashboard.actions.hr_approvals'),
         colorTheme: '#9b59b6'
       },
       'super-admin': {
-        title: 'Super Admin Dashboard',
-        subtitle: 'System administration and analytics',
+        title: t('dashboard.titles.super_admin'),
+        subtitle: t('dashboard.subtitles.super_admin'),
         primaryAction: '/hr-approvals',
-        primaryActionText: 'HR Approvals',
+        primaryActionText: t('dashboard.actions.hr_approvals'),
         colorTheme: '#e74c3c'
       }
     };
     return baseConfig[userRole as keyof typeof baseConfig] || baseConfig.employee;
-  }, [userRole]);
+  }, [userRole, t]);
 
   console.log(roleConfig);
   // Enhanced data loading with caching
@@ -273,68 +280,68 @@ const loadLeaveBalances = async () => {
   const quickActions: QuickAction[] = useMemo(() => {
     const actions = {
       employee: [
-        { label: 'Apply for Leave', icon: '📝', path: '/apply-leave', color: '#27ae60', description: 'Submit new leave request', badge: 0 },
-        { label: 'Leave History', icon: '📋', path: '/leave-history', color: '#3498db', description: 'View all your leaves', badge: recentActivities.length },
-        { label: 'My Profile', icon: '👤', path: '/profile', color: '#9b59b6', description: 'Update personal information', badge: 0 },
-        { label: 'Leave Balance', icon: '💰', path: '/leave-balance', color: '#f39c12', description: 'Check available days', badge: leaveBalances.length },
+        { label: t('menu.apply_leave'), icon: '📝', path: '/apply-leave', color: '#27ae60', description: t('dashboard.quick_actions.apply_desc'), badge: 0 },
+        { label: t('menu.leave_history'), icon: '📋', path: '/leave-history', color: '#3498db', description: t('dashboard.quick_actions.history_desc'), badge: recentActivities.length },
+        { label: t('dashboard.quick_actions.my_profile'), icon: '👤', path: '/profile', color: '#9b59b6', description: t('dashboard.quick_actions.profile_desc'), badge: 0 },
+        { label: t('dashboard.quick_actions.leave_balance'), icon: '💰', path: '/leave-balance', color: '#f39c12', description: t('dashboard.quick_actions.balance_desc'), badge: leaveBalances.length },
       ],
       manager: [
-        { label: 'Pending Requests', icon: '✅', path: '/pending-requests', color: '#27ae60', description: 'Review team requests', badge: dashboardData.pendingRequests || 0 },
-        { label: 'Team Overview', icon: '👥', path: '/team-overview', color: '#3498db', description: 'View team members', badge: dashboardData.teamSize || 0 },
-        { label: 'Reports', icon: '📊', path: '/reports', color: '#9b59b6', description: 'Generate analytics', badge: 0 },
-        { label: 'Calendar', icon: '📅', path: '/calendar', color: '#f39c12', description: 'Team leave calendar', badge: teamOnLeave.length },
+        { label: t('menu.pending_requests'), icon: '✅', path: '/pending-requests', color: '#27ae60', description: t('dashboard.quick_actions.pending_desc'), badge: dashboardData.pendingRequests || 0 },
+        { label: t('menu.team_overview'), icon: '👥', path: '/team-overview', color: '#3498db', description: t('dashboard.quick_actions.team_desc'), badge: dashboardData.teamSize || 0 },
+        { label: t('menu.reports'), icon: '📊', path: '/reports', color: '#9b59b6', description: t('dashboard.quick_actions.reports_desc'), badge: 0 },
+        { label: t('dashboard.quick_actions.calendar'), icon: '📅', path: '/calendar', color: '#f39c12', description: t('dashboard.quick_actions.calendar_desc'), badge: teamOnLeave.length },
       ],
       'hr-admin': [
-        { label: 'HR Approvals', icon: '✅', path: '/hr-approvals', color: '#e74c3c', description: 'Final approval requests', badge: dashboardData.pendingApprovals || 0 },
-        { label: 'User Management', icon: '👥', path: '/user-management', color: '#3498db', description: 'Manage system users', badge: 0 },
-        { label: 'Leave Overview', icon: '👁️', path: '/leave-overview', color: '#27ae60', description: 'System-wide leaves', badge: 0 },
-        { label: 'System Settings', icon: '⚙️', path: '/system-settings', color: '#9b59b6', description: 'Configure system', badge: 0 },
-        { label: 'Analytics', icon: '📊', path: '/hr-reports', color: '#f39c12', description: 'HR reports & insights', badge: 0 },
+        { label: t('menu.approvals'), icon: '✅', path: '/hr-approvals', color: '#e74c3c', description: t('dashboard.quick_actions.hr_approvals_desc'), badge: dashboardData.pendingApprovals || 0 },
+        { label: t('menu.user_management'), icon: '👥', path: '/user-management', color: '#3498db', description: t('dashboard.quick_actions.users_desc'), badge: 0 },
+        { label: t('menu.leave_overview'), icon: '👁️', path: '/leave-overview', color: '#27ae60', description: t('dashboard.quick_actions.overview_desc'), badge: 0 },
+        { label: t('dashboard.quick_actions.system_settings'), icon: '⚙️', path: '/system-settings', color: '#9b59b6', description: t('dashboard.quick_actions.settings_desc'), badge: 0 },
+        { label: t('dashboard.quick_actions.analytics'), icon: '📊', path: '/hr-reports', color: '#f39c12', description: t('dashboard.quick_actions.analytics_desc'), badge: 0 },
       ],
       'super-admin': [
-        { label: 'System Admin', icon: '🛡️', path: '/admin', color: '#e74c3c', description: 'System administration', badge: 0 },
-        { label: 'User Management', icon: '👥', path: '/user-management', color: '#3498db', description: 'Manage all users', badge: 0 },
-        { label: 'Audit Logs', icon: '📋', path: '/audit-logs', color: '#2c3e50', description: 'System activity logs', badge: 0 },
-        { label: 'System Settings', icon: '⚙️', path: '/system-settings', color: '#9b59b6', description: 'Configure system', badge: 0 },
-        { label: 'Backup & Restore', icon: '💾', path: '/backup', color: '#f39c12', description: 'Data management', badge: 0 },
+        { label: t('dashboard.quick_actions.system_admin'), icon: '🛡️', path: '/admin', color: '#e74c3c', description: t('dashboard.quick_actions.system_admin_desc'), badge: 0 },
+        { label: t('menu.user_management'), icon: '👥', path: '/user-management', color: '#3498db', description: t('dashboard.quick_actions.users_desc_all'), badge: 0 },
+        { label: t('dashboard.quick_actions.audit_logs'), icon: '📋', path: '/audit-logs', color: '#2c3e50', description: t('dashboard.quick_actions.audit_desc'), badge: 0 },
+        { label: t('dashboard.quick_actions.system_settings'), icon: '⚙️', path: '/system-settings', color: '#9b59b6', description: t('dashboard.quick_actions.settings_desc'), badge: 0 },
+        { label: t('dashboard.quick_actions.backup_restore'), icon: '💾', path: '/backup', color: '#f39c12', description: t('dashboard.quick_actions.backup_desc'), badge: 0 },
       ]
     };
 
     return actions[userRole as keyof typeof actions] || actions.employee;
-  }, [userRole, dashboardData, recentActivities.length, leaveBalances.length, teamOnLeave.length]);
+  }, [userRole, dashboardData, recentActivities.length, leaveBalances.length, teamOnLeave.length, t]);
 
   // Enhanced greeting with time-based emoji
   const getGreeting = useCallback(() => {
     const hour = new Date().getHours();
-    let greeting = 'Hello';
+    let greeting = t('dashboard.greetings.hello');
     let emoji = '👋';
 
     if (hour < 12) {
-      greeting = 'Good morning';
+      greeting = t('dashboard.greetings.morning');
       emoji = '☀️';
     } else if (hour < 17) {
-      greeting = 'Good afternoon';
+      greeting = t('dashboard.greetings.afternoon');
       emoji = '🌤️';
     } else if (hour < 21) {
-      greeting = 'Good evening';
+      greeting = t('dashboard.greetings.evening');
       emoji = '🌙';
     } else {
-      greeting = 'Good night';
+      greeting = t('dashboard.greetings.night');
       emoji = '🌠';
     }
 
     return { greeting, emoji };
-  }, []);
+  }, [t]);
 
   // Enhanced status badge with tooltips
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      PENDING_MANAGER: { class: 'status-pending', label: 'Pending Manager', icon: '⏳', color: '#f39c12' },
-      PENDING_HR: { class: 'status-pending-hr', label: 'Pending HR', icon: '📋', color: '#3498db' },
-      APPROVED: { class: 'status-approved', label: 'Approved', icon: '✅', color: '#27ae60' },
-      HR_APPROVED: { class: 'status-approved', label: 'HR Approved', icon: '✅', color: '#27ae60' },
-      REJECTED: { class: 'status-rejected', label: 'Rejected', icon: '❌', color: '#e74c3c' },
-      CANCELLED: { class: 'status-cancelled', label: 'Cancelled', icon: '🚫', color: '#95a5a6' }
+      PENDING_MANAGER: { class: 'status-pending', label: t('status.pending_manager'), icon: '⏳', color: '#f39c12' },
+      PENDING_HR: { class: 'status-pending-hr', label: t('status.pending_hr'), icon: '📋', color: '#3498db' },
+      APPROVED: { class: 'status-approved', label: t('status.approved'), icon: '✅', color: '#27ae60' },
+      HR_APPROVED: { class: 'status-approved', label: t('status.hr_approved'), icon: '✅', color: '#27ae60' },
+      REJECTED: { class: 'status-rejected', label: t('status.rejected'), icon: '❌', color: '#e74c3c' },
+      CANCELLED: { class: 'status-cancelled', label: t('status.cancelled'), icon: '🚫', color: '#95a5a6' }
     };
 
     const config = statusConfig[status as keyof typeof statusConfig] || { 
@@ -357,14 +364,16 @@ const loadLeaveBalances = async () => {
   };
 
   // Enhanced date formatting
-  const formatDate = (dateString: string, options: any = {}) => {
-    const defaultOptions = {
+  const formatDate = (dateString: string, options: Intl.DateTimeFormatOptions = {}) => {
+    const localeMap: Record<string, string> = { en: 'en-US', am: 'am-ET', om: 'om-ET' };
+    const defaultOptions: Intl.DateTimeFormatOptions = {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
       ...options
     };
-    return new Date(dateString).toLocaleDateString('en-US', defaultOptions);
+    const locale = localeMap[i18n.language] || 'en-US';
+    return new Date(dateString).toLocaleDateString(locale, defaultOptions);
   };
 
   // Render statistics with progress bars
@@ -376,7 +385,7 @@ const loadLeaveBalances = async () => {
             <div key={i} className="stat-card shimmer">
               <div className="stat-content">
                 <div className="stat-number">--</div>
-                <div className="stat-label">Loading...</div>
+                <div className="stat-label">{t('common.loading')}</div>
               </div>
             </div>
           ))}
@@ -387,105 +396,139 @@ const loadLeaveBalances = async () => {
   const stats: Record<UserRole, DashboardStats[]> = {
       employee: [
         {
-          title: 'Available Days',
+          title: t('dashboard.stats.available_days'),
           value: dashboardData.availableLeaves || 0,
           icon: '📅',
           color: '#27ae60',
-          subtitle: 'Ready to use',
+          subtitle: t('dashboard.stats.ready_to_use'),
           progress: dashboardData.availableLeaves ? 
             Math.min((dashboardData.availableLeaves / 30) * 100, 100) : 0
         },
         {
-          title: 'Leaves Taken',
+          title: t('dashboard.stats.leaves_taken'),
           value: dashboardData.leavesTaken || 0,
           icon: '✅',
           color: '#3498db',
-          subtitle: 'This year',
+          subtitle: t('dashboard.stats.this_year'),
           progress: dashboardData.leavesTaken ? 
             Math.min((dashboardData.leavesTaken / 20) * 100, 100) : 0
         },
         {
-          title: 'Pending',
+          title: t('dashboard.stats.pending'),
           value: dashboardData.pendingRequests || 0,
           icon: '⏳',
           color: '#f39c12',
-          subtitle: 'Awaiting approval',
+          subtitle: t('dashboard.stats.awaiting_approval'),
           progress: 100
         },
         {
-          title: 'Utilization',
+          title: t('dashboard.stats.utilization'),
           value: dashboardData.leaveUtilization || 0,
           icon: '📊',
           color: '#9b59b6',
-          subtitle: 'Leave usage rate',
+          subtitle: t('dashboard.stats.usage_rate'),
           progress: dashboardData.leaveUtilization || 0
         }
       ],
       manager: [
         {
-          title: 'Pending Requests',
+          title: t('dashboard.stats.pending_requests'),
           value: dashboardData.pendingRequests || 0,
           icon: '⏳',
           color: '#f39c12',
-          subtitle: 'Require attention',
+          subtitle: t('dashboard.stats.require_attention'),
           badge: 'urgent'
         },
         {
-          title: 'Team Size',
+          title: t('dashboard.stats.team_size'),
           value: dashboardData.teamSize || 0,
           icon: '👥',
           color: '#3498db',
-          subtitle: 'Active members',
+          subtitle: t('dashboard.stats.active_members'),
           trend:  '+' 
         },
         {
-          title: 'Approval Rate',
+          title: t('dashboard.stats.approval_rate'),
           value: dashboardData.approvalRate || 0,
           icon: '📈',
           color: '#27ae60',
-          subtitle: 'Overall approval',
+          subtitle: t('dashboard.stats.overall_approval'),
           progress: dashboardData.approvalRate || 0
         },
         {
-          title: 'On Leave',
+          title: t('dashboard.stats.on_leave'),
           value: dashboardData.teamOnLeave || 0,
           icon: '🏖️',
           color: '#e74c3c',
-          subtitle: 'Currently out',
+          subtitle: t('dashboard.stats.currently_out'),
           badge:  'active'
         }
       ],
       'hr-admin': [
         {
-          title: 'Total Employees',
+          title: t('dashboard.stats.total_employees'),
           value: dashboardData.totalEmployees || 0,
           icon: '👥',
           color: '#3498db',
-          subtitle: 'Active users',
+          subtitle: t('dashboard.stats.active_users'),
           trend: '+'
         },
         {
-          title: 'On Leave Today',
+          title: t('dashboard.stats.on_leave_today'),
           value: dashboardData.onLeaveToday || 0,
           icon: '📋',
           color: '#27ae60',
-          subtitle: 'Currently out',
+          subtitle: t('dashboard.stats.currently_out'),
           badge: 'active'
         },
         {
-          title: 'Pending HR',
+          title: t('dashboard.stats.pending_hr'),
           value: dashboardData.pendingApprovals || 0,
           icon: '⚠️',
           color: '#e74c3c',
-          subtitle: 'Require approval',
+          subtitle: t('dashboard.stats.require_approval'),
           badge: 'urgent'
         },
         {
-          title: 'System Alerts',
+          title: t('dashboard.stats.system_alerts'),
           value: dashboardData.systemAlerts || 0,
           icon: '🔔',
           color: '#f39c12',
-          subtitle: 'Notifications',
+          subtitle: t('dashboard.stats.notifications'),
+          badge: 'alert'
+        }
+      ],
+      'super-admin': [
+        {
+          title: t('dashboard.stats.total_employees'),
+          value: dashboardData.totalEmployees || 0,
+          icon: '👥',
+          color: '#3498db',
+          subtitle: t('dashboard.stats.active_users'),
+          trend: '+'
+        },
+        {
+          title: t('dashboard.stats.on_leave_today'),
+          value: dashboardData.onLeaveToday || 0,
+          icon: '📋',
+          color: '#27ae60',
+          subtitle: t('dashboard.stats.currently_out'),
+          badge: 'active'
+        },
+        {
+          title: t('dashboard.stats.pending_hr'),
+          value: dashboardData.pendingApprovals || 0,
+          icon: '⚠️',
+          color: '#e74c3c',
+          subtitle: t('dashboard.stats.require_approval'),
+          badge: 'urgent'
+        },
+        {
+          title: t('dashboard.stats.system_alerts'),
+          value: dashboardData.systemAlerts || 0,
+          icon: '🔔',
+          color: '#f39c12',
+          subtitle: t('dashboard.stats.notifications'),
           badge: 'alert'
         }
       ]
@@ -529,29 +572,33 @@ const loadLeaveBalances = async () => {
 
   // Enhanced activities section with filtering
   const renderActivities = () => {
-    const filters = ['All', 'Pending', 'Approved', 'Rejected'];
-    const [activeFilter, setActiveFilter] = useState('All');
+    const filters = [
+      { key: 'all' as const, label: t('dashboard.filters.all') },
+      { key: 'pending' as const, label: t('dashboard.filters.pending') },
+      { key: 'approved' as const, label: t('dashboard.filters.approved') },
+      { key: 'rejected' as const, label: t('dashboard.filters.rejected') }
+    ];
 
     const filteredActivities = recentActivities.filter(activity => {
-      if (activeFilter === 'All') return true;
-      if (activeFilter === 'Pending') return activity.status.includes('PENDING');
-      if (activeFilter === 'Approved') return activity.status.includes('APPROVED');
-      if (activeFilter === 'Rejected') return activity.status === 'REJECTED';
+      if (activityFilter === 'all') return true;
+      if (activityFilter === 'pending') return activity.status.includes('PENDING');
+      if (activityFilter === 'approved') return activity.status.includes('APPROVED');
+      if (activityFilter === 'rejected') return activity.status === 'REJECTED';
       return true;
     });
 
     return (
       <div className="activities-section">
         <div className="section-header">
-          <h2>Recent Activities</h2>
+          <h2>{t('dashboard.recent_activities')}</h2>
           <div className="activity-filters">
             {filters.map(filter => (
               <button
-                key={filter}
-                className={`filter-btn ${activeFilter === filter ? 'active' : ''}`}
-                onClick={() => setActiveFilter(filter)}
+                key={filter.key}
+                className={`filter-btn ${activityFilter === filter.key ? 'active' : ''}`}
+                onClick={() => setActivityFilter(filter.key)}
               >
-                {filter}
+                {filter.label}
               </button>
             ))}
           </div>
@@ -568,9 +615,11 @@ const loadLeaveBalances = async () => {
                 <div className="activity-content">
                   <div className="activity-header">
                     <span className="activity-title">
-                      {activity.leaveType?.name || 'Leave Request'}
+                      {typeof activity.leaveType === 'string'
+                        ? activity.leaveType
+                        : activity.leaveType?.name || t('dashboard.leave_request')}
                     </span>
-                    <span className="activity-days">{activity.days} days</span>
+                    <span className="activity-days">{activity.days} {t('dashboard.days')}</span>
                   </div>
                   <div className="activity-details">
                     <span className="activity-date">
@@ -595,7 +644,7 @@ const loadLeaveBalances = async () => {
             ))
           ) : (
             <div className="no-activities">
-              <p>No activities found</p>
+              <p>{t('dashboard.no_activities')}</p>
             </div>
           )}
         </div>
@@ -609,7 +658,7 @@ const loadLeaveBalances = async () => {
 
     return (
       <div className="balances-section">
-        <h2>Leave Balance</h2>
+        <h2>{t('dashboard.leave_balance')}</h2>
         <div className="balances-grid">
           {leaveBalances.map((balance, index) => (
             <div key={index} className="balance-card">
@@ -628,15 +677,15 @@ const loadLeaveBalances = async () => {
               </div>
               <div className="balance-details">
                 <div className="balance-item">
-                  <span className="balance-label">Used</span>
+                  <span className="balance-label">{t('dashboard.used')}</span>
                   <span className="balance-value">{balance.used}</span>
                 </div>
                 <div className="balance-item">
-                  <span className="balance-label">Remaining</span>
+                  <span className="balance-label">{t('dashboard.remaining')}</span>
                   <span className="balance-value remaining">{balance.remaining}</span>
                 </div>
                 <div className="balance-item">
-                  <span className="balance-label">Total</span>
+                  <span className="balance-label">{t('dashboard.total')}</span>
                   <span className="balance-value total">{balance.total}</span>
                 </div>
               </div>
@@ -653,7 +702,7 @@ const loadLeaveBalances = async () => {
 
     return (
       <div className="team-section">
-        <h2>Team Overview</h2>
+        <h2>{t('menu.team_overview')}</h2>
         <div className="team-grid">
           {teamOnLeave.map((member, index) => (
             <div key={index} className="team-member">
@@ -665,12 +714,12 @@ const loadLeaveBalances = async () => {
                 <div className="member-position">{member.position}</div>
                 <div className="member-leaves">
                   <span className="leave-count">
-                    {member.leaves?.length || 0} leaves
+                    {member.leaves?.length || 0} {t('dashboard.leaves')}
                   </span>
                 </div>
               </div>
               <div className="member-status">
-                <span className="status-indicator on-leave">On Leave</span>
+                <span className="status-indicator on-leave">{t('dashboard.on_leave')}</span>
               </div>
             </div>
           ))}
@@ -682,7 +731,7 @@ const loadLeaveBalances = async () => {
   // Enhanced quick actions with hover effects
   const renderQuickActions = () => (
     <div className="quick-actions-section">
-      <h2>Quick Actions</h2>
+      <h2>{t('dashboard.quick_actions.title')}</h2>
       <div className="actions-grid">
         {quickActions.map((action, index) => (
           <button
@@ -710,17 +759,27 @@ const loadLeaveBalances = async () => {
     const today = new Date();
     const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
     const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).getDay();
+    const localeMap: Record<string, string> = { en: 'en-US', am: 'am-ET', om: 'om-ET' };
+    const locale = localeMap[i18n.language] || 'en-US';
 
     return (
       <div className="calendar-widget">
         <div className="calendar-header">
-          <h3>Calendar</h3>
+          <h3>{t('dashboard.calendar')}</h3>
           <span className="current-month">
-            {today.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+            {today.toLocaleDateString(locale, { month: 'long', year: 'numeric' })}
           </span>
         </div>
         <div className="calendar-grid">
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+          {[
+            t('dashboard.days_short.sun'),
+            t('dashboard.days_short.mon'),
+            t('dashboard.days_short.tue'),
+            t('dashboard.days_short.wed'),
+            t('dashboard.days_short.thu'),
+            t('dashboard.days_short.fri'),
+            t('dashboard.days_short.sat')
+          ].map(day => (
             <div key={day} className="calendar-day-header">{day}</div>
           ))}
           {Array.from({ length: firstDay }).map((_, i) => (
@@ -755,10 +814,10 @@ const loadLeaveBalances = async () => {
       <div className="dashboard-error">
         <div className="error-content">
           <div className="error-icon">⚠️</div>
-          <h3>Unable to Load Dashboard</h3>
+          <h3>{t('dashboard.unable_to_load')}</h3>
           <p>{error}</p>
           <button onClick={loadDashboardData} className="retry-btn">
-            Try Again
+            {t('common.try_again')}
           </button>
         </div>
       </div>
@@ -788,10 +847,10 @@ const loadLeaveBalances = async () => {
             onClick={loadDashboardData}
             disabled={loading}
           >
-            {loading ? 'Refreshing...' : '🔄 Refresh'}
+            {loading ? t('dashboard.refreshing') : `🔄 ${t('dashboard.refresh')}`}
           </button>
           <div className="current-time">
-            {new Date().toLocaleTimeString('en-US', { 
+            {new Date().toLocaleTimeString(i18n.language === 'am' ? 'am-ET' : i18n.language === 'om' ? 'om-ET' : 'en-US', { 
               hour: '2-digit', 
               minute: '2-digit' 
             })}
@@ -805,20 +864,20 @@ const loadLeaveBalances = async () => {
           className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
           onClick={() => setActiveTab('overview')}
         >
-          Overview
+          {t('dashboard.tabs.overview')}
         </button>
         <button
           className={`tab-btn ${activeTab === 'activities' ? 'active' : ''}`}
           onClick={() => setActiveTab('activities')}
         >
-          Activities
+          {t('dashboard.tabs.activities')}
         </button>
         {userRole === 'manager' && (
           <button
             className={`tab-btn ${activeTab === 'team' ? 'active' : ''}`}
             onClick={() => setActiveTab('team')}
           >
-            Team
+            {t('dashboard.tabs.team')}
           </button>
         )}
       </div>

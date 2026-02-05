@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { apiService } from '../../utils/api';
 import type{ LeaveApplication, LeaveBalance } from '../../types';
+import { useTranslation } from 'react-i18next';
 import './LeaveHistory.css';
 
 
 const LeaveHistory: React.FC = () => {
+  const { t, i18n } = useTranslation();
 
   const [leaveHistory, setLeaveHistory] = useState<LeaveApplication[]>([]);
   const [filteredHistory, setFilteredHistory] = useState<LeaveApplication[]>([]);
@@ -75,11 +77,18 @@ const LeaveHistory: React.FC = () => {
 
     // Search filter
     if (searchTerm) {
-      filtered = filtered.filter(leave =>
-        leave.leaveType.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        leave.reason.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        leave.status.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(leave => {
+        const leaveTypeName = typeof leave.leaveType === 'string'
+          ? leave.leaveType
+          : leave.leaveType?.name || '';
+        const reason = leave.reason || '';
+        return (
+          leaveTypeName.toLowerCase().includes(term) ||
+          reason.toLowerCase().includes(term) ||
+          leave.status.toLowerCase().includes(term)
+        );
+      });
     }
 
     setFilteredHistory(filtered);
@@ -87,13 +96,13 @@ const LeaveHistory: React.FC = () => {
 
   const getStatusBadge = (status: string) => {
     const statusConfig: { [key: string]: { class: string; label: string } } = {
-      PENDING_MANAGER: { class: 'status-pending', label: 'Pending Manager' },
-      PENDING_HR: { class: 'status-hr-pending', label: 'Pending HR' },
-      APPROVED: { class: 'status-approved', label: 'Approved' },
-      REJECTED: { class: 'status-rejected', label: 'Rejected' },
-      HR_APPROVED: { class: 'status-approved', label: 'HR Approved' },
-      HR_REJECTED: { class: 'status-rejected', label: 'HR Rejected' },
-      CANCELLED: { class: 'status-rejected', label: 'Cancelled' }
+      PENDING_MANAGER: { class: 'status-pending', label: t('status.pending_manager') },
+      PENDING_HR: { class: 'status-hr-pending', label: t('status.pending_hr') },
+      APPROVED: { class: 'status-approved', label: t('status.approved') },
+      REJECTED: { class: 'status-rejected', label: t('status.rejected') },
+      HR_APPROVED: { class: 'status-approved', label: t('status.hr_approved') },
+      HR_REJECTED: { class: 'status-rejected', label: t('leave_history.hr_rejected') },
+      CANCELLED: { class: 'status-rejected', label: t('status.cancelled') }
     };
     
     const config = statusConfig[status] || { class: 'status-pending', label: status };
@@ -101,7 +110,9 @@ const LeaveHistory: React.FC = () => {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    const localeMap: Record<string, string> = { en: 'en-US', am: 'am-ET', om: 'om-ET' };
+    const locale = localeMap[i18n.language] || 'en-US';
+    return new Date(dateString).toLocaleDateString(locale, {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -129,31 +140,42 @@ const LeaveHistory: React.FC = () => {
     return balance || { used: 0, total: 0, remaining: 0 };
   };
 
+  const getLeaveTypeName = (leaveType?: string | { name?: string }) => {
+    if (!leaveType) return t('leave_history.unknown');
+    if (typeof leaveType === 'string') return leaveType;
+    return leaveType.name || t('leave_history.unknown');
+  };
+
+  const getLeaveTypeColor = (leaveType?: string | { color?: string }) => {
+    if (!leaveType || typeof leaveType === 'string') return '#667eea';
+    return leaveType.color || '#667eea';
+  };
+
   const statusCounts = getStatusCounts();
   const upcomingLeaves = getUpcomingLeaves();
 
   // Default leave types with fallback values
   const defaultLeaveTypes = [
-    { type: 'Annual', icon: '🏖️', used: 0, total: 18, remaining: 18 },
-    { type: 'Sick', icon: '🏥', used: 0, total: 10, remaining: 10 },
-    { type: 'Personal', icon: '👤', used: 0, total: 5, remaining: 5 }
+    { type: t('leave_history.type_annual'), icon: '🏖️', used: 0, total: 18, remaining: 18 },
+    { type: t('leave_history.type_sick'), icon: '🏥', used: 0, total: 10, remaining: 10 },
+    { type: t('leave_history.type_personal'), icon: '👤', used: 0, total: 5, remaining: 5 }
   ];
 
   return (
     <div className="leave-history">
       <div className="page-header">
         <div className="header-content">
-          <h2>My Leave History</h2>
-          <p className="page-subtitle">Track and manage your leave applications</p>
+          <h2>{t('leave_history.title')}</h2>
+          <p className="page-subtitle">{t('leave_history.subtitle')}</p>
         </div>
         <button onClick={fetchLeaveHistory} className="refresh-button" disabled={loading}>
-          {loading ? '🔄 Loading...' : '🔄 Refresh'}
+          {loading ? `🔄 ${t('common.loading')}` : `🔄 ${t('dashboard.refresh')}`}
         </button>
       </div>
 
       {/* Leave Balance */}
       <div className="leave-balance-section">
-        <h3>Leave Balance</h3>
+        <h3>{t('dashboard.leave_balance')}</h3>
         <div className="balance-cards">
           {defaultLeaveTypes.map((leaveType, index) => {
             const balance = getLeaveBalanceByType(leaveType.type);
@@ -161,12 +183,12 @@ const LeaveHistory: React.FC = () => {
               <div key={index} className={`balance-card ${leaveType.type.toLowerCase()}`}>
                 <div className="balance-icon">{leaveType.icon}</div>
                 <div className="balance-info">
-                  <span className="balance-type">{leaveType.type} Leave</span>
+                  <span className="balance-type">{leaveType.type} {t('leave_history.leave')}</span>
                   <span className="balance-days">
-                    {balance.remaining || leaveType.remaining} days remaining
+                    {balance.remaining || leaveType.remaining} {t('dashboard.days')} {t('leave_history.remaining')}
                   </span>
                   <span className="balance-used">
-                    {balance.used || leaveType.used}/{balance.total || leaveType.total} days used
+                    {balance.used || leaveType.used}/{balance.total || leaveType.total} {t('dashboard.days')} {t('leave_history.used')}
                   </span>
                 </div>
               </div>
@@ -181,28 +203,28 @@ const LeaveHistory: React.FC = () => {
           <div className="stat-icon">📋</div>
           <div className="stat-info">
             <div className="stat-number">{statusCounts.all}</div>
-            <div className="stat-label">Total Applications</div>
+            <div className="stat-label">{t('leave_history.total_applications')}</div>
           </div>
         </div>
         <div className="stat-card approved">
           <div className="stat-icon">✅</div>
           <div className="stat-info">
             <div className="stat-number">{statusCounts.approved}</div>
-            <div className="stat-label">Approved</div>
+            <div className="stat-label">{t('status.approved')}</div>
           </div>
         </div>
         <div className="stat-card pending">
           <div className="stat-icon">⏳</div>
           <div className="stat-info">
             <div className="stat-number">{statusCounts.pending}</div>
-            <div className="stat-label">Pending</div>
+            <div className="stat-label">{t('dashboard.stats.pending')}</div>
           </div>
         </div>
         <div className="stat-card rejected">
           <div className="stat-icon">❌</div>
           <div className="stat-info">
             <div className="stat-number">{statusCounts.rejected}</div>
-            <div className="stat-label">Rejected</div>
+            <div className="stat-label">{t('status.rejected')}</div>
           </div>
         </div>
       </div>
@@ -210,17 +232,17 @@ const LeaveHistory: React.FC = () => {
       {/* Upcoming Leaves */}
       {upcomingLeaves.length > 0 && (
         <div className="upcoming-leaves-section">
-          <h3>📅 Upcoming Approved Leaves</h3>
+          <h3>{t('leave_history.upcoming')}</h3>
           <div className="upcoming-cards">
             {upcomingLeaves.map((leave, index) => (
               <div key={leave.id || index} className="upcoming-card">
-                <div className="upcoming-type" style={{ color: leave.leaveType.color }}>
-                  {leave.leaveType.name}
+                <div className="upcoming-type" style={{ color: getLeaveTypeColor(leave.leaveType) }}>
+                  {getLeaveTypeName(leave.leaveType)}
                 </div>
                 <div className="upcoming-dates">
                   {formatDate(leave.startDate)} - {formatDate(leave.endDate)}
                 </div>
-                <div className="upcoming-days">{leave.days} days</div>
+                <div className="upcoming-days">{leave.days} {t('dashboard.days')}</div>
               </div>
             ))}
           </div>
@@ -232,7 +254,7 @@ const LeaveHistory: React.FC = () => {
         <div className="filter-group">
           <input
             type="text"
-            placeholder="Search by leave type, reason, or status..."
+            placeholder={t('leave_history.search_placeholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
@@ -247,10 +269,10 @@ const LeaveHistory: React.FC = () => {
             className="status-filter"
             disabled={loading}
           >
-            <option value="all">All Status</option>
-            <option value="pending">Pending</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
+            <option value="all">{t('leave_history.all_status')}</option>
+            <option value="pending">{t('dashboard.filters.pending')}</option>
+            <option value="approved">{t('dashboard.filters.approved')}</option>
+            <option value="rejected">{t('dashboard.filters.rejected')}</option>
           </select>
         </div>
       </div>
@@ -262,28 +284,28 @@ const LeaveHistory: React.FC = () => {
           onClick={() => setFilterStatus('all')}
           disabled={loading}
         >
-          All ({statusCounts.all})
+          {t('dashboard.filters.all')} ({statusCounts.all})
         </button>
         <button 
           className={`filter-btn ${filterStatus === 'pending' ? 'active' : ''}`}
           onClick={() => setFilterStatus('pending')}
           disabled={loading}
         >
-          Pending ({statusCounts.pending})
+          {t('dashboard.filters.pending')} ({statusCounts.pending})
         </button>
         <button 
           className={`filter-btn ${filterStatus === 'approved' ? 'active' : ''}`}
           onClick={() => setFilterStatus('approved')}
           disabled={loading}
         >
-          Approved ({statusCounts.approved})
+          {t('dashboard.filters.approved')} ({statusCounts.approved})
         </button>
         <button 
           className={`filter-btn ${filterStatus === 'rejected' ? 'active' : ''}`}
           onClick={() => setFilterStatus('rejected')}
           disabled={loading}
         >
-          Rejected ({statusCounts.rejected})
+          {t('dashboard.filters.rejected')} ({statusCounts.rejected})
         </button>
       </div>
 
@@ -292,16 +314,16 @@ const LeaveHistory: React.FC = () => {
         {loading ? (
           <div className="loading-container">
             <div className="loading-spinner"></div>
-            <p>Loading your leave history...</p>
+            <p>{t('leave_history.loading')}</p>
           </div>
         ) : filteredHistory.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">📋</div>
-            <h3>No leave applications found</h3>
+            <h3>{t('leave_history.empty_title')}</h3>
             <p>
               {filterStatus === 'all' 
-                ? "You haven't applied for any leave yet. Start by applying for a new leave."
-                : `No ${filterStatus} leave applications found.`
+                ? t('leave_history.empty_all')
+                : t('leave_history.empty_filtered', { status: filterStatus })
               }
             </p>
           </div>
@@ -309,14 +331,14 @@ const LeaveHistory: React.FC = () => {
           <table className="history-table">
             <thead>
               <tr>
-                <th>Leave Type</th>
-                <th>Start Date</th>
-                <th>End Date</th>
-                <th>Duration</th>
-                <th>Applied Date</th>
-                <th>Status</th>
-                <th>Reason</th>
-                <th>Actions</th>
+                <th>{t('leave_history.columns.leave_type')}</th>
+                <th>{t('leave_history.columns.start_date')}</th>
+                <th>{t('leave_history.columns.end_date')}</th>
+                <th>{t('leave_history.columns.duration')}</th>
+                <th>{t('leave_history.columns.applied_date')}</th>
+                <th>{t('leave_history.columns.status')}</th>
+                <th>{t('leave_history.columns.reason')}</th>
+                <th>{t('leave_history.columns.actions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -325,18 +347,20 @@ const LeaveHistory: React.FC = () => {
                   <td className="leave-type">
                     <span 
                       className="leave-type-badge"
-                      style={{ color: leave.leaveType.color }}
+                      style={{ color: getLeaveTypeColor(leave.leaveType) }}
                     >
-                      {leave.leaveType.name}
+                      {getLeaveTypeName(leave.leaveType)}
                     </span>
                   </td>
                   <td>{formatDate(leave.startDate)}</td>
                   <td>{formatDate(leave.endDate)}</td>
-                  <td className="days-count">{leave.days} day{leave.days !== 1 ? 's' : ''}</td>
+                  <td className="days-count">{leave.days} {t('dashboard.days')}</td>
                   <td>{formatDate(leave.appliedDate)}</td>
                   <td>{getStatusBadge(leave.status)}</td>
-                  <td className="reason-cell" title={leave.reason}>
-                    {leave.reason.length > 50 ? `${leave.reason.substring(0, 50)}...` : leave.reason}
+                  <td className="reason-cell" title={leave.reason || ''}>
+                    {(leave.reason || '').length > 50
+                      ? `${(leave.reason || '').substring(0, 50)}...`
+                      : (leave.reason || '')}
                   </td>
                   <td>
                     <button 
@@ -344,7 +368,7 @@ const LeaveHistory: React.FC = () => {
                       onClick={() => setSelectedLeave(leave)}
                       disabled={loading}
                     >
-                      View Details
+                      {t('leave_history.view_details')}
                     </button>
                   </td>
                 </tr>
@@ -359,55 +383,55 @@ const LeaveHistory: React.FC = () => {
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">
-              <h2>Leave Application Details</h2>
+              <h2>{t('leave_history.details_title')}</h2>
               <button className="close-btn" onClick={() => setSelectedLeave(null)}>×</button>
             </div>
             <div className="modal-body">
               <div className="detail-grid">
                 <div className="detail-item">
-                  <strong>Leave Type:</strong> 
-                  <span style={{ color: selectedLeave.leaveType.color }}>
-                    {selectedLeave.leaveType.name}
+                  <strong>{t('leave_history.columns.leave_type')}:</strong> 
+                  <span style={{ color: getLeaveTypeColor(selectedLeave.leaveType) }}>
+                    {getLeaveTypeName(selectedLeave.leaveType)}
                   </span>
                 </div>
                 <div className="detail-item">
-                  <strong>Start Date:</strong> {formatDate(selectedLeave.startDate)}
+                  <strong>{t('leave_history.columns.start_date')}:</strong> {formatDate(selectedLeave.startDate)}
                 </div>
                 <div className="detail-item">
-                  <strong>End Date:</strong> {formatDate(selectedLeave.endDate)}
+                  <strong>{t('leave_history.columns.end_date')}:</strong> {formatDate(selectedLeave.endDate)}
                 </div>
                 <div className="detail-item">
-                  <strong>Duration:</strong> {selectedLeave.days} days
+                  <strong>{t('leave_history.columns.duration')}:</strong> {selectedLeave.days} {t('dashboard.days')}
                 </div>
                 <div className="detail-item">
-                  <strong>Applied Date:</strong> {formatDate(selectedLeave.appliedDate)}
+                  <strong>{t('leave_history.columns.applied_date')}:</strong> {formatDate(selectedLeave.appliedDate)}
                 </div>
                 <div className="detail-item">
-                  <strong>Status:</strong> {getStatusBadge(selectedLeave.status)}
+                  <strong>{t('leave_history.columns.status')}:</strong> {getStatusBadge(selectedLeave.status)}
                 </div>
                 {selectedLeave.managerApprovedDate && (
                   <div className="detail-item">
-                    <strong>Manager Approved:</strong> {formatDate(selectedLeave.managerApprovedDate)}
+                    <strong>{t('leave_history.manager_approved')}:</strong> {formatDate(selectedLeave.managerApprovedDate)}
                   </div>
                 )}
                 {selectedLeave.hrApprovedDate && (
                   <div className="detail-item">
-                    <strong>HR Approved:</strong> {formatDate(selectedLeave.hrApprovedDate)}
+                    <strong>{t('leave_history.hr_approved')}:</strong> {formatDate(selectedLeave.hrApprovedDate)}
                   </div>
                 )}
                 <div className="detail-item full-width">
-                  <strong>Reason:</strong> 
-                  <div className="reason-text">{selectedLeave.reason}</div>
+                  <strong>{t('leave_history.columns.reason')}:</strong> 
+                  <div className="reason-text">{selectedLeave.reason || ''}</div>
                 </div>
                 {selectedLeave.managerNotes && (
                   <div className="detail-item full-width">
-                    <strong>Manager's Notes:</strong> 
+                    <strong>{t('leave_history.manager_notes')}:</strong> 
                     <div className="notes-text">{selectedLeave.managerNotes}</div>
                   </div>
                 )}
                 {selectedLeave.hrNotes && (
                   <div className="detail-item full-width">
-                    <strong>HR Notes:</strong> 
+                    <strong>{t('leave_history.hr_notes')}:</strong> 
                     <div className="notes-text">{selectedLeave.hrNotes}</div>
                   </div>
                 )}

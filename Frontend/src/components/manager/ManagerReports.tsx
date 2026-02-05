@@ -1,12 +1,12 @@
 // components/ManagerReports.tsx
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
 import { apiService } from '../../utils/api';
-import type{ Leave, User, LeaveType } from '../../types';
+import type{ Leave, LeaveType, TeamMember } from '../../types';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line, AreaChart, Area
 } from 'recharts';
+import { useTranslation } from 'react-i18next';
 import './ManagerReports.css';
 
 interface ReportData {
@@ -68,11 +68,11 @@ interface FilterOptions {
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
 
 const ManagerReports: React.FC = () => {
-  const { user } = useAuth();
+  const { t, i18n } = useTranslation();
   const [loading, setLoading] = useState<boolean>(true);
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [error, setError] = useState<string>('');
-  const [teamMembers, setTeamMembers] = useState<User[]>([]);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>([]);
   const [departments, setDepartments] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<string>('overview');
@@ -106,11 +106,11 @@ const ManagerReports: React.FC = () => {
       // Load team members
       const teamResponse = await apiService.getManagerTeamOverview();
       if (teamResponse.success && teamResponse.data) {
-        const members = teamResponse.data as User[];
+        const members = teamResponse.data;
         setTeamMembers(members);
         
         // Extract unique departments
-        const uniqueDepts = Array.from(new Set(members.map(m => m.department))).sort();
+        const uniqueDepts = Array.from(new Set(members.map(m => m.department || 'Unassigned'))).sort();
         setDepartments(['all', ...uniqueDepts]);
       }
 
@@ -170,12 +170,12 @@ const ManagerReports: React.FC = () => {
       }
 
       // Leave type filter
-      if (filters.leaveType !== 'all' && leave.leaveTypeId.toString() !== filters.leaveType) {
+      if (filters.leaveType !== 'all' && (leave.leaveTypeId?.toString() || '') !== filters.leaveType) {
         return false;
       }
 
       // Employee filter
-      if (filters.employee !== 'all' && leave.employeeId.toString() !== filters.employee) {
+      if (filters.employee !== 'all' && (leave.employeeId?.toString() || '') !== filters.employee) {
         return false;
       }
 
@@ -186,9 +186,6 @@ const ManagerReports: React.FC = () => {
   };
 
   const generateReportData = (leaves: Leave[]): ReportData => {
-    const now = new Date();
-    const threeMonthsAgo = new Date(now.setMonth(now.getMonth() - 3));
-
     // Summary calculations
     const totalApplications = leaves.length;
     const approved = leaves.filter(l => l.status === 'APPROVED' || l.status === 'HR_APPROVED').length;
@@ -236,12 +233,13 @@ const ManagerReports: React.FC = () => {
 
     // Group by department
     const byDepartment = teamMembers.map(member => {
-      const deptLeaves = leaves.filter(l => l.employee?.department === member.department);
+      const department = member.department || 'Unassigned';
+      const deptLeaves = leaves.filter(l => (l.employee?.department || 'Unassigned') === department);
       const deptApproved = deptLeaves.filter(l => l.status === 'APPROVED' || l.status === 'HR_APPROVED').length;
       const deptRate = deptLeaves.length > 0 ? Math.round((deptApproved / deptLeaves.length) * 100) : 0;
       
       return {
-        department: member.department,
+        department,
         applications: deptLeaves.length,
         approvalRate: deptRate
       };
@@ -251,7 +249,9 @@ const ManagerReports: React.FC = () => {
 
     // Group by leave type
     const byLeaveType = leaves.reduce((acc, leave) => {
-      const typeName = leave.leaveType?.name || 'Unknown';
+      const typeName = typeof leave.leaveType === 'string'
+        ? leave.leaveType
+        : leave.leaveType?.name || 'Unknown';
       const existing = acc.find(item => item.leaveType === typeName);
       
       if (existing) {
@@ -338,8 +338,6 @@ const ManagerReports: React.FC = () => {
       
       // In a real implementation, you would call a backend endpoint to generate the report
       // For now, we'll simulate the export
-      const data = JSON.stringify(reportData, null, 2);
-      
       if (format === 'csv') {
         // Simple CSV export for demonstration
         const csvData = convertToCSV(reportData);
@@ -357,7 +355,7 @@ const ManagerReports: React.FC = () => {
       
     } catch (error) {
       console.error('Export error:', error);
-      alert('Export failed. Please try again.');
+      alert(t('manager_reports.errors.export_failed'));
     } finally {
       setExporting(false);
     }
@@ -366,16 +364,16 @@ const ManagerReports: React.FC = () => {
   const convertToCSV = (data: ReportData | null): string => {
     if (!data) return '';
     
-    const headers = ['Metric', 'Value'];
+    const headers = [t('manager_reports.csv.metric'), t('manager_reports.csv.value')];
     const rows = [
-      ['Total Applications', data.summary.totalApplications.toString()],
-      ['Approved', data.summary.approved.toString()],
-      ['Rejected', data.summary.rejected.toString()],
-      ['Pending', data.summary.pending.toString()],
-      ['Approval Rate', `${data.summary.approvalRate}%`],
-      ['Average Processing Time', `${data.summary.averageProcessingTime} days`],
+      [t('manager_reports.csv.total_applications'), data.summary.totalApplications.toString()],
+      [t('manager_reports.csv.approved'), data.summary.approved.toString()],
+      [t('manager_reports.csv.rejected'), data.summary.rejected.toString()],
+      [t('manager_reports.csv.pending'), data.summary.pending.toString()],
+      [t('manager_reports.csv.approval_rate'), `${data.summary.approvalRate}%`],
+      [t('manager_reports.csv.avg_processing_time'), t('manager_reports.csv.avg_processing_time_value', { days: data.summary.averageProcessingTime })],
       ['', ''],
-      ['Month', 'Applications', 'Approved', 'Rejected'],
+      [t('manager_reports.csv.month'), t('manager_reports.csv.applications'), t('manager_reports.csv.approved'), t('manager_reports.csv.rejected')],
       ...data.byMonth.map(m => [m.month, m.applications.toString(), m.approved.toString(), m.rejected.toString()])
     ];
     
@@ -384,7 +382,9 @@ const ManagerReports: React.FC = () => {
 
   // Format date for display
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    const localeMap: Record<string, string> = { en: 'en-US', am: 'am-ET', om: 'om-ET' };
+    const locale = localeMap[i18n.language] || 'en-US';
+    return new Date(dateString).toLocaleDateString(locale, {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -395,12 +395,12 @@ const ManagerReports: React.FC = () => {
     return (
       <div className="manager-reports">
         <div className="page-header">
-          <h1>Manager Reports</h1>
-          <p>Loading report data...</p>
+          <h1>{t('manager_reports.title')}</h1>
+          <p>{t('manager_reports.loading')}</p>
         </div>
         <div className="loading-state">
           <div className="loading-spinner"></div>
-          <p>Generating your reports...</p>
+          <p>{t('manager_reports.generating')}</p>
         </div>
       </div>
     );
@@ -411,8 +411,8 @@ const ManagerReports: React.FC = () => {
       <div className="page-header">
         <div className="header-content">
           <div className="header-title">
-            <h1>📊 Manager Reports</h1>
-            <p>Analytics and insights for your team's leave management</p>
+            <h1>📊 {t('manager_reports.title')}</h1>
+            <p>{t('manager_reports.subtitle')}</p>
           </div>
           <div className="header-actions">
             <div className="export-dropdown">
@@ -420,7 +420,7 @@ const ManagerReports: React.FC = () => {
                 className="export-btn"
                 disabled={exporting || !reportData}
               >
-                {exporting ? 'Exporting...' : '📥 Export Report'}
+                {exporting ? t('manager_reports.exporting') : `📥 ${t('manager_reports.export')}`}
               </button>
               <div className="export-options">
                 <button onClick={() => handleExport('csv')} disabled={exporting}>
@@ -452,10 +452,10 @@ const ManagerReports: React.FC = () => {
       {/* Filters */}
       <div className="filters-section">
         <div className="filter-card">
-          <h3>📅 Date Range</h3>
+          <h3>{t('manager_reports.date_range')}</h3>
           <div className="date-filters">
             <div className="date-input">
-              <label>From</label>
+              <label>{t('manager_reports.from')}</label>
               <input
                 type="date"
                 value={filters.startDate}
@@ -463,7 +463,7 @@ const ManagerReports: React.FC = () => {
               />
             </div>
             <div className="date-input">
-              <label>To</label>
+              <label>{t('manager_reports.to')}</label>
               <input
                 type="date"
                 value={filters.endDate}
@@ -475,15 +475,15 @@ const ManagerReports: React.FC = () => {
         </div>
 
         <div className="filter-card">
-          <h3>🎯 Filters</h3>
+          <h3>{t('manager_reports.filters')}</h3>
           <div className="filter-grid">
             <div className="filter-input">
-              <label>Department</label>
+              <label>{t('about_me.department')}</label>
               <select
                 value={filters.department}
                 onChange={(e) => handleFilterChange('department', e.target.value)}
               >
-                <option value="all">All Departments</option>
+                <option value="all">{t('team_overview.filters.all_departments')}</option>
                 {departments.filter(d => d !== 'all').map(dept => (
                   <option key={dept} value={dept}>{dept}</option>
                 ))}
@@ -491,12 +491,12 @@ const ManagerReports: React.FC = () => {
             </div>
 
             <div className="filter-input">
-              <label>Leave Type</label>
+              <label>{t('apply_leave.fields.leave_type')}</label>
               <select
                 value={filters.leaveType}
                 onChange={(e) => handleFilterChange('leaveType', e.target.value)}
               >
-                <option value="all">All Leave Types</option>
+                <option value="all">{t('hr_approvals.all_leave_types')}</option>
                 {leaveTypes.map(type => (
                   <option key={type.id} value={type.id.toString()}>
                     {type.name}
@@ -506,12 +506,12 @@ const ManagerReports: React.FC = () => {
             </div>
 
             <div className="filter-input">
-              <label>Employee</label>
+              <label>{t('about_me.full_name')}</label>
               <select
                 value={filters.employee}
                 onChange={(e) => handleFilterChange('employee', e.target.value)}
               >
-                <option value="all">All Employees</option>
+                <option value="all">{t('manager_reports.all_employees')}</option>
                 {teamMembers.map(member => (
                   <option key={member.id} value={member.id.toString()}>
                     {member.name}
@@ -523,20 +523,20 @@ const ManagerReports: React.FC = () => {
         </div>
 
         <div className="filter-card">
-          <h3>📈 Quick Stats</h3>
+          <h3>📈 {t('manager_reports.quick_stats.title')}</h3>
           {reportData && (
             <div className="quick-stats">
               <div className="quick-stat">
                 <div className="stat-value">{reportData.summary.totalApplications}</div>
-                <div className="stat-label">Total Applications</div>
+                <div className="stat-label">{t('manager_reports.quick_stats.total_applications')}</div>
               </div>
               <div className="quick-stat">
                 <div className="stat-value">{reportData.summary.approvalRate}%</div>
-                <div className="stat-label">Approval Rate</div>
+                <div className="stat-label">{t('manager_reports.quick_stats.approval_rate')}</div>
               </div>
               <div className="quick-stat">
                 <div className="stat-value">{reportData.summary.averageProcessingTime}d</div>
-                <div className="stat-label">Avg. Processing Time</div>
+                <div className="stat-label">{t('manager_reports.quick_stats.avg_processing_time')}</div>
               </div>
             </div>
           )}
@@ -546,14 +546,14 @@ const ManagerReports: React.FC = () => {
       {/* Report Period */}
       <div className="report-period">
         <h3>
-          📋 Report Period: {formatDate(filters.startDate)} - {formatDate(filters.endDate)}
+          📋 {t('manager_reports.report_period', { start: formatDate(filters.startDate), end: formatDate(filters.endDate) })}
         </h3>
         <button 
           className="refresh-btn"
           onClick={loadReportData}
           disabled={loading}
         >
-          {loading ? '🔄 Refreshing...' : '🔄 Refresh Data'}
+          {loading ? t('manager_reports.refreshing') : t('manager_reports.refresh')}
         </button>
       </div>
 
@@ -563,25 +563,25 @@ const ManagerReports: React.FC = () => {
           className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
           onClick={() => setActiveTab('overview')}
         >
-          📊 Overview
+          📊 {t('manager_reports.tabs.overview')}
         </button>
         <button 
           className={`tab-btn ${activeTab === 'performance' ? 'active' : ''}`}
           onClick={() => setActiveTab('performance')}
         >
-          👥 Team Performance
+          👥 {t('manager_reports.tabs.performance')}
         </button>
         <button 
           className={`tab-btn ${activeTab === 'analytics' ? 'active' : ''}`}
           onClick={() => setActiveTab('analytics')}
         >
-          📈 Analytics
+          📈 {t('manager_reports.tabs.analytics')}
         </button>
         <button 
           className={`tab-btn ${activeTab === 'details' ? 'active' : ''}`}
           onClick={() => setActiveTab('details')}
         >
-          📋 Detailed View
+          📋 {t('manager_reports.tabs.details')}
         </button>
       </div>
 
@@ -596,28 +596,28 @@ const ManagerReports: React.FC = () => {
                   <div className="card-icon">📄</div>
                   <div className="card-content">
                     <div className="card-value">{reportData.summary.totalApplications}</div>
-                    <div className="card-label">Total Applications</div>
+                    <div className="card-label">{t('manager_reports.summary.total_applications')}</div>
                   </div>
                 </div>
                 <div className="summary-card approved">
                   <div className="card-icon">✅</div>
                   <div className="card-content">
                     <div className="card-value">{reportData.summary.approved}</div>
-                    <div className="card-label">Approved</div>
+                    <div className="card-label">{t('manager_reports.summary.approved')}</div>
                   </div>
                 </div>
                 <div className="summary-card rejected">
                   <div className="card-icon">❌</div>
                   <div className="card-content">
                     <div className="card-value">{reportData.summary.rejected}</div>
-                    <div className="card-label">Rejected</div>
+                    <div className="card-label">{t('manager_reports.summary.rejected')}</div>
                   </div>
                 </div>
                 <div className="summary-card pending">
                   <div className="card-icon">⏳</div>
                   <div className="card-content">
                     <div className="card-value">{reportData.summary.pending}</div>
-                    <div className="card-label">Pending</div>
+                    <div className="card-label">{t('manager_reports.summary.pending')}</div>
                   </div>
                 </div>
               </div>
@@ -625,7 +625,7 @@ const ManagerReports: React.FC = () => {
               {/* Charts Row 1 */}
               <div className="charts-row">
                 <div className="chart-card">
-                  <h3>📅 Applications by Month</h3>
+                  <h3>📅 {t('manager_reports.charts.applications_by_month')}</h3>
                   <div className="chart-container">
                     <ResponsiveContainer width="100%" height={300}>
                       <BarChart data={reportData.byMonth}>
@@ -634,16 +634,16 @@ const ManagerReports: React.FC = () => {
                         <YAxis />
                         <Tooltip />
                         <Legend />
-                        <Bar dataKey="applications" name="Applications" fill="#0088FE" />
-                        <Bar dataKey="approved" name="Approved" fill="#00C49F" />
-                        <Bar dataKey="rejected" name="Rejected" fill="#FF8042" />
+                        <Bar dataKey="applications" name={t('manager_reports.labels.applications')} fill="#0088FE" />
+                        <Bar dataKey="approved" name={t('manager_reports.labels.approved')} fill="#00C49F" />
+                        <Bar dataKey="rejected" name={t('manager_reports.labels.rejected')} fill="#FF8042" />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
                 </div>
 
                 <div className="chart-card">
-                  <h3>🏢 Applications by Department</h3>
+                  <h3>🏢 {t('manager_reports.charts.applications_by_department')}</h3>
                   <div className="chart-container">
                     <ResponsiveContainer width="100%" height={300}>
                       <BarChart data={reportData.byDepartment}>
@@ -652,8 +652,8 @@ const ManagerReports: React.FC = () => {
                         <YAxis />
                         <Tooltip />
                         <Legend />
-                        <Bar dataKey="applications" name="Applications" fill="#8884D8" />
-                        <Bar dataKey="approvalRate" name="Approval Rate %" fill="#82CA9D" />
+                        <Bar dataKey="applications" name={t('manager_reports.labels.applications')} fill="#8884D8" />
+                        <Bar dataKey="approvalRate" name={t('manager_reports.labels.approval_rate_pct')} fill="#82CA9D" />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -663,7 +663,7 @@ const ManagerReports: React.FC = () => {
               {/* Charts Row 2 */}
               <div className="charts-row">
                 <div className="chart-card">
-                  <h3>📊 Leave Type Distribution</h3>
+                  <h3>📊 {t('manager_reports.charts.leave_type_distribution')}</h3>
                   <div className="chart-container">
                     <ResponsiveContainer width="100%" height={300}>
                       <PieChart>
@@ -672,7 +672,8 @@ const ManagerReports: React.FC = () => {
                           cx="50%"
                           cy="50%"
                           labelLine={false}
-                          label={({ leaveType, percent }) => `${leaveType}: ${(percent * 100).toFixed(0)}%`}
+                          nameKey="leaveType"
+                          label={({ name, percent = 0 }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                           outerRadius={100}
                           fill="#8884d8"
                           dataKey="count"
@@ -689,7 +690,7 @@ const ManagerReports: React.FC = () => {
                 </div>
 
                 <div className="chart-card">
-                  <h3>📈 Leave Trends</h3>
+                  <h3>📈 {t('manager_reports.charts.leave_trends')}</h3>
                   <div className="chart-container">
                     <ResponsiveContainer width="100%" height={300}>
                       <LineChart data={reportData.leaveTrends}>
@@ -703,7 +704,7 @@ const ManagerReports: React.FC = () => {
                           yAxisId="left"
                           type="monotone" 
                           dataKey="applications" 
-                          name="Applications" 
+                          name={t('manager_reports.labels.applications')}
                           stroke="#0088FE" 
                           strokeWidth={2}
                           dot={{ r: 4 }}
@@ -712,7 +713,7 @@ const ManagerReports: React.FC = () => {
                           yAxisId="right"
                           type="monotone" 
                           dataKey="avgProcessingTime" 
-                          name="Avg Processing Time (days)" 
+                          name={t('manager_reports.labels.avg_processing_time_days')}
                           stroke="#FF8042" 
                           strokeWidth={2}
                           dot={{ r: 4 }}
@@ -728,8 +729,8 @@ const ManagerReports: React.FC = () => {
           {activeTab === 'performance' && reportData && (
             <div className="performance-tab">
               <div className="performance-header">
-                <h2>👥 Team Performance Analysis</h2>
-                <p>Individual performance metrics for team members</p>
+                <h2>👥 {t('manager_reports.performance.title')}</h2>
+                <p>{t('manager_reports.performance.subtitle')}</p>
               </div>
 
               <div className="performance-stats">
@@ -739,7 +740,7 @@ const ManagerReports: React.FC = () => {
                     <div className="stat-value">
                       {Math.max(...reportData.teamPerformance.map(p => p.approvalRate), 0)}%
                     </div>
-                    <div className="stat-label">Highest Approval Rate</div>
+                    <div className="stat-label">{t('manager_reports.performance.highest_approval')}</div>
                   </div>
                 </div>
                 <div className="stat-card">
@@ -748,7 +749,7 @@ const ManagerReports: React.FC = () => {
                     <div className="stat-value">
                       {Math.round(reportData.teamPerformance.reduce((sum, p) => sum + p.applications, 0) / reportData.teamPerformance.length) || 0}
                     </div>
-                    <div className="stat-label">Avg Applications per Member</div>
+                    <div className="stat-label">{t('manager_reports.performance.avg_applications')}</div>
                   </div>
                 </div>
                 <div className="stat-card">
@@ -757,7 +758,7 @@ const ManagerReports: React.FC = () => {
                     <div className="stat-value">
                       {Math.round(reportData.teamPerformance.reduce((sum, p) => sum + p.avgLeaveDuration, 0) / reportData.teamPerformance.length * 10) / 10 || 0}d
                     </div>
-                    <div className="stat-label">Avg Leave Duration</div>
+                    <div className="stat-label">{t('manager_reports.performance.avg_duration')}</div>
                   </div>
                 </div>
               </div>
@@ -766,11 +767,11 @@ const ManagerReports: React.FC = () => {
                 <table className="performance-table">
                   <thead>
                     <tr>
-                      <th>Employee</th>
-                      <th>Applications</th>
-                      <th>Approval Rate</th>
-                      <th>Avg Leave Duration</th>
-                      <th>Performance Score</th>
+                      <th>{t('manager_reports.table.employee')}</th>
+                      <th>{t('manager_reports.table.applications')}</th>
+                      <th>{t('manager_reports.table.approval_rate')}</th>
+                      <th>{t('manager_reports.table.avg_duration')}</th>
+                      <th>{t('manager_reports.table.performance_score')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -809,12 +810,12 @@ const ManagerReports: React.FC = () => {
                           </td>
                           <td>
                             <span className="duration-badge">
-                              {member.avgLeaveDuration} days
+                              {t('manager_reports.table.days', { days: member.avgLeaveDuration })}
                             </span>
                           </td>
                           <td>
                             <div className={`score-badge ${performanceScore >= 80 ? 'excellent' : performanceScore >= 60 ? 'good' : 'needs-improvement'}`}>
-                              {performanceScore}/100
+                              {t('manager_reports.table.score', { score: performanceScore })}
                             </div>
                           </td>
                         </tr>
@@ -825,30 +826,30 @@ const ManagerReports: React.FC = () => {
               </div>
 
               <div className="performance-insights">
-                <h3>💡 Performance Insights</h3>
+                <h3>💡 {t('manager_reports.performance.insights_title')}</h3>
                 <div className="insights-grid">
                   {reportData.peakLeavePeriods.length > 0 && (
                     <div className="insight-card">
                       <div className="insight-icon">📅</div>
                       <div className="insight-content">
-                        <h4>Peak Leave Period</h4>
-                        <p>Most leaves were taken in {reportData.peakLeavePeriods[0]?.period}</p>
+                        <h4>{t('manager_reports.performance.peak_period')}</h4>
+                        <p>{t('manager_reports.performance.peak_period_desc', { period: reportData.peakLeavePeriods[0]?.period })}</p>
                       </div>
                     </div>
                   )}
                   <div className="insight-card">
                     <div className="insight-icon">⚡</div>
                     <div className="insight-content">
-                      <h4>Processing Efficiency</h4>
-                      <p>Average approval time: {reportData.summary.averageProcessingTime} days</p>
+                      <h4>{t('manager_reports.performance.processing_efficiency')}</h4>
+                      <p>{t('manager_reports.performance.processing_efficiency_desc', { days: reportData.summary.averageProcessingTime })}</p>
                     </div>
                   </div>
                   {reportData.byLeaveType.length > 0 && (
                     <div className="insight-card">
                       <div className="insight-icon">🏖️</div>
                       <div className="insight-content">
-                        <h4>Most Common Leave Type</h4>
-                        <p>{reportData.byLeaveType[0]?.leaveType} ({(reportData.byLeaveType[0]?.count / reportData.summary.totalApplications * 100).toFixed(0)}% of all leaves)</p>
+                        <h4>{t('manager_reports.performance.most_common_type')}</h4>
+                        <p>{t('manager_reports.performance.most_common_type_desc', { type: reportData.byLeaveType[0]?.leaveType, percent: (reportData.byLeaveType[0]?.count / reportData.summary.totalApplications * 100).toFixed(0) })}</p>
                       </div>
                     </div>
                   )}
@@ -859,11 +860,11 @@ const ManagerReports: React.FC = () => {
 
           {activeTab === 'analytics' && reportData && (
             <div className="analytics-tab">
-              <h2>📈 Advanced Analytics</h2>
+              <h2>📈 {t('manager_reports.analytics.title')}</h2>
               
               <div className="analytics-grid">
                 <div className="analytics-card wide">
-                  <h3>📊 Department Comparison</h3>
+                  <h3>📊 {t('manager_reports.analytics.department_comparison')}</h3>
                   <div className="chart-container">
                     <ResponsiveContainer width="100%" height={400}>
                       <AreaChart data={reportData.byDepartment}>
@@ -875,7 +876,7 @@ const ManagerReports: React.FC = () => {
                         <Area 
                           type="monotone" 
                           dataKey="applications" 
-                          name="Applications" 
+                          name={t('manager_reports.labels.applications')}
                           stroke="#8884D8" 
                           fill="#8884D8" 
                           fillOpacity={0.3}
@@ -883,7 +884,7 @@ const ManagerReports: React.FC = () => {
                         <Area 
                           type="monotone" 
                           dataKey="approvalRate" 
-                          name="Approval Rate %" 
+                          name={t('manager_reports.labels.approval_rate_pct')}
                           stroke="#82CA9D" 
                           fill="#82CA9D" 
                           fillOpacity={0.3}
@@ -894,7 +895,7 @@ const ManagerReports: React.FC = () => {
                 </div>
 
                 <div className="analytics-card">
-                  <h3>📋 Approval Rate Distribution</h3>
+                  <h3>📋 {t('manager_reports.analytics.approval_distribution')}</h3>
                   <div className="chart-container">
                     <ResponsiveContainer width="100%" height={300}>
                       <BarChart data={reportData.teamPerformance.slice(0, 5)}>
@@ -902,14 +903,14 @@ const ManagerReports: React.FC = () => {
                         <XAxis dataKey="employee" angle={-45} textAnchor="end" height={80} />
                         <YAxis />
                         <Tooltip />
-                        <Bar dataKey="approvalRate" name="Approval Rate %" fill="#0088FE" />
+                        <Bar dataKey="approvalRate" name={t('manager_reports.labels.approval_rate_pct')} fill="#0088FE" />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
                 </div>
 
                 <div className="analytics-card">
-                  <h3>⏱️ Processing Time Trend</h3>
+                  <h3>⏱️ {t('manager_reports.analytics.processing_time_trend')}</h3>
                   <div className="chart-container">
                     <ResponsiveContainer width="100%" height={300}>
                       <LineChart data={reportData.leaveTrends}>
@@ -920,7 +921,7 @@ const ManagerReports: React.FC = () => {
                         <Line 
                           type="monotone" 
                           dataKey="avgProcessingTime" 
-                          name="Avg Processing Time (days)" 
+                          name={t('manager_reports.labels.avg_processing_time_days')}
                           stroke="#FF8042" 
                           strokeWidth={3}
                           dot={{ r: 6 }}
@@ -932,31 +933,31 @@ const ManagerReports: React.FC = () => {
               </div>
 
               <div className="analytics-insights">
-                <h3>🔍 Key Insights</h3>
+                <h3>🔍 {t('manager_reports.analytics.key_insights')}</h3>
                 <div className="insights-list">
                   {reportData.summary.approvalRate >= 80 ? (
                     <div className="insight positive">
-                      ✅ <strong>High Approval Rate:</strong> Your team has an excellent approval rate of {reportData.summary.approvalRate}%
+                      ✅ <strong>{t('manager_reports.analytics.high_approval_title')}</strong> {t('manager_reports.analytics.high_approval_desc', { rate: reportData.summary.approvalRate })}
                     </div>
                   ) : (
                     <div className="insight warning">
-                      ⚠️ <strong>Approval Rate:</strong> Consider reviewing processes to improve the {reportData.summary.approvalRate}% approval rate
+                      ⚠️ <strong>{t('manager_reports.analytics.approval_rate_title')}</strong> {t('manager_reports.analytics.approval_rate_desc', { rate: reportData.summary.approvalRate })}
                     </div>
                   )}
                   
                   {reportData.summary.averageProcessingTime > 3 ? (
                     <div className="insight warning">
-                      ⏳ <strong>Processing Time:</strong> Average processing time of {reportData.summary.averageProcessingTime} days could be improved
+                      ⏳ <strong>{t('manager_reports.analytics.processing_time_title')}</strong> {t('manager_reports.analytics.processing_time_desc', { days: reportData.summary.averageProcessingTime })}
                     </div>
                   ) : (
                     <div className="insight positive">
-                      ⚡ <strong>Quick Processing:</strong> Great job processing leaves in {reportData.summary.averageProcessingTime} days on average
+                      ⚡ <strong>{t('manager_reports.analytics.quick_processing_title')}</strong> {t('manager_reports.analytics.quick_processing_desc', { days: reportData.summary.averageProcessingTime })}
                     </div>
                   )}
                   
                   {reportData.byLeaveType.length > 0 && reportData.byLeaveType[0].count / reportData.summary.totalApplications > 0.5 && (
                     <div className="insight info">
-                      📊 <strong>Leave Distribution:</strong> {reportData.byLeaveType[0].leaveType} accounts for over 50% of all leaves
+                      📊 <strong>{t('manager_reports.analytics.leave_distribution_title')}</strong> {t('manager_reports.analytics.leave_distribution_desc', { type: reportData.byLeaveType[0].leaveType })}
                     </div>
                   )}
                 </div>
@@ -966,19 +967,19 @@ const ManagerReports: React.FC = () => {
 
           {activeTab === 'details' && reportData && (
             <div className="details-tab">
-              <h2>📋 Detailed Report View</h2>
+              <h2>📋 {t('manager_reports.details.title')}</h2>
               
               <div className="detailed-sections">
                 <div className="detailed-section">
-                  <h3>📅 Monthly Breakdown</h3>
+                  <h3>📅 {t('manager_reports.details.monthly_breakdown')}</h3>
                   <table className="detailed-table">
                     <thead>
                       <tr>
-                        <th>Month</th>
-                        <th>Applications</th>
-                        <th>Approved</th>
-                        <th>Rejected</th>
-                        <th>Approval Rate</th>
+                        <th>{t('manager_reports.details.table.month')}</th>
+                        <th>{t('manager_reports.details.table.applications')}</th>
+                        <th>{t('manager_reports.details.table.approved')}</th>
+                        <th>{t('manager_reports.details.table.rejected')}</th>
+                        <th>{t('manager_reports.details.table.approval_rate')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1000,14 +1001,14 @@ const ManagerReports: React.FC = () => {
                 </div>
 
                 <div className="detailed-section">
-                  <h3>🏢 Department Performance</h3>
+                  <h3>🏢 {t('manager_reports.details.department_performance')}</h3>
                   <table className="detailed-table">
                     <thead>
                       <tr>
-                        <th>Department</th>
-                        <th>Applications</th>
-                        <th>Approval Rate</th>
-                        <th>Performance</th>
+                        <th>{t('manager_reports.details.table.department')}</th>
+                        <th>{t('manager_reports.details.table.applications')}</th>
+                        <th>{t('manager_reports.details.table.approval_rate')}</th>
+                        <th>{t('manager_reports.details.table.performance')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1017,9 +1018,9 @@ const ManagerReports: React.FC = () => {
                           <td>{dept.applications}</td>
                           <td>{dept.approvalRate}%</td>
                           <td>
-                            {dept.approvalRate >= 80 ? 'Excellent' : 
-                             dept.approvalRate >= 60 ? 'Good' : 
-                             dept.approvalRate >= 40 ? 'Average' : 'Needs Improvement'}
+                            {dept.approvalRate >= 80 ? t('manager_reports.details.performance.excellent') : 
+                             dept.approvalRate >= 60 ? t('manager_reports.details.performance.good') : 
+                             dept.approvalRate >= 40 ? t('manager_reports.details.performance.average') : t('manager_reports.details.performance.needs_improvement')}
                           </td>
                         </tr>
                       ))}
@@ -1028,14 +1029,14 @@ const ManagerReports: React.FC = () => {
                 </div>
 
                 <div className="detailed-section">
-                  <h3>🏖️ Leave Type Analysis</h3>
+                  <h3>🏖️ {t('manager_reports.details.leave_type_analysis')}</h3>
                   <table className="detailed-table">
                     <thead>
                       <tr>
-                        <th>Leave Type</th>
-                        <th>Count</th>
-                        <th>Percentage</th>
-                        <th>Avg Duration</th>
+                        <th>{t('manager_reports.details.table.leave_type')}</th>
+                        <th>{t('manager_reports.details.table.count')}</th>
+                        <th>{t('manager_reports.details.table.percentage')}</th>
+                        <th>{t('manager_reports.details.table.avg_duration')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1048,7 +1049,7 @@ const ManagerReports: React.FC = () => {
                               ? `${((type.count / reportData.summary.totalApplications) * 100).toFixed(1)}%` 
                               : '0%'}
                           </td>
-                          <td>{type.avgDuration.toFixed(1)} days</td>
+                          <td>{t('manager_reports.details.table.days', { days: type.avgDuration.toFixed(1) })}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -1057,21 +1058,28 @@ const ManagerReports: React.FC = () => {
               </div>
 
               <div className="summary-box">
-                <h3>📝 Executive Summary</h3>
+                <h3>📝 {t('manager_reports.details.executive_summary')}</h3>
                 <div className="summary-content">
                   <p>
-                    During the period from {formatDate(filters.startDate)} to {formatDate(filters.endDate)}, 
-                    your team processed a total of <strong>{reportData.summary.totalApplications}</strong> leave applications.
+                    {t('manager_reports.details.summary_period', {
+                      start: formatDate(filters.startDate),
+                      end: formatDate(filters.endDate),
+                      total: reportData.summary.totalApplications
+                    })}
                   </p>
                   <p>
-                    The overall approval rate was <strong>{reportData.summary.approvalRate}%</strong> with an average 
-                    processing time of <strong>{reportData.summary.averageProcessingTime} days</strong>.
+                    {t('manager_reports.details.summary_approval', {
+                      rate: reportData.summary.approvalRate,
+                      days: reportData.summary.averageProcessingTime
+                    })}
                   </p>
                   <p>
-                    <strong>{reportData.byLeaveType[0]?.leaveType || 'N/A'}</strong> was the most frequently used leave type, 
-                    accounting for {reportData.summary.totalApplications > 0 
-                      ? `${((reportData.byLeaveType[0]?.count || 0) / reportData.summary.totalApplications * 100).toFixed(1)}%` 
-                      : '0%'} of all applications.
+                    {t('manager_reports.details.summary_most_used', {
+                      type: reportData.byLeaveType[0]?.leaveType || t('common.na'),
+                      percent: reportData.summary.totalApplications > 0
+                        ? ((reportData.byLeaveType[0]?.count || 0) / reportData.summary.totalApplications * 100).toFixed(1)
+                        : '0'
+                    })}
                   </p>
                 </div>
               </div>
@@ -1085,7 +1093,7 @@ const ManagerReports: React.FC = () => {
         <div className="loading-overlay">
           <div className="loading-content">
             <div className="loading-spinner"></div>
-            <p>Updating report data...</p>
+            <p>{t('manager_reports.updating')}</p>
           </div>
         </div>
       )}

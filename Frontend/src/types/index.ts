@@ -8,14 +8,16 @@ export type NotificationCategory =
 
   
 export type UserStatus = 'active' | 'inactive';
+export type LanguageCode = 'en' | 'am' | 'om';
 
 export interface User {
   id: number;
   name: string;
   email: string;
   role: UserRole;
-  password:string
+  password?: string;
   status?: UserStatus;
+  language?: LanguageCode;
   department?: string;
   position?: string;
   phone?: string;
@@ -31,7 +33,7 @@ export interface User {
   leaveBalances?: LeaveBalance[];
 }
 
-export type UserRole = 'employee' | 'manager' | 'hr-admin';
+export type UserRole = 'employee' | 'manager' | 'hr-admin' | 'super-admin';
 
 export interface ApprovalsHistoryProps {
   filters?: LeaveFilter;
@@ -57,8 +59,18 @@ export type LeaveStatus =
   | 'PENDING_HR'
   | 'APPROVED'
   | 'HR_APPROVED'
+  | 'HR_REJECTED'
   | 'REJECTED'
-  | 'CANCELLED';
+  | 'CANCELLED'
+  | 'pending'
+  | 'pending_manager'
+  | 'pending_hr'
+  | 'approved'
+  | 'hr_approved'
+  | 'hr_rejected'
+  | 'rejected'
+  | 'cancelled'
+  | 'hr_pending';
 
 
 export interface LeaveApplication {
@@ -67,8 +79,8 @@ export interface LeaveApplication {
   employeeName?: string;
   employeeDepartment: string;
   employee?: User;
-  department:string;
-  leaveType?: string;
+  department?: string;
+  leaveType?: LeaveType | string;
   leaveTypeId?: number;
   startDate: string;
   endDate: string;
@@ -82,7 +94,7 @@ export interface LeaveApplication {
   hrApprovedDate?: string;
   createdAt?: string;
   updatedAt?: string;
-  currentApprover: 'manager' | 'hr';
+  currentApprover: 'manager' | 'hr' | 'MANAGER' | 'HR' | 'SYSTEM';
 }
 
 
@@ -99,7 +111,7 @@ export interface LeaveType {
 
   requiresApproval: boolean;
   requiresHRApproval?: boolean;
-  isActive:string;
+  isActive: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -122,6 +134,7 @@ export interface UserFormData {
   managerId: string;
   position: string;
   password: string;
+  language?: LanguageCode;
 }
 
 // Navigation Types
@@ -136,15 +149,15 @@ export interface MenuItem {
 // Props Types
 export interface LayoutProps {
   children: React.ReactNode;
-  userRole: string;
+  userRole: UserRole;
 }
 export interface SidebarProps {
-   userRole: string;
+   userRole: UserRole;
   isMobileOpen?: boolean;
   onClose?: () => void;
 }
 export interface DashboardProps {
-  userRole: string;
+  userRole: UserRole;
 }
 // Add these to your existing types
 export interface LoginCredentials {
@@ -172,11 +185,12 @@ export interface UserProfile {
   name: string;
   email: string;
   employeeId: string;
-  department: string;
-  position: string;
-  phone: string;
-  joinDate: string;
+  department?: string;
+  position?: string;
+  phone?: string;
+  joinDate?: string;
   avatar?: string;
+  language?: LanguageCode;
 }
 
 export interface ProfileFormData {
@@ -196,6 +210,7 @@ export interface Leave {
   date: string;
   employeeId: number;
   leaveTypeId: number;
+  department?: string;
   startDate: string;
   endDate: string;
   days: number;
@@ -212,7 +227,7 @@ export interface Leave {
   hrApprovedDate?: string;
   hrNotes?: string;
   employee?: User;
-  leaveType?: LeaveType;
+  leaveType?: LeaveType | string;
   manager?: User;
   hrAdmin?: User;
       leaves?: Leave[];
@@ -252,6 +267,9 @@ export interface LeaveBalance {
   used: number;
   remaining: number;
   leaveTypeId: number;
+  userId?: number;
+  totalDays?: number;
+  remainingDays?: number;
    leaveType?: {
     id: number
     name: string
@@ -302,6 +320,60 @@ export interface LeaveUsageReport {
   approvalRate: number;
 }
 
+export interface HRReportData {
+  summary: {
+    totalEmployees: number;
+    totalLeaves: number;
+    approvedLeaves: number;
+    pendingLeaves: number;
+    rejectedLeaves: number;
+    averageLeaveDuration: number;
+    totalLeaveDays: number;
+    onLeaveToday: number;
+    pendingApprovals: number;
+  };
+  departmentStats: Array<{
+    department: string;
+    employeeCount: number;
+    totalLeaves: number;
+    approvedLeaves: number;
+    rejectedLeaves: number;
+    averageDuration: number;
+    approvalRate: number;
+  }>;
+  leaveTypeStats: Array<{
+    leaveType: string;
+    totalRequests: number;
+    approvedRequests: number;
+    rejectedRequests: number;
+    averageDuration: number;
+    utilizationRate: number;
+  }>;
+  monthlyTrends: Array<{
+    month: string;
+    leavesTaken: number;
+    approvalRate: number;
+    averageDuration: number;
+  }>;
+  employeeInsights: Array<{
+    employeeName: string;
+    department: string;
+    leavesTaken: number;
+    totalDays: number;
+    approvalRate: number;
+  }>;
+  complianceData: {
+    policyViolations: number;
+    lateApplications: number;
+    overlappingLeaves: number;
+    highFrequencyEmployees: number;
+  };
+  reportPeriod: {
+    startDate: string;
+    endDate: string;
+  };
+}
+
 export interface DepartmentUsage {
   department: string;
   totalLeaves: number;
@@ -334,6 +406,16 @@ export interface SystemSettings {
   carryOverLimit: number;
   fiscalYearStart: string;
   workingDays: string[]; // ['monday', 'tuesday', ...]
+}
+
+export interface SystemSetting {
+  id: number;
+  key: string;
+  value: string;
+  description?: string;
+  category: string;
+  isPublic: boolean;
+  updatedAt: string;
 }
 
 // HR Admin Types

@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { apiService } from '../../utils/api';
 import type { User, Leave,LeaveType } from '../../types';
 import { jsPDF } from 'jspdf';
+import { useTranslation } from 'react-i18next';
 
 import './HRApprovals.css';
 
@@ -11,13 +12,14 @@ interface HRApprovalData {
   leave: Leave;
   employee: User;
   manager?: User;
-  leaveType?: LeaveType;
+  leaveType?: LeaveType | string;
 }
 
 
 
 const HRApprovals: React.FC = () => {
   const { user } = useAuth();
+  const { t, i18n } = useTranslation();
   const [pendingApprovals, setPendingApprovals] = useState<HRApprovalData[]>([]);
   const [approvedLeaves, setApprovedLeaves] = useState<HRApprovalData[]>([]);
   const [rejectedLeaves, setRejectedLeaves] = useState<HRApprovalData[]>([]);
@@ -39,9 +41,25 @@ const HRApprovals: React.FC = () => {
   
   const pdfRef = useRef<HTMLDivElement>(null);
 
+  const formatDateTime = (date?: string) => {
+    const localeMap: Record<string, string> = { en: 'en-US', am: 'am-ET', om: 'om-ET' };
+    const locale = localeMap[i18n.language] || 'en-US';
+    return date ? new Date(date).toLocaleString(locale) : t('hr_approvals.na');
+  };
+
+  const getLeaveTypeName = (leaveType?: LeaveType | string) => {
+    if (!leaveType) return t('hr_approvals.na');
+    return typeof leaveType === 'string' ? leaveType : leaveType.name || t('hr_approvals.na');
+  };
+
+  const getLeaveTypeRequiresHR = (leaveType?: LeaveType | string) => {
+    if (!leaveType || typeof leaveType === 'string') return false;
+    return !!leaveType.requiresHRApproval;
+  };
+
   // Load pending approvals
   useEffect(() => {
-    if (user && (user.role === 'hr-admin' || user.role === 'hr-admin')) {
+    if (user?.role === 'hr-admin') {
       loadHRApprovals();
     }
   }, [user]);
@@ -69,7 +87,7 @@ const HRApprovals: React.FC = () => {
       
     } catch (error: any) {
       console.error('Error loading HR approvals:', error);
-      setError('Failed to load leave approvals. Please try again.');
+      setError(t('hr_approvals.errors.load_failed'));
     } finally {
       setLoading(false);
     }
@@ -131,11 +149,11 @@ const HRApprovals: React.FC = () => {
           setSelectedLeave(null);
         }
       } else {
-        throw new Error(response.message || 'Failed to approve leave');
+        throw new Error(response.message || t('hr_approvals.errors.approve_failed'));
       }
     } catch (error: any) {
       console.error('Error approving leave:', error);
-      setError(error.message || 'Failed to approve leave. Please try again.');
+      setError(error.message || t('hr_approvals.errors.approve_failed'));
     } finally {
       setIsProcessing(null);
     }
@@ -169,11 +187,11 @@ const HRApprovals: React.FC = () => {
           setSelectedLeave(null);
         }
       } else {
-        throw new Error(response.message || 'Failed to reject leave');
+        throw new Error(response.message || t('hr_approvals.errors.reject_failed'));
       }
     } catch (error: any) {
       console.error('Error rejecting leave:', error);
-      setError(error.message || 'Failed to reject leave. Please try again.');
+      setError(error.message || t('hr_approvals.errors.reject_failed'));
     } finally {
       setIsProcessing(null);
     }
@@ -239,7 +257,7 @@ const HRApprovals: React.FC = () => {
       pdf.text('Leave Details:', 20, yPos);
       yPos += 10;
       
-      pdf.text(`Leave Type: ${approvalData.leaveType?.name }`, 25, yPos);
+      pdf.text(`Leave Type: ${getLeaveTypeName(approvalData.leaveType)}`, 25, yPos);
       yPos += 8;
       
       pdf.text(`Start Date: ${new Date(approvalData.leave.startDate).toLocaleDateString()}`, 25, yPos);
@@ -323,7 +341,7 @@ const HRApprovals: React.FC = () => {
       
     } catch (error) {
       console.error('Error generating PDF:', error);
-      setError('Failed to generate PDF. Please try again.');
+      setError(t('hr_approvals.errors.pdf_failed'));
     } finally {
       setLoading(false);
     }
@@ -342,9 +360,9 @@ const HRApprovals: React.FC = () => {
   ])).filter(Boolean).sort();
 
   const leaveTypes = Array.from(new Set([
-    ...pendingApprovals.map(item => item.leaveType?.name),
-    ...approvedLeaves.map(item => item.leaveType?.name),
-    ...rejectedLeaves.map(item => item.leaveType?.name)
+    ...pendingApprovals.map(item => getLeaveTypeName(item.leaveType)),
+    ...approvedLeaves.map(item => getLeaveTypeName(item.leaveType)),
+    ...rejectedLeaves.map(item => getLeaveTypeName(item.leaveType))
   ])).filter(Boolean).sort();
 
   // Filter and sort current data
@@ -364,7 +382,7 @@ const HRApprovals: React.FC = () => {
     }
 
     // Apply filters
-    let filtered = data.filter(item => {
+    const filtered = data.filter(item => {
       const matchesSearch = 
         item.employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.employee.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -374,9 +392,9 @@ const HRApprovals: React.FC = () => {
         filterDepartment === 'all' || 
         item.employee.department === filterDepartment;
 
-      const matchesLeaveType = 
-        filterLeaveType === 'all' || 
-        item.leaveType?.name === filterLeaveType;
+      const matchesLeaveType =
+        filterLeaveType === 'all' ||
+        getLeaveTypeName(item.leaveType) === filterLeaveType;
 
       return matchesSearch && matchesDepartment && matchesLeaveType;
     });
@@ -409,12 +427,12 @@ const HRApprovals: React.FC = () => {
     return (
       <div className="hr-approvals">
         <div className="page-header">
-          <h1>HR Approvals</h1>
-          <p>Review and approve leave requests</p>
+          <h1>{t('hr_approvals.title')}</h1>
+          <p>{t('hr_approvals.subtitle')}</p>
         </div>
         <div className="loading-state">
           <div className="loading-spinner"></div>
-          <p>Loading leave requests...</p>
+          <p>{t('hr_approvals.loading')}</p>
         </div>
       </div>
     );
@@ -425,25 +443,25 @@ const HRApprovals: React.FC = () => {
       <div className="page-header">
         <div className="header-content">
           <div className="header-title">
-            <h1>HR Approvals</h1>
+            <h1>{t('hr_approvals.title')}</h1>
             <div className="status-badges">
               <span className={`status-badge ${activeTab === 'pending' ? 'active' : ''}`}>
-                ⏳ Pending: {pendingApprovals.length}
+                ⏳ {t('hr_approvals.pending')}: {pendingApprovals.length}
               </span>
               <span className={`status-badge ${activeTab === 'approved' ? 'active' : ''}`}>
-                ✅ Approved: {approvedLeaves.length}
+                ✅ {t('hr_approvals.approved')}: {approvedLeaves.length}
               </span>
               <span className={`status-badge ${activeTab === 'rejected' ? 'active' : ''}`}>
-                ❌ Rejected: {rejectedLeaves.length}
+                ❌ {t('hr_approvals.rejected')}: {rejectedLeaves.length}
               </span>
             </div>
           </div>
           <button 
             className="refresh-btn"
             onClick={loadHRApprovals}
-            title="Refresh approvals"
+            title={t('dashboard.refresh')}
           >
-            🔄 Refresh
+            🔄 {t('dashboard.refresh')}
           </button>
         </div>
       </div>
@@ -475,21 +493,21 @@ const HRApprovals: React.FC = () => {
           className={`tab-btn ${activeTab === 'pending' ? 'active' : ''}`}
           onClick={() => setActiveTab('pending')}
         >
-          ⏳ Pending Approvals
+          ⏳ {t('hr_approvals.tabs.pending')}
           <span className="tab-count">{pendingApprovals.length}</span>
         </button>
         <button 
           className={`tab-btn ${activeTab === 'approved' ? 'active' : ''}`}
           onClick={() => setActiveTab('approved')}
         >
-          ✅ Approved Leaves
+          ✅ {t('hr_approvals.tabs.approved')}
           <span className="tab-count">{approvedLeaves.length}</span>
         </button>
         <button 
           className={`tab-btn ${activeTab === 'rejected' ? 'active' : ''}`}
           onClick={() => setActiveTab('rejected')}
         >
-          ❌ Rejected Leaves
+          ❌ {t('hr_approvals.tabs.rejected')}
           <span className="tab-count">{rejectedLeaves.length}</span>
         </button>
       </div>
@@ -499,7 +517,7 @@ const HRApprovals: React.FC = () => {
         <div className="search-box">
           <input
             type="text"
-            placeholder="Search by employee name, email, or reason..."
+            placeholder={t('hr_approvals.search_placeholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
@@ -513,7 +531,7 @@ const HRApprovals: React.FC = () => {
             onChange={(e) => setFilterDepartment(e.target.value)}
             className="filter-select"
           >
-            <option value="all">All Departments</option>
+            <option value="all">{t('hr_approvals.all_departments')}</option>
             {departments.map(dept => (
               <option key={dept} value={dept}>{dept}</option>
             ))}
@@ -524,7 +542,7 @@ const HRApprovals: React.FC = () => {
             onChange={(e) => setFilterLeaveType(e.target.value)}
             className="filter-select"
           >
-            <option value="all">All Leave Types</option>
+            <option value="all">{t('hr_approvals.all_leave_types')}</option>
             {leaveTypes.map(type => (
               <option key={type} value={type}>{type}</option>
             ))}
@@ -535,28 +553,28 @@ const HRApprovals: React.FC = () => {
             onChange={(e) => setSortBy(e.target.value as any)}
             className="filter-select"
           >
-            <option value="date">Sort by Date</option>
-            <option value="employee">Sort by Employee</option>
-            <option value="days">Sort by Days</option>
+            <option value="date">{t('hr_approvals.sort.date')}</option>
+            <option value="employee">{t('hr_approvals.sort.employee')}</option>
+            <option value="days">{t('hr_approvals.sort.days')}</option>
           </select>
 
           <button 
             className="sort-order-btn"
             onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
           >
-            {sortOrder === 'asc' ? '↑ Asc' : '↓ Desc'}
+            {sortOrder === 'asc' ? t('hr_approvals.sort.asc') : t('hr_approvals.sort.desc')}
           </button>
         </div>
       </div>
 
       {/* Results Info */}
       <div className="results-info">
-        Showing {currentData.length} of {
+        {t('hr_approvals.showing', { shown: currentData.length, total: (
           activeTab === 'pending' ? pendingApprovals.length :
           activeTab === 'approved' ? approvedLeaves.length :
           rejectedLeaves.length
-        } leave requests
-        {(searchTerm || filterDepartment !== 'all' || filterLeaveType !== 'all') && ' (filtered)'}
+        )})}
+        {(searchTerm || filterDepartment !== 'all' || filterLeaveType !== 'all') && ` ${t('hr_approvals.filtered')}`}
       </div>
 
       {/* Leave Requests List */}
@@ -568,13 +586,13 @@ const HRApprovals: React.FC = () => {
                activeTab === 'approved' ? '✅' : '❌'}
             </div>
             <h3>
-              {activeTab === 'pending' ? 'No Pending Approvals' :
-               activeTab === 'approved' ? 'No Approved Leaves' : 'No Rejected Leaves'}
+              {activeTab === 'pending' ? t('hr_approvals.empty.pending') :
+               activeTab === 'approved' ? t('hr_approvals.empty.approved') : t('hr_approvals.empty.rejected')}
             </h3>
             <p>
               {activeTab === 'pending' 
-                ? 'All leave requests have been processed.'
-                : 'No records found for this category.'}
+                ? t('hr_approvals.empty.processed')
+                : t('hr_approvals.empty.no_records')}
             </p>
           </div>
         ) : (
@@ -593,17 +611,17 @@ const HRApprovals: React.FC = () => {
                     <div className="employee-details">
                       <h3>{item.employee.name}</h3>
                       <p className="employee-department">{item.employee.department}</p>
-                      <p className="employee-position">{item.employee.position || 'N/A'}</p>
+                      <p className="employee-position">{item.employee.position || t('hr_approvals.na')}</p>
                     </div>
                   </div>
                   
                   <div className="leave-status">
                     {activeTab === 'pending' ? (
-                      <span className="status-badge pending">⏳ Pending HR Approval</span>
+                      <span className="status-badge pending">⏳ {t('hr_approvals.pending_hr')}</span>
                     ) : activeTab === 'approved' ? (
-                      <span className="status-badge approved">✅ HR Approved</span>
+                      <span className="status-badge approved">✅ {t('status.hr_approved')}</span>
                     ) : (
-                      <span className="status-badge rejected">❌ Rejected</span>
+                      <span className="status-badge rejected">❌ {t('status.rejected')}</span>
                     )}
                   </div>
                 </div>
@@ -613,8 +631,8 @@ const HRApprovals: React.FC = () => {
                     <div className="detail-row">
                       <span className="detail-label">Leave Type:</span>
                       <span className="detail-value">
-                        {item.leaveType?.name || 'N/A'}
-                        {item.leaveType?.requiresHRApproval && ' (HR Approval Required)'}
+                        {getLeaveTypeName(item.leaveType)}
+                        {getLeaveTypeRequiresHR(item.leaveType) && ` (${t('hr_approvals.hr_required')})`}
                       </span>
                     </div>
                     
@@ -628,7 +646,7 @@ const HRApprovals: React.FC = () => {
                     <div className="detail-row">
                       <span className="detail-label">Duration:</span>
                       <span className="detail-value">
-                        {item.leave.days} day{item.leave.days !== 1 ? 's' : ''}
+                        {item.leave.days} {t('dashboard.days')}
                       </span>
                     </div>
                     
@@ -641,7 +659,7 @@ const HRApprovals: React.FC = () => {
                     
                     {item.manager && (
                       <div className="detail-row">
-                        <span className="detail-label">Manager:</span>
+                        <span className="detail-label">{t('hr_approvals.manager')}:</span>
                         <span className="detail-value">
                           {item.manager.name} ({item.manager.email})
                         </span>
@@ -649,7 +667,7 @@ const HRApprovals: React.FC = () => {
                     )}
                     
                     <div className="detail-row">
-                      <span className="detail-label">Applied On:</span>
+                      <span className="detail-label">{t('hr_approvals.applied_on')}:</span>
                       <span className="detail-value">
                         {new Date(item.leave.appliedDate).toLocaleDateString()}
                       </span>
@@ -663,7 +681,7 @@ const HRApprovals: React.FC = () => {
                       className="action-btn view-btn"
                       onClick={() => openLeaveDetails(item)}
                     >
-                      👁️ View Details
+                      👁️ {t('leave_history.view_details')}
                     </button>
                     
                     {activeTab === 'pending' && (
@@ -676,7 +694,7 @@ const HRApprovals: React.FC = () => {
                           {isProcessing === item.leave.id ? (
                             <div className="loading-spinner-small"></div>
                           ) : (
-                            '✅ Approve'
+                            `✅ ${t('hr_approvals.approve')}`
                           )}
                         </button>
                         
@@ -688,7 +706,7 @@ const HRApprovals: React.FC = () => {
                           {isProcessing === item.leave.id ? (
                             <div className="loading-spinner-small"></div>
                           ) : (
-                            '❌ Reject'
+                            `❌ ${t('hr_approvals.reject')}`
                           )}
                         </button>
                       </>
@@ -699,7 +717,7 @@ const HRApprovals: React.FC = () => {
                         className="action-btn download-btn"
                         onClick={() => generatePDF(item)}
                       >
-                        📄 Generate Certificate
+                        📄 {t('hr_approvals.generate_certificate')}
                       </button>
                     )}
                   </div>
@@ -715,7 +733,7 @@ const HRApprovals: React.FC = () => {
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">
-              <h2>Leave Request Details</h2>
+              <h2>{t('hr_approvals.details_title')}</h2>
               <button 
                 className="close-btn"
                 onClick={() => {
@@ -730,27 +748,27 @@ const HRApprovals: React.FC = () => {
             <div className="modal-body">
               <div className="details-container">
                 <div className="section">
-                  <h3>Employee Information</h3>
+                  <h3>{t('hr_approvals.employee_info')}</h3>
                   <div className="info-grid">
                     <div className="info-item">
-                      <label>Name:</label>
+                      <label>{t('about_me.full_name')}:</label>
                       <span>{selectedLeave.employee.name}</span>
                     </div>
                     <div className="info-item">
-                      <label>Department:</label>
+                      <label>{t('about_me.department')}:</label>
                       <span>{selectedLeave.employee.department}</span>
                     </div>
                     <div className="info-item">
-                      <label>Position:</label>
-                      <span>{selectedLeave.employee.position || 'N/A'}</span>
+                      <label>{t('about_me.position')}:</label>
+                      <span>{selectedLeave.employee.position || t('hr_approvals.na')}</span>
                     </div>
                     <div className="info-item">
-                      <label>Email:</label>
+                      <label>{t('about_me.email')}:</label>
                       <span>{selectedLeave.employee.email}</span>
                     </div>
                     {selectedLeave.employee.phone && (
                       <div className="info-item">
-                        <label>Phone:</label>
+                        <label>{t('about_me.phone')}:</label>
                         <span>{selectedLeave.employee.phone}</span>
                       </div>
                     )}
@@ -758,29 +776,29 @@ const HRApprovals: React.FC = () => {
                 </div>
 
                 <div className="section">
-                  <h3>Leave Details</h3>
+                  <h3>{t('apply_leave.sections.details')}</h3>
                   <div className="info-grid">
                     <div className="info-item">
-                      <label>Leave Type:</label>
+                      <label>{t('apply_leave.fields.leave_type')}:</label>
                       <span>
-                        {selectedLeave.leaveType?.name || 'N/A'}
-                        {selectedLeave.leaveType?.requiresHRApproval && ' (Requires HR Approval)'}
+                        {getLeaveTypeName(selectedLeave.leaveType)}
+                        {getLeaveTypeRequiresHR(selectedLeave.leaveType) && ` (${t('hr_approvals.hr_required')})`}
                       </span>
                     </div>
                     <div className="info-item">
-                      <label>Start Date:</label>
+                      <label>{t('apply_leave.fields.start_date')}:</label>
                       <span>{new Date(selectedLeave.leave.startDate).toLocaleDateString()}</span>
                     </div>
                     <div className="info-item">
-                      <label>End Date:</label>
+                      <label>{t('apply_leave.fields.end_date')}:</label>
                       <span>{new Date(selectedLeave.leave.endDate).toLocaleDateString()}</span>
                     </div>
                     <div className="info-item">
-                      <label>Duration:</label>
-                      <span>{selectedLeave.leave.days} days</span>
+                      <label>{t('leave_history.columns.duration')}:</label>
+                      <span>{selectedLeave.leave.days} {t('dashboard.days')}</span>
                     </div>
                     <div className="info-item full-width">
-                      <label>Reason:</label>
+                      <label>{t('leave_history.columns.reason')}:</label>
                       <p className="reason-text">{selectedLeave.leave.reason}</p>
                     </div>
                   </div>
@@ -788,19 +806,19 @@ const HRApprovals: React.FC = () => {
 
                 {selectedLeave.manager && (
                   <div className="section">
-                    <h3>Manager Approval</h3>
+                    <h3>{t('hr_approvals.manager_approval')}</h3>
                     <div className="info-grid">
                       <div className="info-item">
-                        <label>Manager:</label>
+                        <label>{t('hr_approvals.manager')}:</label>
                         <span>{selectedLeave.manager.name}</span>
                       </div>
                       <div className="info-item">
-                        <label>Email:</label>
+                        <label>{t('about_me.email')}:</label>
                         <span>{selectedLeave.manager.email}</span>
                       </div>
                       {selectedLeave.leave.managerNotes && (
                         <div className="info-item full-width">
-                          <label>Manager Notes:</label>
+                          <label>{t('leave_history.manager_notes')}:</label>
                           <p className="notes-text">{selectedLeave.leave.managerNotes}</p>
                         </div>
                       )}
@@ -809,12 +827,12 @@ const HRApprovals: React.FC = () => {
                 )}
 
                 <div className="section">
-                  <h3>Application Timeline</h3>
+                  <h3>{t('hr_approvals.timeline')}</h3>
                   <div className="timeline">
                     <div className="timeline-item">
                       <div className="timeline-marker applied"></div>
                       <div className="timeline-content">
-                        <strong>Applied</strong>
+                        <strong>{t('hr_approvals.applied')}</strong>
                         <p>{new Date(selectedLeave.leave.appliedDate).toLocaleString()}</p>
                       </div>
                     </div>
@@ -823,10 +841,10 @@ const HRApprovals: React.FC = () => {
                       <div className="timeline-item">
                         <div className="timeline-marker manager-approved"></div>
                         <div className="timeline-content">
-                          <strong>Manager Approved</strong>
+                          <strong>{t('leave_history.manager_approved')}</strong>
                           <p>{new Date(selectedLeave.leave.managerApprovedDate).toLocaleString()}</p>
                           {selectedLeave.leave.managerNotes && (
-                            <small>Notes: {selectedLeave.leave.managerNotes}</small>
+                            <small>{t('hr_approvals.notes')}: {selectedLeave.leave.managerNotes}</small>
                           )}
                         </div>
                       </div>
@@ -836,10 +854,10 @@ const HRApprovals: React.FC = () => {
                       <div className="timeline-item">
                         <div className="timeline-marker hr-approved"></div>
                         <div className="timeline-content">
-                          <strong>HR Approved</strong>
+                          <strong>{t('leave_history.hr_approved')}</strong>
                           <p>{new Date(selectedLeave.leave.hrApprovedDate).toLocaleString()}</p>
                           {selectedLeave.leave.hrNotes && (
-                            <small>Notes: {selectedLeave.leave.hrNotes}</small>
+                            <small>{t('hr_approvals.notes')}: {selectedLeave.leave.hrNotes}</small>
                           )}
                         </div>
                       </div>
@@ -849,15 +867,13 @@ const HRApprovals: React.FC = () => {
                       <div className="timeline-item">
                         <div className="timeline-marker rejected"></div>
                         <div className="timeline-content">
-                          <strong>Rejected</strong>
+                          <strong>{t('status.rejected')}</strong>
                           <p>{selectedLeave.leave.hrApprovedDate
-  ? new Date(selectedLeave.leave.hrApprovedDate).toLocaleString()
-  : selectedLeave.leave.managerApprovedDate
-    ? new Date(selectedLeave.leave.managerApprovedDate).toLocaleString()
-    : '—'}
+  ? formatDateTime(selectedLeave.leave.hrApprovedDate)
+  : formatDateTime(selectedLeave.leave.managerApprovedDate)}
                           </p>
                           {selectedLeave.leave.hrNotes && (
-                            <small>Notes: {selectedLeave.leave.hrNotes}</small>
+                            <small>{t('hr_approvals.notes')}: {selectedLeave.leave.hrNotes}</small>
                           )}
                         </div>
                       </div>
@@ -879,7 +895,7 @@ const HRApprovals: React.FC = () => {
                       }}
                       disabled={isProcessing === selectedLeave.leave.id}
                     >
-                      ✅ Approve Leave
+                      ✅ {t('hr_approvals.approve_leave')}
                     </button>
                     
                     <button 
@@ -890,7 +906,7 @@ const HRApprovals: React.FC = () => {
                       }}
                       disabled={isProcessing === selectedLeave.leave.id}
                     >
-                      ❌ Reject Leave
+                      ❌ {t('hr_approvals.reject_leave')}
                     </button>
                   </>
                 )}
@@ -903,7 +919,7 @@ const HRApprovals: React.FC = () => {
                       setShowDetailsModal(false);
                     }}
                   >
-                    📄 Generate Approval Certificate
+                    📄 {t('hr_approvals.generate_certificate')}
                   </button>
                 )}
                 
@@ -914,7 +930,7 @@ const HRApprovals: React.FC = () => {
                     setSelectedLeave(null);
                   }}
                 >
-                  Close
+                  {t('common.cancel')}
                 </button>
               </div>
             </div>
@@ -927,7 +943,7 @@ const HRApprovals: React.FC = () => {
         <div className="modal-overlay">
           <div className="modal-content reject-modal">
             <div className="modal-header">
-              <h2>Reject Leave Request</h2>
+              <h2>{t('hr_approvals.reject_title')}</h2>
               <button 
                 className="close-btn"
                 onClick={() => {
@@ -942,22 +958,21 @@ const HRApprovals: React.FC = () => {
             
             <div className="modal-body">
               <p className="reject-warning">
-                ⚠️ Are you sure you want to reject this leave request?
-                This action cannot be undone. Please provide a reason for rejection.
+                ⚠️ {t('hr_approvals.reject_warning')}
               </p>
               
               <div className="form-group">
-                <label htmlFor="rejectionNotes">Reason for Rejection *</label>
+                <label htmlFor="rejectionNotes">{t('hr_approvals.reject_reason')} *</label>
                 <textarea
                   id="rejectionNotes"
                   value={rejectionNotes}
                   onChange={(e) => setRejectionNotes(e.target.value)}
-                  placeholder="Please provide a detailed reason for rejecting this leave request..."
+                  placeholder={t('hr_approvals.reject_placeholder')}
                   rows={4}
                   required
                 />
                 <small className="help-text">
-                  This feedback will be shared with the employee and their manager.
+                  {t('hr_approvals.reject_help')}
                 </small>
               </div>
             </div>
@@ -972,7 +987,7 @@ const HRApprovals: React.FC = () => {
                 }}
                 disabled={isProcessing === leaveToReject}
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               
               <button 
@@ -983,7 +998,7 @@ const HRApprovals: React.FC = () => {
                 {isProcessing === leaveToReject ? (
                   <div className="loading-spinner-small"></div>
                 ) : (
-                  'Confirm Rejection'
+                  t('hr_approvals.confirm_rejection')
                 )}
               </button>
             </div>

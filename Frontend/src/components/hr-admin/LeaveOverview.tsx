@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
 import { apiService } from '../../utils/api';
+import type { Leave } from '../../types';
+import { useTranslation } from 'react-i18next';
 import './LeaveOverview.css';
 
 interface LeaveApplication {
@@ -55,7 +56,7 @@ interface DepartmentStats {
 }
 
 const LeaveOverview: React.FC = () => {
-  const { user } = useAuth();
+  const { t, i18n } = useTranslation();
   const [allApplications, setAllApplications] = useState<LeaveApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -73,7 +74,7 @@ const LeaveOverview: React.FC = () => {
   // Load data on component mount
   useEffect(() => {
     loadAllApplications();
-  }, []);
+  }, [t]);
 
   const loadAllApplications = async () => {
     try {
@@ -85,7 +86,45 @@ const LeaveOverview: React.FC = () => {
       const response = await apiService.getLeaveOverview();
       
       if (response.success) {
-        const applications = response.data || [];
+        const applications = (response.data || []).map((leave: Leave) => ({
+          id: leave.id,
+          employeeId: leave.employeeId,
+          employee: {
+            id: leave.employee?.id ?? leave.employeeId ?? 0,
+            name: leave.employee?.name ?? 'Unknown',
+            email: leave.employee?.email ?? '',
+            department: leave.employee?.department ?? leave.department ?? 'Unassigned',
+            position: leave.employee?.position ?? '',
+            avatar: leave.employee?.avatar,
+            manager: leave.employee?.manager
+              ? { name: leave.employee.manager.name, email: leave.employee.manager.email }
+              : undefined
+          },
+          leaveType: typeof leave.leaveType === 'string'
+            ? {
+                id: leave.leaveTypeId ?? 0,
+                name: leave.leaveType,
+                color: '#667eea',
+                requiresHRApproval: false
+              }
+            : {
+                id: leave.leaveType?.id ?? leave.leaveTypeId ?? 0,
+                name: leave.leaveType?.name || 'Unknown',
+                color: leave.leaveType?.color,
+                requiresHRApproval: leave.leaveType?.requiresHRApproval ?? false
+              },
+          startDate: leave.startDate,
+          endDate: leave.endDate,
+          days: leave.days,
+          reason: leave.reason || '',
+          status: leave.status,
+          appliedDate: leave.appliedDate,
+          currentApprover: String(leave.currentApprover),
+          managerNotes: leave.managerNotes,
+          hrNotes: leave.hrNotes,
+          managerApprovedDate: leave.managerApprovedDate,
+          hrApprovedDate: leave.hrApprovedDate
+        }));
         console.log(`✅ Loaded ${applications.length} applications`);
         setAllApplications(applications);
       } else {
@@ -241,12 +280,12 @@ const LeaveOverview: React.FC = () => {
 
   const getStatusBadge = useCallback((status: string) => {
     const statusConfig: { [key: string]: { class: string; label: string; icon: string } } = {
-      'PENDING_MANAGER': { class: 'status-pending', label: 'Pending Manager', icon: '⏳' },
-      'PENDING_HR': { class: 'status-pending', label: 'Pending HR', icon: '👥' },
-      'APPROVED': { class: 'status-approved', label: 'Approved', icon: '✅' },
-      'HR_APPROVED': { class: 'status-approved', label: 'HR Approved', icon: '✅' },
-      'REJECTED': { class: 'status-rejected', label: 'Rejected', icon: '❌' },
-      'HR_REJECTED': { class: 'status-rejected', label: 'HR Rejected', icon: '❌' },
+      'PENDING_MANAGER': { class: 'status-pending', label: t('status.pending_manager'), icon: '⏳' },
+      'PENDING_HR': { class: 'status-pending', label: t('status.pending_hr'), icon: '👥' },
+      'APPROVED': { class: 'status-approved', label: t('status.approved'), icon: '✅' },
+      'HR_APPROVED': { class: 'status-approved', label: t('status.hr_approved'), icon: '✅' },
+      'REJECTED': { class: 'status-rejected', label: t('status.rejected'), icon: '❌' },
+      'HR_REJECTED': { class: 'status-rejected', label: t('leave_overview.status.hr_rejected'), icon: '❌' },
     };
     
     const config = statusConfig[status] || { class: 'status-pending', label: status, icon: '❓' };
@@ -259,12 +298,14 @@ const LeaveOverview: React.FC = () => {
   }, []);
 
   const formatDate = useCallback((dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    const localeMap: Record<string, string> = { en: 'en-US', am: 'am-ET', om: 'om-ET' };
+    const locale = localeMap[i18n.language] || 'en-US';
+    return new Date(dateString).toLocaleDateString(locale, {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
     });
-  }, []);
+  }, [i18n.language]);
 
   const handleSort = (column: typeof sortBy) => {
     if (sortBy === column) {
@@ -304,7 +345,7 @@ const LeaveOverview: React.FC = () => {
       console.log('✅ Export completed');
     } catch (error) {
       console.error('Export error:', error);
-      setError('Failed to export data');
+      setError(t('leave_overview.errors.export_failed'));
     } finally {
       setExportLoading(false);
     }
@@ -327,12 +368,12 @@ const LeaveOverview: React.FC = () => {
     return (
       <div className="leave-overview">
         <div className="page-header">
-          <h1>Leave Overview</h1>
-          <p>Comprehensive view of all leave applications across the organization</p>
+          <h1>{t('leave_overview.title')}</h1>
+          <p>{t('leave_overview.subtitle')}</p>
         </div>
         <div className="loading-state">
           <div className="loading-spinner"></div>
-          <p>Loading leave applications...</p>
+          <p>{t('leave_overview.loading')}</p>
         </div>
       </div>
     );
@@ -343,8 +384,8 @@ const LeaveOverview: React.FC = () => {
       <div className="page-header">
         <div className="header-content">
           <div>
-            <h1>Leave Overview</h1>
-            <p>Comprehensive view of all leave applications across the organization</p>
+            <h1>{t('leave_overview.title')}</h1>
+            <p>{t('leave_overview.subtitle')}</p>
           </div>
           <div className="header-actions">
             <button 
@@ -352,14 +393,14 @@ const LeaveOverview: React.FC = () => {
               onClick={loadAllApplications}
               disabled={loading}
             >
-              {loading ? '🔄 Loading...' : '🔄 Refresh'}
+              {loading ? t('leave_overview.refreshing') : t('leave_overview.refresh')}
             </button>
             <button 
               className="export-btn"
               onClick={handleExport}
               disabled={exportLoading || sortedApplications.length === 0}
             >
-              {exportLoading ? '📊 Exporting...' : '📊 Export CSV'}
+              {exportLoading ? t('leave_overview.exporting') : t('leave_overview.export_csv')}
             </button>
           </div>
         </div>
@@ -379,16 +420,16 @@ const LeaveOverview: React.FC = () => {
           <div className="stat-icon">📊</div>
           <div className="stat-content">
             <div className="stat-number">{stats.total}</div>
-            <div className="stat-label">Total Applications</div>
+            <div className="stat-label">{t('leave_overview.stats.total')}</div>
           </div>
         </div>
         <div className="stat-card pending">
           <div className="stat-icon">⏳</div>
           <div className="stat-content">
             <div className="stat-number">{stats.pending + stats.hrPending}</div>
-            <div className="stat-label">Pending</div>
+            <div className="stat-label">{t('leave_overview.stats.pending')}</div>
             {stats.hrPending > 0 && (
-              <div className="stat-subtext">({stats.hrPending} HR)</div>
+              <div className="stat-subtext">{t('leave_overview.stats.hr_pending', { count: stats.hrPending })}</div>
             )}
           </div>
         </div>
@@ -396,14 +437,14 @@ const LeaveOverview: React.FC = () => {
           <div className="stat-icon">✅</div>
           <div className="stat-content">
             <div className="stat-number">{stats.approved}</div>
-            <div className="stat-label">Approved</div>
+            <div className="stat-label">{t('leave_overview.stats.approved')}</div>
           </div>
         </div>
         <div className="stat-card rejected">
           <div className="stat-icon">❌</div>
           <div className="stat-content">
             <div className="stat-number">{stats.rejected}</div>
-            <div className="stat-label">Rejected</div>
+            <div className="stat-label">{t('leave_overview.stats.rejected')}</div>
           </div>
         </div>
       </div>
@@ -413,7 +454,7 @@ const LeaveOverview: React.FC = () => {
         <div className="filter-group">
           <input
             type="text"
-            placeholder="Search employees, departments, leave types..."
+            placeholder={t('leave_overview.filters.search_placeholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
@@ -426,7 +467,7 @@ const LeaveOverview: React.FC = () => {
             onChange={(e) => setDepartmentFilter(e.target.value)}
             className="filter-select"
           >
-            <option value="all">All Departments</option>
+            <option value="all">{t('leave_overview.filters.all_departments')}</option>
             {departments.map(dept => (
               <option key={dept} value={dept}>{dept}</option>
             ))}
@@ -439,7 +480,7 @@ const LeaveOverview: React.FC = () => {
             onChange={(e) => setLeaveTypeFilter(e.target.value)}
             className="filter-select"
           >
-            <option value="all">All Leave Types</option>
+            <option value="all">{t('leave_overview.filters.all_leave_types')}</option>
             {leaveTypes.map(type => (
               <option key={type} value={type}>{type}</option>
             ))}
@@ -452,10 +493,10 @@ const LeaveOverview: React.FC = () => {
             onChange={(e) => setDateRange(e.target.value as any)}
             className="filter-select"
           >
-            <option value="all">All Time</option>
-            <option value="today">Today</option>
-            <option value="week">Last 7 Days</option>
-            <option value="month">Last 30 Days</option>
+            <option value="all">{t('leave_overview.filters.all_time')}</option>
+            <option value="today">{t('leave_overview.filters.today')}</option>
+            <option value="week">{t('leave_overview.filters.last_7_days')}</option>
+            <option value="month">{t('leave_overview.filters.last_30_days')}</option>
           </select>
         </div>
 
@@ -468,10 +509,10 @@ const LeaveOverview: React.FC = () => {
             }}
             className="filter-select"
           >
-            <option value={10}>10 per page</option>
-            <option value={20}>20 per page</option>
-            <option value={50}>50 per page</option>
-            <option value={100}>100 per page</option>
+            <option value={10}>{t('leave_overview.filters.per_page', { count: 10 })}</option>
+            <option value={20}>{t('leave_overview.filters.per_page', { count: 20 })}</option>
+            <option value={50}>{t('leave_overview.filters.per_page', { count: 50 })}</option>
+            <option value={100}>{t('leave_overview.filters.per_page', { count: 100 })}</option>
           </select>
         </div>
       </div>
@@ -483,26 +524,26 @@ const LeaveOverview: React.FC = () => {
             className={`tab ${activeTab === 'all' ? 'active' : ''}`} 
             onClick={() => setActiveTab('all')}
           >
-            All Applications ({stats.total})
+            {t('leave_overview.tabs.all', { count: stats.total })}
           </button>
           <button 
             className={`tab ${activeTab === 'pending' ? 'active' : ''}`} 
             onClick={() => setActiveTab('pending')}
           >
-            Pending ({stats.pending + stats.hrPending})
-            {stats.hrPending > 0 && <span className="tab-badge">HR: {stats.hrPending}</span>}
+            {t('leave_overview.tabs.pending', { count: stats.pending + stats.hrPending })}
+            {stats.hrPending > 0 && <span className="tab-badge">{t('leave_overview.tabs.hr_badge', { count: stats.hrPending })}</span>}
           </button>
           <button 
             className={`tab ${activeTab === 'approved' ? 'active' : ''}`} 
             onClick={() => setActiveTab('approved')}
           >
-            Approved ({stats.approved})
+            {t('leave_overview.tabs.approved', { count: stats.approved })}
           </button>
           <button 
             className={`tab ${activeTab === 'rejected' ? 'active' : ''}`} 
             onClick={() => setActiveTab('rejected')}
           >
-            Rejected ({stats.rejected})
+            {t('leave_overview.tabs.rejected', { count: stats.rejected })}
           </button>
         </div>
       </div>
@@ -510,29 +551,29 @@ const LeaveOverview: React.FC = () => {
       {/* Department Statistics */}
       {departmentStats.length > 0 && (
         <div className="department-stats">
-          <h3>📈 Department Overview</h3>
+          <h3>📈 {t('leave_overview.department_overview')}</h3>
           <div className="dept-stats-grid">
             {departmentStats.slice(0, 6).map(dept => (
               <div key={dept.department} className="dept-stat-card">
                 <h4>{dept.department}</h4>
                 <div className="dept-numbers">
                   <div className="stat-row">
-                    <span className="label">Total:</span>
+                    <span className="label">{t('leave_overview.department.total')}</span>
                     <span className="value total">{dept.total}</span>
                   </div>
                   <div className="stat-row">
-                    <span className="label">Approved:</span>
+                    <span className="label">{t('leave_overview.department.approved')}</span>
                     <span className="value approved">✓ {dept.approved}</span>
                   </div>
                   <div className="stat-row">
-                    <span className="label">Pending:</span>
+                    <span className="label">{t('leave_overview.department.pending')}</span>
                     <span className="value pending">
                       ⏳ {dept.pending + dept.hrPending}
-                      {dept.hrPending > 0 && <small> ({dept.hrPending} HR)</small>}
+                      {dept.hrPending > 0 && <small> {t('leave_overview.department.hr_pending', { count: dept.hrPending })}</small>}
                     </span>
                   </div>
                   <div className="stat-row">
-                    <span className="label">Rejected:</span>
+                    <span className="label">{t('leave_overview.department.rejected')}</span>
                     <span className="value rejected">✗ {dept.rejected}</span>
                   </div>
                 </div>
@@ -546,14 +587,14 @@ const LeaveOverview: React.FC = () => {
       <div className="applications-container">
         <div className="table-header">
           <div className="table-info">
-            <h3>Leave Applications</h3>
+            <h3>{t('leave_overview.table.title')}</h3>
             <span className="results-count">
-              Showing {paginatedApplications.length} of {sortedApplications.length} applications
-              {filteredApplications.length !== allApplications.length && ' (filtered)'}
+              {t('leave_overview.table.showing', { shown: paginatedApplications.length, total: sortedApplications.length })}
+              {filteredApplications.length !== allApplications.length && ` ${t('leave_overview.table.filtered')}`}
             </span>
           </div>
           <div className="table-controls">
-            <span className="auto-refresh">🔄 Auto-refresh in 2m</span>
+            <span className="auto-refresh">🔄 {t('leave_overview.table.auto_refresh')}</span>
           </div>
         </div>
 
@@ -564,11 +605,11 @@ const LeaveOverview: React.FC = () => {
                activeTab === 'pending' ? '⏳' : 
                activeTab === 'approved' ? '✅' : '❌'}
             </div>
-            <h3>No Applications Found</h3>
+            <h3>{t('leave_overview.empty.title')}</h3>
             <p>
               {activeTab === 'all' 
-                ? "No leave applications match your current filters"
-                : `No ${activeTab} applications found with the current filters`
+                ? t('leave_overview.empty.all')
+                : t('leave_overview.empty.by_status', { status: activeTab })
               }
             </p>
             {(searchTerm || departmentFilter !== 'all' || leaveTypeFilter !== 'all') && (
@@ -581,7 +622,7 @@ const LeaveOverview: React.FC = () => {
                   setDateRange('all');
                 }}
               >
-                Clear All Filters
+                {t('leave_overview.empty.clear_filters')}
               </button>
             )}
           </div>
@@ -595,30 +636,30 @@ const LeaveOverview: React.FC = () => {
                       className={`sortable ${sortBy === 'employee' ? 'active' : ''}`}
                       onClick={() => handleSort('employee')}
                     >
-                      Employee {sortBy === 'employee' && (sortOrder === 'asc' ? '↑' : '↓')}
+                      {t('leave_overview.table.employee')} {sortBy === 'employee' && (sortOrder === 'asc' ? '↑' : '↓')}
                     </th>
                     <th 
                       className={`sortable ${sortBy === 'department' ? 'active' : ''}`}
                       onClick={() => handleSort('department')}
                     >
-                      Department {sortBy === 'department' && (sortOrder === 'asc' ? '↑' : '↓')}
+                      {t('leave_overview.table.department')} {sortBy === 'department' && (sortOrder === 'asc' ? '↑' : '↓')}
                     </th>
-                    <th>Leave Type</th>
-                    <th>Leave Period</th>
+                    <th>{t('leave_overview.table.leave_type')}</th>
+                    <th>{t('leave_overview.table.leave_period')}</th>
                     <th 
                       className={`sortable ${sortBy === 'duration' ? 'active' : ''}`}
                       onClick={() => handleSort('duration')}
                     >
-                      Duration {sortBy === 'duration' && (sortOrder === 'asc' ? '↑' : '↓')}
+                      {t('leave_overview.table.duration')} {sortBy === 'duration' && (sortOrder === 'asc' ? '↑' : '↓')}
                     </th>
                     <th 
                       className={`sortable ${sortBy === 'date' ? 'active' : ''}`}
                       onClick={() => handleSort('date')}
                     >
-                      Applied {sortBy === 'date' && (sortOrder === 'asc' ? '↑' : '↓')}
+                      {t('leave_overview.table.applied')} {sortBy === 'date' && (sortOrder === 'asc' ? '↑' : '↓')}
                     </th>
-                    <th>Status</th>
-                    <th>Approver</th>
+                    <th>{t('leave_overview.table.status')}</th>
+                    <th>{t('leave_overview.table.approver')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -647,19 +688,19 @@ const LeaveOverview: React.FC = () => {
                         </span>
                       </td>
                       <td>
-                        <div className="date-range">
-                          <div className="start-date">{formatDate(application.startDate)}</div>
-                          <div className="end-date">to {formatDate(application.endDate)}</div>
-                        </div>
-                      </td>
-                      <td>
-                        <span className="days-badge">{application.days} day{application.days !== 1 ? 's' : ''}</span>
-                      </td>
+                          <div className="date-range">
+                            <div className="start-date">{formatDate(application.startDate)}</div>
+                            <div className="end-date">{t('leave_overview.table.to', { end: formatDate(application.endDate) })}</div>
+                          </div>
+                        </td>
+                        <td>
+                          <span className="days-badge">{t('leave_overview.table.days', { count: application.days })}</span>
+                        </td>
                       <td>{formatDate(application.appliedDate)}</td>
                       <td>{getStatusBadge(application.status)}</td>
                       <td>
                         <span className={`approver ${application.currentApprover.toLowerCase()}`}>
-                          {application.currentApprover.replace('_', ' ')}
+                          {t(`leave_overview.approver.${application.currentApprover.toLowerCase()}`, { defaultValue: application.currentApprover.replace('_', ' ') })}
                         </span>
                       </td>
                     </tr>
@@ -676,7 +717,7 @@ const LeaveOverview: React.FC = () => {
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
                 >
-                  ← Previous
+                  ← {t('leave_overview.pagination.prev')}
                 </button>
                 
                 <div className="pagination-pages">
@@ -710,7 +751,7 @@ const LeaveOverview: React.FC = () => {
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages}
                 >
-                  Next →
+                  {t('leave_overview.pagination.next')} →
                 </button>
               </div>
             )}

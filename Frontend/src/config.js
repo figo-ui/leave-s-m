@@ -1,12 +1,18 @@
 // Create a config file: src/config.js
-export const config = {
-  apiBaseUrl: process.env.NODE_ENV === 'production'
-    ? 'https://10.140.8.10/api'  // Your server IP
-    : 'http://localhost:5000/api',
-    
-  appVersion: '1.0.0',
-  enableDebug: process.env.NODE_ENV !== 'production'
+const resolveApiBaseUrl = () => {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+
+  if (import.meta.env.PROD) {
+    return `${window.location.origin}/api`;
+  }
+
+  return 'http://localhost:5000/api';
 };
 
-// Update your apiService.ts to use this config
-const API_BASE_URL = config.apiBaseUrl;
+export const config = {
+  apiBaseUrl: resolveApiBaseUrl(),
+  appVersion: import.meta.env.VITE_APP_VERSION || '1.0.0',
+  enableDebug: !import.meta.env.PROD
+};

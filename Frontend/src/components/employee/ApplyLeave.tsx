@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { apiService } from '../../utils/api';
 import type { LeaveType, LeaveBalance } from '../../types';
+import { useTranslation } from 'react-i18next';
 import './ApplyLeave.css';
 
 interface LeaveFormData {
@@ -18,11 +19,14 @@ interface ValidationErrors {
   startDate?: string;
   endDate?: string;
   reason?: string;
+  emergencyContact?: string;
+  handoverNotes?: string;
   general?: string;
 }
 
 const ApplyLeave: React.FC = () => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>([]);
   const [leaveBalances, setLeaveBalances] = useState<LeaveBalance[]>([]);
   const [loading, setLoading] = useState(false);
@@ -60,7 +64,7 @@ const ApplyLeave: React.FC = () => {
         console.log(`✅ Loaded ${leaveTypesResponse.data?.length || 0} leave types`);
       } else {
         console.error('❌ Failed to load leave types:', leaveTypesResponse.message);
-        setError('Failed to load leave types. Please refresh the page.');
+        setError(t('apply_leave.errors.load_leave_types'));
       }
 
       if (balancesResponse.success) {
@@ -80,7 +84,7 @@ const ApplyLeave: React.FC = () => {
 
     } catch (error: unknown) {
       console.error('💥 Error loading initial data:', error);
-      setError('Failed to load required data. Please refresh the page or contact support.');
+      setError(t('apply_leave.errors.load_required_data'));
     } finally {
       setLoading(false);
     }
@@ -114,40 +118,39 @@ const ApplyLeave: React.FC = () => {
     return leaveBalances.find(balance => balance.leaveTypeId === leaveTypeId);
   };
 
-  const validateField = (field: keyof LeaveFormData, value: string): string => {
-    const days = calculateDays();
-    const selectedType = getSelectedLeaveType();
+  const validateField = (field: keyof LeaveFormData, value: string | undefined): string => {
+    const fieldValue = value ?? '';
 
     switch (field) {
       case 'leaveTypeId':
-        if (!value) return 'Please select a leave type';
+        if (!fieldValue) return t('apply_leave.validation.select_leave_type');
         return '';
 
       case 'startDate':
-        if (!value) return 'Please select start date';
-        const startDate = new Date(value);
+        if (!fieldValue) return t('apply_leave.validation.select_start_date');
+        const startDate = new Date(fieldValue);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         if (startDate < today) {
-          return 'Start date cannot be in the past';
+          return t('apply_leave.validation.start_date_past');
         }
         return '';
 
       case 'endDate':
-        if (!value) return 'Please select end date';
+        if (!fieldValue) return t('apply_leave.validation.select_end_date');
         if (formData.startDate) {
           const startDate = new Date(formData.startDate);
-          const endDate = new Date(value);
+          const endDate = new Date(fieldValue);
           if (endDate < startDate) {
-            return 'End date must be after start date';
+            return t('apply_leave.validation.end_date_after');
           }
         }
         return '';
 
       case 'reason':
-        if (!value.trim()) return 'Please provide a reason for leave';
-        if (value.trim().length < 10) return 'Reason must be at least 10 characters long';
-        if (value.trim().length > 500) return 'Reason must be less than 500 characters';
+        if (!fieldValue.trim()) return t('apply_leave.validation.reason_required');
+        if (fieldValue.trim().length < 10) return t('apply_leave.validation.reason_min');
+        if (fieldValue.trim().length > 500) return t('apply_leave.validation.reason_max');
         return '';
 
       default:
@@ -175,18 +178,18 @@ const ApplyLeave: React.FC = () => {
       // Check if we have sufficient balance
       if (balance) {
         if (days > balance.remaining) {
-          errors.general = `Insufficient leave balance. You have ${balance.remaining} days remaining but requested ${days} days.`;
+          errors.general = t('apply_leave.validation.insufficient_balance', { remaining: balance.remaining, requested: days });
         }
       } else {
         // No balance record found - use leave type max days as fallback
         if (days > selectedType.maxDays) {
-          errors.general = `This leave type allows maximum ${selectedType.maxDays} days. You selected ${days} days.`;
+          errors.general = t('apply_leave.validation.max_days', { max: selectedType.maxDays, requested: days });
         }
       }
 
       // Always check against max days
       if (days > selectedType.maxDays) {
-        errors.general = `This leave type allows maximum ${selectedType.maxDays} days. You selected ${days} days.`;
+        errors.general = t('apply_leave.validation.max_days', { max: selectedType.maxDays, requested: days });
       }
     }
 
@@ -202,7 +205,7 @@ const ApplyLeave: React.FC = () => {
     const errors = validateForm();
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
-      setError('Please fix the validation errors below before submitting.');
+      setError(t('apply_leave.errors.fix_validation'));
       return;
     }
 
@@ -210,7 +213,7 @@ const ApplyLeave: React.FC = () => {
       setIsSubmitting(true);
 
       if (!user) {
-        throw new Error('User authentication failed. Please log in again.');
+        throw new Error(t('apply_leave.errors.auth_failed'));
       }
 
       const days = calculateDays();
@@ -218,7 +221,7 @@ const ApplyLeave: React.FC = () => {
 
       // Prepare data for backend API
       const leaveApplication = {
-        leaveTypeId: parseInt(formData.leaveTypeId),
+        leaveTypeId: parseInt(formData.leaveTypeId || '0', 10),
         startDate: formData.startDate,
         endDate: formData.endDate,
         reason: formData.reason.trim(),
@@ -249,18 +252,20 @@ const ApplyLeave: React.FC = () => {
           handoverNotes: ''
         });
         
-        const successMessage = `
-          ✅ Leave application submitted successfully!
-
-          📋 Application Details:
-          • Type: ${selectedType?.name}
-          • Duration: ${days} days
-          • Dates: ${new Date(leaveApplication.startDate).toLocaleDateString()} - ${new Date(leaveApplication.endDate).toLocaleDateString()}
-          • Status: Pending Manager Approval
-          ${selectedType?.requiresHRApproval ? '• ⚠️ Requires additional HR approval' : ''}
-
-          Your manager will review it shortly. You'll receive notifications at each step.
-        `;
+        const startDateLabel = new Date(leaveApplication.startDate).toLocaleDateString();
+        const endDateLabel = new Date(leaveApplication.endDate).toLocaleDateString();
+        const successMessage = [
+          t('apply_leave.success.submitted'),
+          '',
+          t('apply_leave.success.details'),
+          t('apply_leave.success.type', { type: selectedType?.name }),
+          t('apply_leave.success.duration', { days }),
+          t('apply_leave.success.dates', { start: startDateLabel, end: endDateLabel }),
+          t('apply_leave.success.status'),
+          selectedType?.requiresHRApproval ? t('apply_leave.success.requires_hr') : '',
+          '',
+          t('apply_leave.success.next_steps')
+        ].filter(Boolean).join('\n');
         
         setSuccess(successMessage);
         
@@ -270,23 +275,23 @@ const ApplyLeave: React.FC = () => {
         }, 1000);
         
       } else {
-        throw new Error(response.message || 'Failed to submit leave application. Please try again.');
+        throw new Error(response.message || t('apply_leave.errors.submit_failed'));
       }
 
     } catch (error: any) {
       console.error('❌ Error submitting leave application:', error);
       
       // Enhanced error handling with specific messages
-      let errorMessage = error.message || 'Failed to submit leave application. Please try again.';
+      let errorMessage = error.message || t('apply_leave.errors.submit_failed');
       
       if (error.message.includes('Leave balance not found')) {
-        errorMessage = 'Your leave balance record is missing. The system will attempt to create it automatically. Please try again in a moment.';
+        errorMessage = t('apply_leave.errors.balance_missing');
       } else if (error.message.includes('Unexpected response type') || error.message.includes('Cannot POST')) {
-        errorMessage = 'Leave application service is currently unavailable. Please try again later or contact IT support.';
+        errorMessage = t('apply_leave.errors.service_unavailable');
       } else if (error.message.includes('network') || error.message.includes('fetch')) {
-        errorMessage = 'Network connection error. Please check your internet connection and try again.';
+        errorMessage = t('apply_leave.errors.network');
       } else if (error.message.includes('500') || error.message.includes('Internal Server Error')) {
-        errorMessage = 'Server error occurred. This might be due to missing leave balances. The system administrator has been notified.';
+        errorMessage = t('apply_leave.errors.server');
       }
       
       setError(errorMessage);
@@ -341,13 +346,13 @@ const ApplyLeave: React.FC = () => {
     return (
       <div className="apply-leave">
         <div className="page-header">
-          <h1>Apply for Leave</h1>
-          <p>Submit your leave request for approval</p>
+          <h1>{t('apply_leave.title')}</h1>
+          <p>{t('apply_leave.subtitle_loading')}</p>
         </div>
         <div className="loading-state">
           <div className="loading-spinner"></div>
-          <p>Loading leave information...</p>
-          <small>Setting up your leave application form</small>
+          <p>{t('apply_leave.loading_info')}</p>
+          <small>{t('apply_leave.loading_setup')}</small>
         </div>
       </div>
     );
@@ -356,8 +361,8 @@ const ApplyLeave: React.FC = () => {
   return (
     <div className="apply-leave">
       <div className="page-header">
-        <h1>Apply for Leave</h1>
-        <p>Submit your leave request for manager approval</p>
+        <h1>{t('apply_leave.title')}</h1>
+        <p>{t('apply_leave.subtitle')}</p>
       </div>
 
       {/* Debug Info - Remove in production */}
@@ -375,7 +380,7 @@ const ApplyLeave: React.FC = () => {
           <div className="error-message">
             <div className="error-header">
               <span className="error-icon">❌</span>
-              <strong>Submission Failed</strong>
+              <strong>{t('apply_leave.errors.submission_failed')}</strong>
               <button 
                 onClick={() => setError('')} 
                 className="error-close"
@@ -386,12 +391,12 @@ const ApplyLeave: React.FC = () => {
             <p>{error}</p>
             {(error.includes('balance') || error.includes('500')) && (
               <div className="recovery-suggestion">
-                <p><strong>Suggested Solutions:</strong></p>
+                <p><strong>{t('apply_leave.errors.suggested_solutions')}</strong></p>
                 <ul>
-                  <li>Wait a moment and try again</li>
-                  <li>Contact HR to verify your leave balances</li>
-                  <li>Try selecting a different leave type</li>
-                  <li>Ensure your dates are valid and within allowed limits</li>
+                  <li>{t('apply_leave.errors.solution_wait')}</li>
+                  <li>{t('apply_leave.errors.solution_contact_hr')}</li>
+                  <li>{t('apply_leave.errors.solution_select_other')}</li>
+                  <li>{t('apply_leave.errors.solution_check_dates')}</li>
                 </ul>
               </div>
             )}
@@ -402,7 +407,7 @@ const ApplyLeave: React.FC = () => {
           <div className="error-message">
             <div className="error-header">
               <span className="error-icon">⚠️</span>
-              <strong>Validation Error</strong>
+              <strong>{t('apply_leave.errors.validation_error')}</strong>
             </div>
             <p>{validationErrors.general}</p>
           </div>
@@ -412,7 +417,7 @@ const ApplyLeave: React.FC = () => {
           <div className="success-message">
             <div className="success-header">
               <span className="success-icon">✅</span>
-              <strong>Application Submitted Successfully!</strong>
+              <strong>{t('apply_leave.success.header')}</strong>
               <button 
                 onClick={() => setSuccess('')} 
                 className="success-close"
@@ -423,38 +428,38 @@ const ApplyLeave: React.FC = () => {
             <div className="success-content">
               <pre>{success}</pre>
               <div className="next-steps">
-                <h4>📋 What happens next?</h4>
+                <h4>{t('apply_leave.success.next_title')}</h4>
                 <div className="steps-timeline">
                   <div className="step-item current">
                     <div className="step-marker">1</div>
                     <div className="step-content">
-                      <strong>Application Submitted</strong>
-                      <p>Your leave request has been received</p>
+                      <strong>{t('apply_leave.success.step1_title')}</strong>
+                      <p>{t('apply_leave.success.step1_desc')}</p>
                     </div>
                   </div>
                   <div className="step-item">
                     <div className="step-marker">2</div>
                     <div className="step-content">
-                      <strong>Manager Review</strong>
-                      <p>Your manager will review the request</p>
-                      <small>Usually within 24-48 hours</small>
+                      <strong>{t('apply_leave.success.step2_title')}</strong>
+                      <p>{t('apply_leave.success.step2_desc')}</p>
+                      <small>{t('apply_leave.success.step2_time')}</small>
                     </div>
                   </div>
                   {selectedType?.requiresHRApproval && (
                     <div className="step-item">
                       <div className="step-marker">3</div>
                       <div className="step-content">
-                        <strong>HR Approval</strong>
-                        <p>HR department will give final approval</p>
-                        <small>Additional review required</small>
+                        <strong>{t('apply_leave.success.step3_title')}</strong>
+                        <p>{t('apply_leave.success.step3_desc')}</p>
+                        <small>{t('apply_leave.success.step3_time')}</small>
                       </div>
                     </div>
                   )}
                   <div className="step-item">
                     <div className="step-marker">{selectedType?.requiresHRApproval ? '4' : '3'}</div>
                     <div className="step-content">
-                      <strong>Final Confirmation</strong>
-                      <p>You'll receive final decision notification</p>
+                      <strong>{t('apply_leave.success.step4_title')}</strong>
+                      <p>{t('apply_leave.success.step4_desc')}</p>
                     </div>
                   </div>
                 </div>
@@ -466,11 +471,11 @@ const ApplyLeave: React.FC = () => {
         {!success && (
           <form onSubmit={handleSubmit} className="leave-form">
             <div className="form-section">
-              <h3>📅 Leave Details</h3>
+              <h3>{t('apply_leave.sections.details')}</h3>
               
               <div className="form-row">
                 <div className="form-group">
-                  <label>Leave Type *</label>
+                  <label>{t('apply_leave.fields.leave_type')} *</label>
                   <select
                     value={formData.leaveTypeId}
                     onChange={(e) => handleInputChange('leaveTypeId', e.target.value)}
@@ -478,23 +483,21 @@ const ApplyLeave: React.FC = () => {
                     required
                     disabled={isSubmitting}
                   >
-                    <option value="">Select Leave Type</option>
+                    <option value="">{t('apply_leave.placeholders.select_leave_type')}</option>
                     {leaveTypes
                       .filter(type => type.isActive)
                       .map(type => {
                         const typeBalance = getLeaveBalance(type.id);
                         const remaining = typeBalance ? typeBalance.remaining : type.maxDays;
-                        const isLowBalance = typeBalance && typeBalance.remaining <= 3;
-                        
                         return (
                           <option 
                             key={type.id} 
                             value={type.id.toString()}
                             disabled={typeBalance ? typeBalance.remaining <= 0 : false}
                           >
-                            {type.name} ({remaining}/{type.maxDays} days)
-                            {type.requiresHRApproval && ' - HR Approval'}
-                            {typeBalance && typeBalance.remaining <= 0 && ' - No Balance'}
+                            {type.name} ({remaining}/{type.maxDays} {t('dashboard.days')})
+                            {type.requiresHRApproval && ` - ${t('apply_leave.hr_approval')}`}
+                            {typeBalance && typeBalance.remaining <= 0 && ` - ${t('apply_leave.no_balance')}`}
                           </option>
                         );
                       })
@@ -508,19 +511,19 @@ const ApplyLeave: React.FC = () => {
                       <p className="type-description">{selectedType.description}</p>
                       {balance ? (
                         <div className={`balance-info ${balance.remaining <= 3 ? 'low-balance' : ''}`}>
-                          <strong>Your Balance:</strong> {balance.remaining} of {balance.total} days remaining
+                          <strong>{t('apply_leave.balance.your_balance')}:</strong> {balance.remaining} {t('apply_leave.balance.of')} {balance.total} {t('dashboard.days')} {t('apply_leave.balance.remaining')}
                           {balance.remaining <= 3 && (
-                            <span className="low-balance-warning"> ⚠️ Low balance</span>
+                            <span className="low-balance-warning"> ⚠️ {t('apply_leave.balance.low')}</span>
                           )}
                         </div>
                       ) : (
                         <div className="balance-warning">
-                          <strong>⚠️ Balance Not Found:</strong> Using default {selectedType.maxDays} days
+                          <strong>⚠️ {t('apply_leave.balance.not_found')}:</strong> {t('apply_leave.balance.using_default', { days: selectedType.maxDays })}
                         </div>
                       )}
                       {selectedType.requiresHRApproval && (
                         <div className="hr-approval-notice">
-                          ⚠️ This leave type requires additional HR approval
+                          ⚠️ {t('apply_leave.hr_approval_notice')}
                         </div>
                       )}
                     </div>
@@ -528,7 +531,7 @@ const ApplyLeave: React.FC = () => {
                 </div>
 
                 <div className="form-group">
-                  <label>Start Date *</label>
+                  <label>{t('apply_leave.fields.start_date')} *</label>
                   <input
                     type="date"
                     value={formData.startDate}
@@ -544,7 +547,7 @@ const ApplyLeave: React.FC = () => {
                 </div>
 
                 <div className="form-group">
-                  <label>End Date *</label>
+                  <label>{t('apply_leave.fields.end_date')} *</label>
                   <input
                     type="date"
                     value={formData.endDate}
@@ -563,37 +566,37 @@ const ApplyLeave: React.FC = () => {
               {(days > 0 || formData.startDate || formData.endDate) && (
                 <div className="duration-info">
                   <div className="duration-display">
-                    <strong>Total Days: {days} day{days !== 1 ? 's' : ''}</strong>
+                    <strong>{t('apply_leave.total_days', { days })}</strong>
                     {selectedType && balance && (
                       <span className={`balance-status ${
                         days > balance.remaining ? 'warning' : 
                         balance.remaining - days <= 3 ? 'caution' : 'success'
                       }`}>
-                        ({balance.remaining - days} days will remain)
+                        ({t('apply_leave.days_will_remain', { days: balance.remaining - days })})
                       </span>
                     )}
                     {selectedType && !balance && (
                       <span className="balance-status info">
-                        (Using default allocation)
+                        ({t('apply_leave.using_default_allocation')})
                       </span>
                     )}
                   </div>
                   
                   {selectedType && days > selectedType.maxDays && (
                     <div className="validation-message error">
-                      ⚠️ Exceeds maximum allowed days for this leave type ({selectedType.maxDays} days)
+                      ⚠️ {t('apply_leave.exceeds_max', { max: selectedType.maxDays })}
                     </div>
                   )}
                   
                   {selectedType && balance && days <= balance.remaining && days <= selectedType.maxDays && (
                     <div className="validation-message success">
-                      ✅ Within allowed limits for {selectedType.name}
+                      ✅ {t('apply_leave.within_limits', { type: selectedType.name })}
                     </div>
                   )}
                   
                   {selectedType && !balance && days <= selectedType.maxDays && (
                     <div className="validation-message info">
-                      ℹ️ Leave balance will be automatically created upon submission
+                      ℹ️ {t('apply_leave.balance_auto_create')}
                     </div>
                   )}
                 </div>
@@ -601,14 +604,14 @@ const ApplyLeave: React.FC = () => {
             </div>
 
             <div className="form-section">
-              <h3>📝 Additional Information</h3>
+              <h3>{t('apply_leave.sections.additional')}</h3>
               
               <div className="form-group full-width">
-                <label>Reason for Leave *</label>
+                <label>{t('apply_leave.fields.reason')} *</label>
                 <textarea
                   value={formData.reason}
                   onChange={(e) => handleInputChange('reason', e.target.value)}
-                  placeholder="Please provide a detailed reason for your leave. Include relevant details that will help your manager understand your request. Minimum 10 characters required."
+                  placeholder={t('apply_leave.placeholders.reason')}
                   rows={4}
                   className={validationErrors.reason ? 'error' : ''}
                   required
@@ -622,9 +625,9 @@ const ApplyLeave: React.FC = () => {
                     formData.reason.length < 10 ? 'warning' : 
                     formData.reason.length > 400 ? 'caution' : 'success'
                   }`}>
-                    {formData.reason.length}/500 characters
-                    {formData.reason.length < 10 && ' (minimum 10 required)'}
-                    {formData.reason.length > 400 && ' (approaching limit)'}
+                    {t('apply_leave.characters_count', { count: formData.reason.length })}
+                    {formData.reason.length < 10 && ` (${t('apply_leave.min_required')})`}
+                    {formData.reason.length > 400 && ` (${t('apply_leave.approaching_limit')})`}
                   </div>
                   {validationErrors.reason && (
                     <span className="field-error">{validationErrors.reason}</span>
@@ -634,29 +637,29 @@ const ApplyLeave: React.FC = () => {
 
               <div className="form-row">
                 <div className="form-group">
-                  <label>Emergency Contact (Optional)</label>
+                  <label>{t('apply_leave.fields.emergency_contact')}</label>
                   <input
                     type="text"
                     value={formData.emergencyContact}
                     onChange={(e) => handleInputChange('emergencyContact', e.target.value)}
-                    placeholder="Phone number for emergency contact"
+                    placeholder={t('apply_leave.placeholders.emergency_contact')}
                     disabled={isSubmitting}
                     maxLength={20}
                   />
-                  <small>For urgent contact during your absence</small>
+                  <small>{t('apply_leave.help.emergency_contact')}</small>
                 </div>
 
                 <div className="form-group">
-                  <label>Handover Notes (Optional)</label>
+                  <label>{t('apply_leave.fields.handover_notes')}</label>
                   <textarea
                     value={formData.handoverNotes}
                     onChange={(e) => handleInputChange('handoverNotes', e.target.value)}
-                    placeholder="Brief notes about work handover, pending tasks, or important contacts..."
+                    placeholder={t('apply_leave.placeholders.handover_notes')}
                     rows={2}
                     disabled={isSubmitting}
                     maxLength={200}
                   />
-                  <small>Important information for colleagues covering your work</small>
+                  <small>{t('apply_leave.help.handover_notes')}</small>
                 </div>
               </div>
             </div>
@@ -670,19 +673,19 @@ const ApplyLeave: React.FC = () => {
                 {isSubmitting ? (
                   <>
                     <div className="loading-spinner-small"></div>
-                    Submitting Application...
+                    {t('apply_leave.submitting')}
                   </>
                 ) : (
                   <>
                     <span className="btn-icon">📨</span>
-                    Submit Leave Application
+                    {t('apply_leave.submit')}
                   </>
                 )}
               </button>
               
               {!isFormValid() && (
                 <div className="validation-hint">
-                  ⚠️ Please complete all required fields correctly to submit your application
+                  ⚠️ {t('apply_leave.validation_hint')}
                 </div>
               )}
             </div>
@@ -692,7 +695,7 @@ const ApplyLeave: React.FC = () => {
         {/* Quick Actions */}
         {!success && (
           <div className="quick-actions">
-            <h4>💡 Quick Actions</h4>
+            <h4>{t('apply_leave.quick_actions')}</h4>
             <div className="action-buttons">
               <button 
                 type="button" 
@@ -711,7 +714,7 @@ const ApplyLeave: React.FC = () => {
                 }}
                 disabled={isSubmitting}
               >
-                🗑️ Clear Form
+                🗑️ {t('apply_leave.actions.clear_form')}
               </button>
               <button 
                 type="button" 
@@ -731,7 +734,7 @@ const ApplyLeave: React.FC = () => {
                 }}
                 disabled={isSubmitting || leaveTypes.length === 0}
               >
-                🧪 Fill Example
+                🧪 {t('apply_leave.actions.fill_example')}
               </button>
               <button 
                 type="button" 
@@ -739,7 +742,7 @@ const ApplyLeave: React.FC = () => {
                 onClick={loadInitialData}
                 disabled={isSubmitting}
               >
-                🔄 Refresh Data
+                🔄 {t('apply_leave.actions.refresh_data')}
               </button>
             </div>
           </div>

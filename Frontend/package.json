@@ -12,10 +12,12 @@
   "dependencies": {
     "@types/react-router-dom": "^5.3.3",
     "html2canvas": "^1.4.1",
+    "i18next": "^25.8.4",
     "jspdf": "^3.0.4",
     "jspdf-autotable": "^5.0.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-i18next": "^16.5.4",
     "react-router-dom": "^7.9.4",
     "recharts": "^3.5.1"
   },

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { NotificationService } from '../../utils/notificationService';
+import { apiService } from '../../utils/api';
 import type { Notification} from '../../types';
+import { useTranslation } from 'react-i18next';
 import './Notifications.css';
 
 
@@ -9,6 +10,7 @@ import './Notifications.css';
 
 const Notifications: React.FC = () => {
   const { user } = useAuth();
+  const { t, i18n } = useTranslation();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -18,18 +20,20 @@ const Notifications: React.FC = () => {
     }
   }, [user]);
 
-  const loadNotifications = () => {
+  const loadNotifications = async () => {
     try {
-      const userNotifications = NotificationService.getUserNotifications(user!.id.toString());
-      setNotifications(userNotifications);
+      const response = await apiService.getNotifications();
+      if (response.success && response.data) {
+        setNotifications(response.data);
+      }
     } catch (error) {
       console.error('Error loading notifications:', error);
     }
   };
 
-  const markAsRead = (notificationId: number) => {
+  const markAsRead = async (notificationId: number) => {
     try {
-      NotificationService.markAsRead(notificationId);
+      await apiService.markNotificationAsRead(notificationId);
       setNotifications(prev => 
         prev.map(notif => 
           notif.id === notificationId ? { ...notif, read: true } : notif
@@ -40,10 +44,10 @@ const Notifications: React.FC = () => {
     }
   };
 
-  const markAllAsRead = () => {
+  const markAllAsRead = async () => {
     try {
       if (user) {
-        NotificationService.markAllAsRead(user.id.toString());
+        await apiService.markAllNotificationsAsRead();
         setNotifications(prev => prev.map(notif => ({ ...notif, read: true })));
       }
     } catch (error) {
@@ -60,7 +64,7 @@ const Notifications: React.FC = () => {
       <button 
         className="notification-bell"
         onClick={() => setIsOpen(!isOpen)}
-        title="Notifications"
+        title={t('notifications.title')}
       >
         🔔
         {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
@@ -69,10 +73,10 @@ const Notifications: React.FC = () => {
       {isOpen && (
         <div className="notifications-dropdown">
           <div className="notifications-header">
-            <h3>Notifications</h3>
+            <h3>{t('notifications.title')}</h3>
             {unreadCount > 0 && (
               <button className="mark-all-read" onClick={markAllAsRead}>
-                Mark all read
+                {t('notifications.mark_all')}
               </button>
             )}
           </div>
@@ -80,8 +84,8 @@ const Notifications: React.FC = () => {
           <div className="notifications-list">
             {notifications.length === 0 ? (
               <div className="no-notifications">
-                <p>No notifications yet</p>
-                <small>You'll see updates about your leave requests here</small>
+                <p>{t('notifications.empty')}</p>
+                <small>{t('notifications.empty_hint')}</small>
               </div>
             ) : (
               notifications.map(notification => (
@@ -100,9 +104,9 @@ const Notifications: React.FC = () => {
                     <div className="notification-title">{notification.title}</div>
                     <div className="notification-message">{notification.message}</div>
                     <div className="notification-time">
-                      {new Date(notification.createdAt).toLocaleDateString()} 
+                      {new Date(notification.createdAt).toLocaleDateString(i18n.language === 'am' ? 'am-ET' : i18n.language === 'om' ? 'om-ET' : 'en-US')} 
                       {' '}
-                      {new Date(notification.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(notification.createdAt).toLocaleTimeString(i18n.language === 'am' ? 'am-ET' : i18n.language === 'om' ? 'om-ET' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
                     </div>
                   </div>
                   {!notification.read && <div className="unread-dot"></div>}

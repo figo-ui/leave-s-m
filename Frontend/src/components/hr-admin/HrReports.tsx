@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
 import { apiService } from '../../utils/api';
+import { useTranslation } from 'react-i18next';
 import './HRReports.css';
 
 // Enhanced Type Definitions
@@ -58,15 +58,6 @@ interface HRReportData {
   };
 }
 
-interface ExportOptions {
-  format: 'csv' | 'pdf' | 'excel';
-  include: ('summary' | 'details' | 'analytics')[];
-  dateRange: {
-    start: string;
-    end: string;
-  };
-}
-
 interface ComparisonData {
   previousPeriod: HRReportData;
   currentPeriod: HRReportData;
@@ -78,7 +69,10 @@ interface ComparisonData {
 }
 
 const HRReports: React.FC = () => {
- 
+  const { t, i18n } = useTranslation();
+  const localeMap: Record<string, string> = { en: 'en-US', am: 'am-ET', om: 'om-ET' };
+  const locale = localeMap[i18n.language] || 'en-US';
+
   const [reportData, setReportData] = useState<HRReportData | null>(null);
   const [comparisonData, setComparisonData] = useState<ComparisonData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -91,27 +85,19 @@ const HRReports: React.FC = () => {
     end: new Date().toISOString().split('T')[0]
   });
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
-  const [exportOptions, setExportOptions] = useState<ExportOptions>({
-    format: 'csv',
-    include: ['summary', 'details'],
-    dateRange: {
-      start: customDateRange.start,
-      end: customDateRange.end
-    }
-  });
   const [filterType, setFilterType] = useState<'all' | 'approved' | 'pending' | 'rejected'>('all');
 
   // Memoized calculations with null checks
   const departmentOptions = useMemo(() => {
     if (!reportData?.departmentStats) return [];
     return [
-      { value: 'all', label: 'All Departments' },
+      { value: 'all', label: t('hr_reports.all_departments') },
       ...reportData.departmentStats.map(dept => ({
         value: dept.department,
-        label: `${dept.department} (${dept.employeeCount} employees)`
+        label: t('hr_reports.department_option', { department: dept.department, count: dept.employeeCount })
       }))
     ];
-  }, [reportData]);
+  }, [reportData, t]);
 
   const filteredData = useMemo(() => {
     if (!reportData) return null;
@@ -207,16 +193,16 @@ const HRReports: React.FC = () => {
         // Load comparison data
         loadComparisonData(response.data);
       } else {
-        throw new Error(response.message || 'Failed to load HR report data');
+        throw new Error(response.message || t('hr_reports.errors.load_failed'));
       }
     } catch (error: any) {
       console.error('Error loading HR report data:', error);
-      setError(error.message || 'Failed to load HR report data');
+      setError(error.message || t('hr_reports.errors.load_failed'));
       setReportData(null);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   const loadComparisonData = useCallback(async (currentData: HRReportData) => {
     try {
@@ -267,7 +253,8 @@ const HRReports: React.FC = () => {
   const handleDateRangeChange = useCallback((range: 'month' | 'quarter' | 'year' | 'custom') => {
     setDateRange(range);
     
-    let startDate: Date, endDate = new Date();
+    const endDate = new Date();
+    let startDate: Date;
     
     switch (range) {
       case 'month':
@@ -293,7 +280,7 @@ const HRReports: React.FC = () => {
   // Export functionality
   const handleExport = useCallback(async (format: 'csv' | 'pdf' | 'excel') => {
     if (!reportData) {
-      alert('No data to export');
+      alert(t('hr_reports.errors.no_data_export'));
       return;
     }
 
@@ -305,17 +292,17 @@ const HRReports: React.FC = () => {
       if (format === 'csv') {
         exportToCSV(data);
       } else if (format === 'pdf') {
-        generatePDF(data);
+        generatePDF();
       } else {
-        exportToExcel(data);
+        exportToExcel();
       }
     } catch (error: any) {
       console.error('Export error:', error);
-      alert(`Export failed: ${error.message}`);
+      alert(t('hr_reports.errors.export_failed', { message: error.message }));
     } finally {
       setExporting(false);
     }
-  }, [reportData]);
+  }, [reportData, t]);
 
   const exportToCSV = (data: any) => {
     // Create CSV content
@@ -334,12 +321,12 @@ const HRReports: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
-  const generatePDF = (data: any) => {
-    alert('PDF export feature will be implemented soon');
+  const generatePDF = () => {
+    alert(t('hr_reports.export_pdf_soon'));
   };
 
-  const exportToExcel = (data: any) => {
-    alert('Excel export feature will be implemented soon');
+  const exportToExcel = () => {
+    alert(t('hr_reports.export_excel_soon'));
   };
 
   // Initial load
@@ -364,13 +351,13 @@ const HRReports: React.FC = () => {
   }, []);
 
   const formatDate = useCallback((dateString: string | undefined | null): string => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', {
+    if (!dateString) return t('common.na');
+    return new Date(dateString).toLocaleDateString(locale, {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
     });
-  }, []);
+  }, [locale, t]);
 
   const getTrendIcon = useCallback((trend: 'up' | 'down' | 'neutral', value: number) => {
     if (trend === 'up') {
@@ -380,23 +367,23 @@ const HRReports: React.FC = () => {
   }, []);
 
   const getComplianceLevel = useCallback((score: number): string => {
-    if (score >= 90) return 'Excellent';
-    if (score >= 75) return 'Good';
-    if (score >= 60) return 'Fair';
-    return 'Needs Improvement';
-  }, []);
+    if (score >= 90) return t('hr_reports.compliance.level.excellent');
+    if (score >= 75) return t('hr_reports.compliance.level.good');
+    if (score >= 60) return t('hr_reports.compliance.level.fair');
+    return t('hr_reports.compliance.level.needs_improvement');
+  }, [t]);
 
   // Loading state
   if (loading) {
     return (
       <div className="hr-reports">
         <div className="page-header">
-          <h1>HR Analytics & Reports</h1>
-          <p>Comprehensive organizational leave analytics and insights</p>
+          <h1>{t('hr_reports.title')}</h1>
+          <p>{t('hr_reports.subtitle')}</p>
         </div>
         <div className="loading-state">
           <div className="loading-spinner"></div>
-          <p>Loading HR analytics data...</p>
+          <p>{t('hr_reports.loading_data')}</p>
         </div>
       </div>
     );
@@ -407,15 +394,15 @@ const HRReports: React.FC = () => {
     return (
       <div className="hr-reports">
         <div className="page-header">
-          <h1>HR Analytics & Reports</h1>
-          <p>Comprehensive organizational leave analytics and insights</p>
+          <h1>{t('hr_reports.title')}</h1>
+          <p>{t('hr_reports.subtitle')}</p>
         </div>
         <div className="error-state">
           <div className="error-icon">⚠️</div>
-          <h3>Unable to Load HR Reports</h3>
+          <h3>{t('hr_reports.error_title')}</h3>
           <p>{error}</p>
           <button onClick={() => loadReportData()} className="btn-primary">
-            Try Again
+            {t('hr_reports.try_again')}
           </button>
         </div>
       </div>
@@ -427,15 +414,15 @@ const HRReports: React.FC = () => {
     return (
       <div className="hr-reports">
         <div className="page-header">
-          <h1>HR Analytics & Reports</h1>
-          <p>Comprehensive organizational leave analytics and insights</p>
+          <h1>{t('hr_reports.title')}</h1>
+          <p>{t('hr_reports.subtitle')}</p>
         </div>
         <div className="no-data-state">
           <div className="no-data-icon">📊</div>
-          <h3>No Report Data Available</h3>
-          <p>No HR analytics data was loaded. Please try refreshing or contact support.</p>
+          <h3>{t('hr_reports.no_data_title')}</h3>
+          <p>{t('hr_reports.no_data_desc')}</p>
           <button onClick={() => loadReportData()} className="btn-primary">
-            Load Data
+            {t('hr_reports.load_data')}
           </button>
         </div>
       </div>
@@ -448,14 +435,17 @@ const HRReports: React.FC = () => {
       <div className="page-header">
         <div className="header-content">
           <div className="header-title">
-            <h1>HR Analytics & Reports</h1>
-            <p>Comprehensive organizational leave analytics and insights</p>
+            <h1>{t('hr_reports.title')}</h1>
+            <p>{t('hr_reports.subtitle')}</p>
             <div className="header-subtitle">
               <span className="period-info">
-                Period: {formatDate(reportData.reportPeriod?.startDate)} - {formatDate(reportData.reportPeriod?.endDate)}
+                {t('hr_reports.period', {
+                  start: formatDate(reportData.reportPeriod?.startDate),
+                  end: formatDate(reportData.reportPeriod?.endDate)
+                })}
               </span>
               <span className="employee-count">
-                📊 {formatNumber(reportData.summary?.totalEmployees)} Total Employees
+                📊 {formatNumber(reportData.summary?.totalEmployees)} {t('hr_reports.total_employees')}
               </span>
             </div>
           </div>
@@ -463,17 +453,17 @@ const HRReports: React.FC = () => {
           <div className="header-actions">
             <div className="export-dropdown">
               <button className="btn-export" disabled={exporting}>
-                {exporting ? 'Exporting...' : '📥 Export Report'}
+                {exporting ? t('hr_reports.exporting') : t('hr_reports.export_report')}
               </button>
               <div className="export-menu">
                 <button onClick={() => handleExport('csv')} className="export-option">
-                  📄 Export as CSV
+                  📄 {t('hr_reports.export_csv')}
                 </button>
                 <button onClick={() => handleExport('pdf')} className="export-option">
-                  📊 Export as PDF
+                  📊 {t('hr_reports.export_pdf')}
                 </button>
                 <button onClick={() => handleExport('excel')} className="export-option">
-                  📈 Export as Excel
+                  📈 {t('hr_reports.export_excel')}
                 </button>
               </div>
             </div>
@@ -485,7 +475,7 @@ const HRReports: React.FC = () => {
       <div className="controls-section">
         <div className="controls-row">
           <div className="control-group">
-            <label>Date Range:</label>
+            <label>{t('hr_reports.date_range')}</label>
             <div className="date-range-buttons">
               {(['month', 'quarter', 'year', 'custom'] as const).map(range => (
                 <button
@@ -493,10 +483,10 @@ const HRReports: React.FC = () => {
                   className={`range-btn ${dateRange === range ? 'active' : ''}`}
                   onClick={() => handleDateRangeChange(range)}
                 >
-                  {range === 'month' && '📅 Month'}
-                  {range === 'quarter' && '📊 Quarter'}
-                  {range === 'year' && '📈 Year'}
-                  {range === 'custom' && '⚙️ Custom'}
+                  {range === 'month' && `📅 ${t('hr_reports.range.month')}`}
+                  {range === 'quarter' && `📊 ${t('hr_reports.range.quarter')}`}
+                  {range === 'year' && `📈 ${t('hr_reports.range.year')}`}
+                  {range === 'custom' && `⚙️ ${t('hr_reports.range.custom')}`}
                 </button>
               ))}
             </div>
@@ -510,7 +500,7 @@ const HRReports: React.FC = () => {
                 onChange={(e) => setCustomDateRange(prev => ({ ...prev, start: e.target.value }))}
                 className="date-input"
               />
-              <span className="date-separator">to</span>
+              <span className="date-separator">{t('hr_reports.to')}</span>
               <input
                 type="date"
                 value={customDateRange.end}
@@ -521,7 +511,7 @@ const HRReports: React.FC = () => {
                 onClick={() => loadReportData(customDateRange.start, customDateRange.end)}
                 className="btn-apply-dates"
               >
-                Apply
+                {t('hr_reports.apply')}
               </button>
             </div>
           )}
@@ -529,7 +519,7 @@ const HRReports: React.FC = () => {
 
         <div className="controls-row">
           <div className="filter-group">
-            <label>Department:</label>
+            <label>{t('hr_reports.department')}</label>
             <select
               value={selectedDepartment}
               onChange={(e) => setSelectedDepartment(e.target.value)}
@@ -544,16 +534,16 @@ const HRReports: React.FC = () => {
           </div>
 
           <div className="filter-group">
-            <label>Status Filter:</label>
+            <label>{t('hr_reports.status_filter')}</label>
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value as any)}
               className="filter-select"
             >
-              <option value="all">All Statuses</option>
-              <option value="approved">Approved Only</option>
-              <option value="pending">Pending Only</option>
-              <option value="rejected">Rejected Only</option>
+              <option value="all">{t('hr_reports.status.all')}</option>
+              <option value="approved">{t('hr_reports.status.approved')}</option>
+              <option value="pending">{t('hr_reports.status.pending')}</option>
+              <option value="rejected">{t('hr_reports.status.rejected')}</option>
             </select>
           </div>
 
@@ -561,9 +551,9 @@ const HRReports: React.FC = () => {
             <button 
               onClick={() => loadReportData()} 
               className="btn-refresh"
-              title="Refresh data"
+              title={t('hr_reports.refresh_title')}
             >
-              🔄 Refresh
+              🔄 {t('hr_reports.refresh')}
             </button>
           </div>
         </div>
@@ -575,25 +565,25 @@ const HRReports: React.FC = () => {
           className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
           onClick={() => setActiveTab('overview')}
         >
-          📊 Overview
+          📊 {t('hr_reports.tabs.overview')}
         </button>
         <button
           className={`tab-btn ${activeTab === 'analytics' ? 'active' : ''}`}
           onClick={() => setActiveTab('analytics')}
         >
-          📈 Analytics
+          📈 {t('hr_reports.tabs.analytics')}
         </button>
         <button
           className={`tab-btn ${activeTab === 'compliance' ? 'active' : ''}`}
           onClick={() => setActiveTab('compliance')}
         >
-          ⚖️ Compliance
+          ⚖️ {t('hr_reports.tabs.compliance')}
         </button>
         <button
           className={`tab-btn ${activeTab === 'employees' ? 'active' : ''}`}
           onClick={() => setActiveTab('employees')}
         >
-          👥 Employees
+          👥 {t('hr_reports.tabs.employees')}
         </button>
       </div>
 
@@ -604,21 +594,21 @@ const HRReports: React.FC = () => {
           <div className="metrics-grid">
             {[
               {
-                title: 'Total Employees',
+                title: t('hr_reports.metrics.total_employees'),
                 value: formatNumber(filteredData.summary?.totalEmployees),
                 icon: '👥',
                 color: 'primary',
-                change: growthMetrics ? `${growthMetrics.totalLeaves?.growth?.toFixed(1) || 0}% from last period` : undefined
+                change: growthMetrics ? t('hr_reports.metrics.change_from_last_period', { value: growthMetrics.totalLeaves?.growth?.toFixed(1) || 0 }) : undefined
               },
               {
-                title: 'Total Leaves',
+                title: t('hr_reports.metrics.total_leaves'),
                 value: formatNumber(filteredData.summary?.totalLeaves),
                 icon: '📋',
                 color: 'info',
-                subtitle: `${formatNumber(filteredData.summary?.totalLeaveDays)} total days`
+                subtitle: t('hr_reports.metrics.total_days', { days: formatNumber(filteredData.summary?.totalLeaveDays) })
               },
               {
-                title: 'Approval Rate',
+                title: t('hr_reports.metrics.approval_rate'),
                 value: formatPercentage(
                   filteredData.summary?.totalLeaves && filteredData.summary?.totalLeaves > 0 
                     ? (filteredData.summary.approvedLeaves / filteredData.summary.totalLeaves) * 100 
@@ -626,30 +616,30 @@ const HRReports: React.FC = () => {
                 ),
                 icon: '✅',
                 color: 'success',
-                change: growthMetrics ? `${growthMetrics.approvalRate?.growth?.toFixed(1) || 0}% change` : undefined
+                change: growthMetrics ? t('hr_reports.metrics.change', { value: growthMetrics.approvalRate?.growth?.toFixed(1) || 0 }) : undefined
               },
               {
-                title: 'On Leave Today',
+                title: t('hr_reports.metrics.on_leave_today'),
                 value: formatNumber(filteredData.summary?.onLeaveToday),
                 icon: '🏖️',
                 color: 'warning',
                 subtitle: filteredData.summary?.totalEmployees && filteredData.summary?.onLeaveToday 
-                  ? `${((filteredData.summary.onLeaveToday / filteredData.summary.totalEmployees) * 100).toFixed(1)}% of workforce`
-                  : 'N/A'
+                  ? t('hr_reports.metrics.workforce_pct', { value: ((filteredData.summary.onLeaveToday / filteredData.summary.totalEmployees) * 100).toFixed(1) })
+                  : t('common.na')
               },
               {
-                title: 'Pending Approvals',
+                title: t('hr_reports.metrics.pending_approvals'),
                 value: formatNumber(filteredData.summary?.pendingApprovals),
                 icon: '⏳',
                 color: 'warning',
-                subtitle: 'Requires attention'
+                subtitle: t('hr_reports.metrics.requires_attention')
               },
               {
-                title: 'Avg Leave Duration',
-                value: `${filteredData.summary?.averageLeaveDuration?.toFixed(1) || 0} days`,
+                title: t('hr_reports.metrics.avg_leave_duration'),
+                value: t('hr_reports.metrics.avg_duration_value', { days: filteredData.summary?.averageLeaveDuration?.toFixed(1) || 0 }),
                 icon: '📅',
                 color: 'accent',
-                change: growthMetrics ? `${growthMetrics.averageDuration?.growth?.toFixed(1) || 0}% change` : undefined
+                change: growthMetrics ? t('hr_reports.metrics.change', { value: growthMetrics.averageDuration?.growth?.toFixed(1) || 0 }) : undefined
               }
             ].map((metric, index) => (
               <div key={index} className={`metric-card ${metric.color}`}>
@@ -663,7 +653,7 @@ const HRReports: React.FC = () => {
                   {metric.change && growthMetrics && (
                     <div className="metric-change">
                       <span className={`trend-${growthMetrics.totalLeaves?.trend || 'neutral'}`}>
-                        {getTrendIcon(growthMetrics.totalLeaves?.trend || 'neutral', growthMetrics.totalLeaves?.growth || 0)}
+                        {getTrendIcon((growthMetrics.totalLeaves?.trend || 'neutral') as 'up' | 'down' | 'neutral', growthMetrics.totalLeaves?.growth || 0)}
                       </span>
                       {metric.change}
                     </div>
@@ -675,28 +665,28 @@ const HRReports: React.FC = () => {
 
           {/* Department Performance */}
           <div className="performance-section">
-            <h3>🏢 Department Performance</h3>
+            <h3>🏢 {t('hr_reports.department_performance')}</h3>
             <div className="department-performance">
               {filteredData.departmentStats?.map((dept, index) => (
                 <div key={index} className="dept-performance-card">
                   <div className="dept-header">
                     <h4>{dept.department}</h4>
-                    <span className="dept-employee-count">{dept.employeeCount} employees</span>
+                    <span className="dept-employee-count">{t('hr_reports.department_employees', { count: dept.employeeCount })}</span>
                   </div>
                   <div className="dept-metrics">
                     <div className="dept-metric">
-                      <span className="metric-label">Leaves</span>
+                      <span className="metric-label">{t('hr_reports.department.leaves')}</span>
                       <span className="metric-value">{dept.totalLeaves}</span>
                     </div>
                     <div className="dept-metric">
-                      <span className="metric-label">Approval Rate</span>
+                      <span className="metric-label">{t('hr_reports.department.approval_rate')}</span>
                       <span className={`metric-value ${dept.approvalRate >= 80 ? 'high' : dept.approvalRate >= 60 ? 'medium' : 'low'}`}>
                         {dept.approvalRate?.toFixed(1)}%
                       </span>
                     </div>
                     <div className="dept-metric">
-                      <span className="metric-label">Avg Duration</span>
-                      <span className="metric-value">{dept.averageDuration?.toFixed(1) || 0}d</span>
+                      <span className="metric-label">{t('hr_reports.department.avg_duration')}</span>
+                      <span className="metric-value">{t('hr_reports.department.avg_duration_value', { days: dept.averageDuration?.toFixed(1) || 0 })}</span>
                     </div>
                   </div>
                   <div className="dept-progress">
@@ -708,7 +698,7 @@ const HRReports: React.FC = () => {
                 </div>
               )) || (
                 <div className="no-department-data">
-                  <p>No department data available</p>
+                  <p>{t('hr_reports.no_department_data')}</p>
                 </div>
               )}
             </div>
@@ -724,8 +714,8 @@ const HRReports: React.FC = () => {
             {/* Monthly Trends */}
             <div className="chart-card">
               <div className="chart-header">
-                <h4>📅 Monthly Leave Trends</h4>
-                <span className="chart-subtitle">Last 6 months overview</span>
+                <h4>📅 {t('hr_reports.monthly_trends')}</h4>
+                <span className="chart-subtitle">{t('hr_reports.last_6_months')}</span>
               </div>
               <div className="chart-container">
                 <div className="trend-chart">
@@ -735,7 +725,7 @@ const HRReports: React.FC = () => {
                         <div 
                           className="trend-bar leaves" 
                           style={{ height: `${((month.leavesTaken || 0) / 50) * 100}%` }}
-                          title={`${month.leavesTaken || 0} leaves`}
+                          title={t('hr_reports.trend_tooltip', { count: month.leavesTaken || 0 })}
                         ></div>
                       </div>
                       <div className="trend-label">{month.month}</div>
@@ -745,7 +735,7 @@ const HRReports: React.FC = () => {
                     </div>
                   )) || (
                     <div className="no-trend-data">
-                      <p>No trend data available</p>
+                      <p>{t('hr_reports.no_trend_data')}</p>
                     </div>
                   )}
                 </div>
@@ -755,8 +745,8 @@ const HRReports: React.FC = () => {
             {/* Leave Type Distribution */}
             <div className="chart-card">
               <div className="chart-header">
-                <h4>🏷️ Leave Type Distribution</h4>
-                <span className="chart-subtitle">Most used leave types</span>
+                <h4>🏷️ {t('hr_reports.leave_type_distribution')}</h4>
+                <span className="chart-subtitle">{t('hr_reports.most_used_types')}</span>
               </div>
               <div className="donut-chart-container">
                 {filteredData.leaveTypeStats && filteredData.leaveTypeStats.length > 0 ? (
@@ -798,7 +788,7 @@ const HRReports: React.FC = () => {
                   </>
                 ) : (
                   <div className="no-chart-data">
-                    <p>No leave type data available</p>
+                    <p>{t('hr_reports.no_leave_type_data')}</p>
                   </div>
                 )}
               </div>
@@ -808,18 +798,18 @@ const HRReports: React.FC = () => {
           {/* Detailed Analytics */}
           <div className="analytics-details">
             <div className="analytics-section">
-              <h4>📊 Leave Type Analytics</h4>
+              <h4>📊 {t('hr_reports.leave_type_analytics')}</h4>
               {filteredData.leaveTypeStats && filteredData.leaveTypeStats.length > 0 ? (
                 <div className="analytics-table">
                   <table>
                     <thead>
                       <tr>
-                        <th>Leave Type</th>
-                        <th>Total Requests</th>
-                        <th>Approved</th>
-                        <th>Approval Rate</th>
-                        <th>Avg Duration</th>
-                        <th>Utilization</th>
+                        <th>{t('hr_reports.table.leave_type')}</th>
+                        <th>{t('hr_reports.table.total_requests')}</th>
+                        <th>{t('hr_reports.table.approved')}</th>
+                        <th>{t('hr_reports.table.approval_rate')}</th>
+                        <th>{t('hr_reports.table.avg_duration')}</th>
+                        <th>{t('hr_reports.table.utilization')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -844,7 +834,7 @@ const HRReports: React.FC = () => {
                                 <span>{approvalRate.toFixed(1)}%</span>
                               </div>
                             </td>
-                            <td>{(type.averageDuration || 0).toFixed(1)} days</td>
+                            <td>{t('hr_reports.table.avg_duration_value', { days: (type.averageDuration || 0).toFixed(1) })}</td>
                             <td>{(type.utilizationRate || 0).toFixed(1)}%</td>
                           </tr>
                         );
@@ -854,7 +844,7 @@ const HRReports: React.FC = () => {
                 </div>
               ) : (
                 <div className="no-table-data">
-                  <p>No leave type analytics data available</p>
+                  <p>{t('hr_reports.no_leave_type_analytics')}</p>
                 </div>
               )}
             </div>
@@ -868,24 +858,24 @@ const HRReports: React.FC = () => {
           {/* Compliance Score */}
           <div className="compliance-score-card">
             <div className="score-header">
-              <h3>⚖️ Compliance Score</h3>
+              <h3>⚖️ {t('hr_reports.compliance.score')}</h3>
               <span className="score-level">{getComplianceLevel(complianceScore)}</span>
             </div>
             <div className="score-display">
               <div className="score-circle" style={{ '--score': complianceScore } as any}>
                 <div className="score-value">{complianceScore.toFixed(0)}</div>
-                <div className="score-label">Score</div>
+                <div className="score-label">{t('hr_reports.compliance.score_label')}</div>
               </div>
               <div className="score-breakdown">
                 {[
-                  { label: 'Policy Violations', value: filteredData.complianceData?.policyViolations || 0, weight: 2 },
-                  { label: 'Late Applications', value: filteredData.complianceData?.lateApplications || 0, weight: 1 },
-                  { label: 'Overlapping Leaves', value: filteredData.complianceData?.overlappingLeaves || 0, weight: 3 },
-                  { label: 'High Frequency', value: filteredData.complianceData?.highFrequencyEmployees || 0, weight: 2 }
+                  { label: t('hr_reports.compliance.policy_violations'), value: filteredData.complianceData?.policyViolations || 0, weight: 2 },
+                  { label: t('hr_reports.compliance.late_applications'), value: filteredData.complianceData?.lateApplications || 0, weight: 1 },
+                  { label: t('hr_reports.compliance.overlapping_leaves'), value: filteredData.complianceData?.overlappingLeaves || 0, weight: 3 },
+                  { label: t('hr_reports.compliance.high_frequency'), value: filteredData.complianceData?.highFrequencyEmployees || 0, weight: 2 }
                 ].map((item, index) => (
                   <div key={index} className="breakdown-item">
                     <span className="breakdown-label">{item.label}</span>
-                    <span className="breakdown-value">{item.value} × {item.weight}</span>
+                    <span className="breakdown-value">{t('hr_reports.compliance.weighted', { value: item.value, weight: item.weight })}</span>
                   </div>
                 ))}
               </div>
@@ -894,38 +884,38 @@ const HRReports: React.FC = () => {
 
           {/* Compliance Details */}
           <div className="compliance-details">
-            <h4>📋 Compliance Details</h4>
+            <h4>📋 {t('hr_reports.compliance.details')}</h4>
             <div className="compliance-grid">
               <div className="compliance-item critical">
                 <div className="compliance-icon">🚨</div>
                 <div className="compliance-content">
-                  <h5>Policy Violations</h5>
-                  <p>{(filteredData.complianceData?.policyViolations || 0)} violations detected</p>
-                  <small>Includes leaves exceeding limits, unauthorized types</small>
+                  <h5>{t('hr_reports.compliance.policy_violations')}</h5>
+                  <p>{t('hr_reports.compliance.violations_detected', { count: filteredData.complianceData?.policyViolations || 0 })}</p>
+                  <small>{t('hr_reports.compliance.policy_violations_desc')}</small>
                 </div>
               </div>
               <div className="compliance-item warning">
                 <div className="compliance-icon">⏰</div>
                 <div className="compliance-content">
-                  <h5>Late Applications</h5>
-                  <p>{(filteredData.complianceData?.lateApplications || 0)} late submissions</p>
-                  <small>Applications submitted with insufficient notice</small>
+                  <h5>{t('hr_reports.compliance.late_applications')}</h5>
+                  <p>{t('hr_reports.compliance.late_submissions', { count: filteredData.complianceData?.lateApplications || 0 })}</p>
+                  <small>{t('hr_reports.compliance.late_applications_desc')}</small>
                 </div>
               </div>
               <div className="compliance-item info">
                 <div className="compliance-icon">📅</div>
                 <div className="compliance-content">
-                  <h5>Overlapping Leaves</h5>
-                  <p>{(filteredData.complianceData?.overlappingLeaves || 0)} overlaps detected</p>
-                  <small>Multiple approved leaves for same period</small>
+                  <h5>{t('hr_reports.compliance.overlapping_leaves')}</h5>
+                  <p>{t('hr_reports.compliance.overlaps_detected', { count: filteredData.complianceData?.overlappingLeaves || 0 })}</p>
+                  <small>{t('hr_reports.compliance.overlapping_leaves_desc')}</small>
                 </div>
               </div>
               <div className="compliance-item success">
                 <div className="compliance-icon">👤</div>
                 <div className="compliance-content">
-                  <h5>High Frequency Employees</h5>
-                  <p>{(filteredData.complianceData?.highFrequencyEmployees || 0)} employees flagged</p>
-                  <small>Employees with excessive leave frequency</small>
+                  <h5>{t('hr_reports.compliance.high_frequency')}</h5>
+                  <p>{t('hr_reports.compliance.employees_flagged', { count: filteredData.complianceData?.highFrequencyEmployees || 0 })}</p>
+                  <small>{t('hr_reports.compliance.high_frequency_desc')}</small>
                 </div>
               </div>
             </div>
@@ -938,19 +928,19 @@ const HRReports: React.FC = () => {
         <div className="employees-tab">
           {/* Top Employees */}
           <div className="top-employees-section">
-            <h3>🏆 Top 10 Employees by Leave Days</h3>
+            <h3>🏆 {t('hr_reports.top_employees')}</h3>
             {filteredData.employeeInsights && filteredData.employeeInsights.length > 0 ? (
               <div className="employees-table">
                 <table>
                   <thead>
                     <tr>
-                      <th>Rank</th>
-                      <th>Employee</th>
-                      <th>Department</th>
-                      <th>Leaves Taken</th>
-                      <th>Total Days</th>
-                      <th>Approval Rate</th>
-                      <th>Trend</th>
+                      <th>{t('hr_reports.table.rank')}</th>
+                      <th>{t('hr_reports.table.employee')}</th>
+                      <th>{t('hr_reports.table.department')}</th>
+                      <th>{t('hr_reports.table.leaves_taken')}</th>
+                      <th>{t('hr_reports.table.total_days')}</th>
+                      <th>{t('hr_reports.table.approval_rate')}</th>
+                      <th>{t('hr_reports.table.trend')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -966,14 +956,14 @@ const HRReports: React.FC = () => {
                             {emp.employeeName?.split(' ').map(n => n[0]).join('') || '??'}
                           </div>
                           <div className="employee-info">
-                            <strong>{emp.employeeName || 'Unknown'}</strong>
-                            <small>{emp.department || 'N/A'}</small>
+                            <strong>{emp.employeeName || t('common.unknown')}</strong>
+                            <small>{emp.department || t('common.na')}</small>
                           </div>
                         </td>
-                        <td>{emp.department || 'N/A'}</td>
+                        <td>{emp.department || t('common.na')}</td>
                         <td>{emp.leavesTaken || 0}</td>
                         <td>
-                          <span className="days-badge">{emp.totalDays || 0} days</span>
+                          <span className="days-badge">{t('hr_reports.days_badge', { days: emp.totalDays || 0 })}</span>
                         </td>
                         <td>
                           <div className="approval-cell">
@@ -998,35 +988,35 @@ const HRReports: React.FC = () => {
               </div>
             ) : (
               <div className="no-employee-data">
-                <p>No employee insights data available</p>
+                <p>{t('hr_reports.no_employee_data')}</p>
               </div>
             )}
           </div>
 
           {/* Employee Insights */}
           <div className="employee-insights">
-            <h4>💡 Employee Insights</h4>
+            <h4>💡 {t('hr_reports.employee_insights')}</h4>
             <div className="insights-grid">
               {[
                 {
-                  title: 'Most Active Department',
-                  value: filteredData.departmentStats?.sort((a, b) => (b.totalLeaves || 0) - (a.totalLeaves || 0))[0]?.department || 'N/A',
-                  description: 'Highest number of leave requests'
+                  title: t('hr_reports.insights.most_active_department'),
+                  value: filteredData.departmentStats?.sort((a, b) => (b.totalLeaves || 0) - (a.totalLeaves || 0))[0]?.department || t('common.na'),
+                  description: t('hr_reports.insights.most_active_department_desc')
                 },
                 {
-                  title: 'Highest Approval Rate',
-                  value: filteredData.departmentStats?.sort((a, b) => (b.approvalRate || 0) - (a.approvalRate || 0))[0]?.department || 'N/A',
-                  description: 'Most efficient approval process'
+                  title: t('hr_reports.insights.highest_approval_rate'),
+                  value: filteredData.departmentStats?.sort((a, b) => (b.approvalRate || 0) - (a.approvalRate || 0))[0]?.department || t('common.na'),
+                  description: t('hr_reports.insights.highest_approval_rate_desc')
                 },
                 {
-                  title: 'Top Leave Taker',
-                  value: filteredData.employeeInsights?.[0]?.employeeName || 'N/A',
-                  description: `${filteredData.employeeInsights?.[0]?.totalDays || 0} total leave days`
+                  title: t('hr_reports.insights.top_leave_taker'),
+                  value: filteredData.employeeInsights?.[0]?.employeeName || t('common.na'),
+                  description: t('hr_reports.insights.top_leave_taker_desc', { days: filteredData.employeeInsights?.[0]?.totalDays || 0 })
                 },
                 {
-                  title: 'Most Used Leave Type',
-                  value: filteredData.leaveTypeStats?.sort((a, b) => (b.totalRequests || 0) - (a.totalRequests || 0))[0]?.leaveType || 'N/A',
-                  description: 'Most frequently requested leave type'
+                  title: t('hr_reports.insights.most_used_leave_type'),
+                  value: filteredData.leaveTypeStats?.sort((a, b) => (b.totalRequests || 0) - (a.totalRequests || 0))[0]?.leaveType || t('common.na'),
+                  description: t('hr_reports.insights.most_used_leave_type_desc')
                 }
               ].map((insight, index) => (
                 <div key={index} className="insight-card">

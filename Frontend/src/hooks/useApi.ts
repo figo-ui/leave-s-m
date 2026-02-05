@@ -49,7 +49,9 @@ export function useApi<T>(
       }
 
       setData(response.data);
-      onSuccess?.(response.data);
+      if (response.data !== undefined) {
+        onSuccess?.(response.data);
+      }
       return response;
     } catch (err: unknown) {
       const error = err instanceof Error ? err : new Error(String(err));

@@ -19,7 +19,12 @@ const __dirname = path.dirname(__filename);
 dotenv.config();
 
 const app = express();
+app.disable('x-powered-by');
 
+// Trust proxy in production so rate limits and secure headers work correctly
+if (process.env.NODE_ENV === 'production' || process.env.TRUST_PROXY === 'true') {
+  app.set('trust proxy', 1);
+}
 
 const PORT = process.env.PORT || 5000;
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -64,11 +69,20 @@ prisma.$connect()
 
 
 // In server.js, update CORS configuration
+const envOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(',').map(o => o.trim()).filter(Boolean)
+  : [];
+const frontendUrl = process.env.FRONTEND_URL ? [process.env.FRONTEND_URL.trim()] : [];
+const clientUrl = process.env.CLIENT_URL ? [process.env.CLIENT_URL.trim()] : [];
+
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
   'http://10.140.8.10',
   'https://10.140.8.10',
+  ...envOrigins,
+  ...frontendUrl,
+  ...clientUrl
 ];
 
 // List of allowed headers
@@ -287,9 +301,23 @@ const userSchema = Joi.object({
   department: Joi.string().required(),
   position: Joi.string().optional().allow(''),
   phone: Joi.string().optional().allow(''),
+  language: Joi.string().valid('en', 'am', 'om').optional(),
   password: Joi.string().min(6).required(),
   managerId: Joi.number().optional().allow(null) // ADD THIS LINE
 });
+
+const userUpdateSchema = Joi.object({
+  name: Joi.string().optional(),
+  email: Joi.string().email().optional(),
+  role: Joi.string().valid('employee', 'manager', 'hr-admin', 'super-admin').optional(),
+  department: Joi.string().optional(),
+  position: Joi.string().optional().allow(''),
+  phone: Joi.string().optional().allow(''),
+  language: Joi.string().valid('en', 'am', 'om').optional(),
+  status: Joi.string().valid('active', 'inactive', 'suspended', 'terminated', 'ACTIVE', 'INACTIVE', 'SUSPENDED', 'TERMINATED').optional(),
+  password: Joi.string().min(6).optional(),
+  managerId: Joi.number().optional().allow(null)
+}).min(1);
 
 const leaveTypeSchema = Joi.object({
   name: Joi.string().required().min(2).max(50),
@@ -484,6 +512,14 @@ app.post('/api/auth/login', async (req, res) => {
       JWT_SECRET,
       { expiresIn: '24h' }
     );
+    const refreshToken = jwt.sign(
+      {
+        userId: user.id,
+        type: 'refresh'
+      },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
 
     // Transform role to lowercase for frontend compatibility
     const frontendRole = user.role.toLowerCase().replace('_', '-');
@@ -498,6 +534,7 @@ app.post('/api/auth/login', async (req, res) => {
       success: true,
       data: {
         token,
+        refreshToken,
         user: {
           id: user.id,
           name: user.name,
@@ -506,6 +543,7 @@ app.post('/api/auth/login', async (req, res) => {
           department: user.department,
           position: user.position,
           phone: user.phone,
+          language: user.language || 'en',
           joinDate: user.joinDate,
           status: user.status.toLowerCase(),
           avatar: user.avatar,
@@ -556,6 +594,7 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
           department: user.department,
           position: user.position,
           phone: user.phone,
+          language: user.language || 'en',
           joinDate: user.joinDate,
           status: user.status.toLowerCase(),
           avatar: user.avatar,
@@ -1112,124 +1151,6 @@ app.post('/api/leaves/apply', authenticateToken, async (req, res) => {
     });
   }
 });
-app.post('/api/auth/login', async (req, res) => {
-  try {
-    const { error, value } = loginSchema.validate(req.body);
-    if (error) {
-      return res.status(400).json({
-        success: false,
-        message: error.details[0].message
-      });
-    }
-
-    const { email, password } = value;
-
-    console.log('🔐 Login attempt for:', email);
-
-    // Find user with manager info and LEAVE BALANCES
-    const user = await prisma.user.findUnique({
-      where: { email },
-      include: {
-        manager: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        },
-        leaveBalances: {
-          include: {
-            leaveType: true
-          }
-        }
-      }
-    });
-
-    if (!user) {
-      console.log('❌ User not found:', email);
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid email or password'
-      });
-    }
-
-    console.log('✅ User found:', { 
-      id: user.id, 
-      email: user.email, 
-      role: user.role, 
-      status: user.status,
-      managerId: user.managerId 
-    });
-
-    // Check password
-    const validPassword = await bcrypt.compare(password, user.password);
-    
-    if (!validPassword) {
-      console.log('❌ Invalid password for:', email);
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid email or password'
-      });
-    }
-
-    // Check if user is active
-    if (user.status !== 'ACTIVE') {
-      console.log('❌ User not active:', email, 'Status:', user.status);
-      return res.status(401).json({
-        success: false,
-        message: 'Your account is not active. Please contact HR.'
-      });
-    }
-
-    // Generate token
-    const token = jwt.sign(
-      { 
-        userId: user.id, 
-        email: user.email, 
-        role: user.role 
-      },
-      JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-
-    // Transform role to lowercase for frontend compatibility
-    const frontendRole = user.role.toLowerCase().replace('_', '-');
-
-    console.log('✅ Login successful for:', { 
-      email, 
-      role: frontendRole,
-      managerId: user.managerId 
-    });
-
-    res.json({
-      success: true,
-      data: {
-        token,
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: frontendRole,
-          department: user.department,
-          position: user.position,
-          phone: user.phone,
-          joinDate: user.joinDate,
-          status: user.status.toLowerCase(),
-          avatar: user.avatar,
-          managerId: user.managerId,
-          manager: user.manager,
-          leaveBalances: user.leaveBalances // Include leave balances in response
-        }
-      }
-    });
-  } catch (error) {
-    console.error('💥 Login error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error: ' + error.message
-    });
-  }
-});
 // Leave types endpoint
 // ==================== LEAVE TYPE MANAGEMENT ENDPOINTS ====================
 
@@ -1385,10 +1306,212 @@ app.get('/api/leave-balances', authenticateToken, async (req, res) => {
 
     res.json({
       success: true,
-      data: leaveBalances
+      data: leaveBalances.map(balance => ({
+        ...balance,
+        used: balance.usedDays,
+        total: balance.totalDays,
+        remaining: balance.remainingDays,
+        usedDays: balance.usedDays,
+        totalDays: balance.totalDays,
+        remainingDays: balance.remainingDays,
+        leaveType: balance.leaveType
+      }))
     });
   } catch (error) {
     console.error('Leave balances error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+});
+
+// Refresh token
+app.post('/api/auth/refresh', async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(400).json({
+        success: false,
+        message: 'Refresh token is required'
+      });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(refreshToken, JWT_SECRET);
+    } catch (error) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid refresh token'
+      });
+    }
+
+    if (decoded.type !== 'refresh') {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid refresh token type'
+      });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId }
+    });
+
+    if (!user || user.status !== 'ACTIVE') {
+      return res.status(401).json({
+        success: false,
+        message: 'User not found or inactive'
+      });
+    }
+
+    const token = jwt.sign(
+      {
+        userId: user.id,
+        email: user.email,
+        role: user.role
+      },
+      JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    res.json({
+      success: true,
+      data: {
+        token
+      }
+    });
+  } catch (error) {
+    console.error('Refresh token error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+});
+
+// ==================== NOTIFICATION ENDPOINTS ====================
+app.get('/api/notifications', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const notifications = await prisma.notification.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    res.json({
+      success: true,
+      data: notifications.map(notification => ({
+        ...notification,
+        userId: notification.userId.toString(),
+        read: notification.isRead
+      }))
+    });
+  } catch (error) {
+    console.error('Get notifications error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+});
+
+app.get('/api/notifications/stats', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const total = await prisma.notification.count({ where: { userId } });
+    const unread = await prisma.notification.count({ where: { userId, isRead: false } });
+
+    res.json({
+      success: true,
+      data: {
+        total,
+        unread
+      }
+    });
+  } catch (error) {
+    console.error('Notification stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+});
+
+app.patch('/api/notifications/:id/read', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const notificationId = parseInt(req.params.id);
+
+    const notification = await prisma.notification.updateMany({
+      where: { id: notificationId, userId },
+      data: { isRead: true, readAt: new Date() }
+    });
+
+    if (notification.count === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Notification not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Notification marked as read'
+    });
+  } catch (error) {
+    console.error('Mark notification as read error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+});
+
+app.post('/api/notifications/read-all', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    await prisma.notification.updateMany({
+      where: { userId, isRead: false },
+      data: { isRead: true, readAt: new Date() }
+    });
+
+    res.json({
+      success: true,
+      message: 'All notifications marked as read'
+    });
+  } catch (error) {
+    console.error('Mark all notifications as read error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+});
+
+app.delete('/api/notifications/:id', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const notificationId = parseInt(req.params.id);
+
+    const deleted = await prisma.notification.deleteMany({
+      where: { id: notificationId, userId }
+    });
+
+    if (deleted.count === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Notification not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Notification deleted'
+    });
+  } catch (error) {
+    console.error('Delete notification error:', error);
     res.status(500).json({
       success: false,
       message: 'Internal server error'
@@ -2285,215 +2408,20 @@ app.post('/api/system/settings/initialize', authenticateToken, async (req, res) 
   }
 });
 
-// ==================== SYSTEM SETTINGS ENDPOINTS ====================
-
-// Get all system settings
-app.get('/api/system/settings', authenticateToken, async (req, res) => {
-  try {
-    const settings = await prisma.systemSettings.findMany({
-      orderBy: { category: 'asc' }
-    });
-
-    res.json({
-      success: true,
-      data: settings
-    });
-  } catch (error) {
-    console.error('Get system settings error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error'
-    });
-  }
-});
-
-// Update system setting
-app.put('/api/system/settings/:key', authenticateToken, async (req, res) => {
-  try {
-    const { key } = req.params;
-    const { value } = req.body;
-
-    // Validate that user has permission (HR Admin or Super Admin)
-    const currentUser = await prisma.user.findUnique({
-      where: { id: req.user.userId }
-    });
-
-    if (!['HR_ADMIN', 'SUPER_ADMIN'].includes(currentUser.role)) {
-      return res.status(403).json({
-        success: false,
-        message: 'Insufficient permissions to modify system settings'
-      });
-    }
-
-    // Define setting categories and defaults
-    const settingCategories = {
-      // Leave Policies
-      'maxConsecutiveLeaves': { category: 'leave_policies', description: 'Maximum consecutive leave days allowed' },
-      'advanceNoticeDays': { category: 'leave_policies', description: 'Advance notice required in days' },
-      'carryOverEnabled': { category: 'leave_policies', description: 'Enable leave carry over' },
-      'carryOverLimit': { category: 'leave_policies', description: 'Maximum carry over days' },
-      'maxLeaveDaysPerYear': { category: 'leave_policies', description: 'Maximum leave days per year' },
-      'minLeaveDuration': { category: 'leave_policies', description: 'Minimum leave duration in days' },
-      
-      // Approval Settings
-      'autoApproveEnabled': { category: 'approval_settings', description: 'Enable auto-approval for short leaves' },
-      'autoApproveMaxDays': { category: 'approval_settings', description: 'Maximum days for auto-approval' },
-      'requireManagerApproval': { category: 'approval_settings', description: 'Require manager approval' },
-      'requireHRApproval': { category: 'approval_settings', description: 'Require HR approval' },
-      'approvalReminderHours': { category: 'approval_settings', description: 'Approval reminder interval in hours' },
-      
-      // Notification Settings
-      'notificationEmails': { category: 'notification_settings', description: 'Enable email notifications' },
-      'notificationSMS': { category: 'notification_settings', description: 'Enable SMS notifications' },
-      'managerNotifications': { category: 'notification_settings', description: 'Enable manager notifications' },
-      'hrNotifications': { category: 'notification_settings', description: 'Enable HR notifications' },
-      'systemAlerts': { category: 'notification_settings', description: 'Enable system alerts' },
-      
-      // System Behavior
-      'allowBackdateLeaves': { category: 'system_behavior', description: 'Allow backdated leaves' },
-      'allowOverlappingLeaves': { category: 'system_behavior', description: 'Allow overlapping leaves' },
-      'fiscalYearStart': { category: 'system_behavior', description: 'Fiscal year start date' },
-      'workingDays': { category: 'system_behavior', description: 'Working days configuration' },
-      'holidayCalendar': { category: 'system_behavior', description: 'Holiday calendar type' },
-      
-      // UI Settings
-      'theme': { category: 'ui_settings', description: 'Interface theme' },
-      'language': { category: 'ui_settings', description: 'Interface language' },
-      'timezone': { category: 'ui_settings', description: 'System timezone' }
-    };
-
-    const settingConfig = settingCategories[key];
-    if (!settingConfig) {
-      return res.status(400).json({
-        success: false,
-        message: `Invalid setting key: ${key}`
-      });
-    }
-
-    // Update or create setting
-    const setting = await prisma.systemSettings.upsert({
-      where: { key },
-      update: { 
-        value: typeof value === 'object' ? JSON.stringify(value) : String(value),
-        updatedAt: new Date()
-      },
-      create: {
-        key,
-        value: typeof value === 'object' ? JSON.stringify(value) : String(value),
-        description: settingConfig.description,
-        category: settingConfig.category,
-        isPublic: false // System settings are not public
-      }
-    });
-
-    // Log the setting change
-    console.log(`🔧 System setting updated: ${key} = ${value} by user ${currentUser.name}`);
-
-    res.json({
-      success: true,
-      data: setting,
-      message: 'Setting updated successfully'
-    });
-  } catch (error) {
-    console.error('Update system setting error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error'
-    });
-  }
-});
-
-// Initialize default system settings
-app.post('/api/system/settings/initialize', authenticateToken, async (req, res) => {
-  try {
-    const currentUser = await prisma.user.findUnique({
-      where: { id: req.user.userId }
-    });
-
-    if (!['HR_ADMIN', 'SUPER_ADMIN'].includes(currentUser.role)) {
-      return res.status(403).json({
-        success: false,
-        message: 'Insufficient permissions'
-      });
-    }
-
-    const defaultSettings = [
-      // Leave Policies
-      { key: 'maxConsecutiveLeaves', value: '15', category: 'leave_policies', description: 'Maximum consecutive leave days allowed' },
-      { key: 'advanceNoticeDays', value: '3', category: 'leave_policies', description: 'Advance notice required in days' },
-      { key: 'carryOverEnabled', value: 'true', category: 'leave_policies', description: 'Enable leave carry over' },
-      { key: 'carryOverLimit', value: '10', category: 'leave_policies', description: 'Maximum carry over days' },
-      { key: 'maxLeaveDaysPerYear', value: '30', category: 'leave_policies', description: 'Maximum leave days per year' },
-      { key: 'minLeaveDuration', value: '0.5', category: 'leave_policies', description: 'Minimum leave duration in days' },
-      
-      // Approval Settings
-      { key: 'autoApproveEnabled', value: 'false', category: 'approval_settings', description: 'Enable auto-approval for short leaves' },
-      { key: 'autoApproveMaxDays', value: '1', category: 'approval_settings', description: 'Maximum days for auto-approval' },
-      { key: 'requireManagerApproval', value: 'true', category: 'approval_settings', description: 'Require manager approval' },
-      { key: 'requireHRApproval', value: 'true', category: 'approval_settings', description: 'Require HR approval' },
-      { key: 'approvalReminderHours', value: '24', category: 'approval_settings', description: 'Approval reminder interval in hours' },
-      
-      // Notification Settings
-      { key: 'notificationEmails', value: 'true', category: 'notification_settings', description: 'Enable email notifications' },
-      { key: 'notificationSMS', value: 'false', category: 'notification_settings', description: 'Enable SMS notifications' },
-      { key: 'managerNotifications', value: 'true', category: 'notification_settings', description: 'Enable manager notifications' },
-      { key: 'hrNotifications', value: 'true', category: 'notification_settings', description: 'Enable HR notifications' },
-      { key: 'systemAlerts', value: 'true', category: 'notification_settings', description: 'Enable system alerts' },
-      
-      // System Behavior
-      { key: 'allowBackdateLeaves', value: 'false', category: 'system_behavior', description: 'Allow backdated leaves' },
-      { key: 'allowOverlappingLeaves', value: 'false', category: 'system_behavior', description: 'Allow overlapping leaves' },
-      { key: 'fiscalYearStart', value: '2024-01-01', category: 'system_behavior', description: 'Fiscal year start date' },
-      { key: 'workingDays', value: '["monday","tuesday","wednesday","thursday","friday"]', category: 'system_behavior', description: 'Working days configuration' },
-      { key: 'holidayCalendar', value: 'ethiopian', category: 'system_behavior', description: 'Holiday calendar type' },
-      
-      // UI Settings
-      { key: 'theme', value: 'light', category: 'ui_settings', description: 'Interface theme' },
-      { key: 'language', value: 'en', category: 'ui_settings', description: 'Interface language' },
-      { key: 'timezone', value: 'Africa/Addis_Ababa', category: 'ui_settings', description: 'System timezone' }
-    ];
-
-    // Create or update each setting
-    const createPromises = defaultSettings.map(setting =>
-      prisma.systemSettings.upsert({
-        where: { key: setting.key },
-        update: { 
-          value: setting.value,
-          category: setting.category,
-          description: setting.description,
-          updatedAt: new Date()
-        },
-        create: {
-          key: setting.key,
-          value: setting.value,
-          category: setting.category,
-          description: setting.description,
-          isPublic: false
-        }
-      })
-    );
-
-    await Promise.all(createPromises);
-
-    res.json({
-      success: true,
-      message: 'System settings initialized successfully'
-    });
-  } catch (error) {
-    console.error('Initialize system settings error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error'
-    });
-  }
-});
 // ==================== PROFILE ENDPOINTS ====================
 
 // Update user profile
 app.put('/api/profile', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId;
-    const { name, phone, department, position } = req.body;
+    const { name, phone, department, position, language } = req.body;
+
+    if (language && !['en', 'am', 'om'].includes(language)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid language selection'
+      });
+    }
 
     const user = await prisma.user.update({
       where: { id: userId },
@@ -2501,7 +2429,8 @@ app.put('/api/profile', authenticateToken, async (req, res) => {
         ...(name && { name }),
         ...(phone !== undefined && { phone }),
         ...(department && { department }),
-        ...(position !== undefined && { position })
+        ...(position !== undefined && { position }),
+        ...(language && { language })
       },
       select: {
         id: true,
@@ -2513,6 +2442,7 @@ app.put('/api/profile', authenticateToken, async (req, res) => {
         phone: true,
         status: true,
         avatar: true,
+        language: true,
         joinDate: true,
         createdAt: true
       }
@@ -2590,9 +2520,11 @@ app.post('/api/profile/change-password', authenticateToken, async (req, res) => 
 // ==================== AVATAR ENDPOINTS ====================
 
 // Upload avatar endpoint
-app.post('/api/users/avatar', authenticateToken, upload.single('avatar'), async (req, res) => {
+app.post('/api/users/avatar', authenticateToken, upload.fields([{ name: 'avatar', maxCount: 1 }, { name: 'file', maxCount: 1 }]), async (req, res) => {
   try {
-    if (!req.file) {
+    const file = (req.files?.avatar && req.files.avatar[0]) || (req.files?.file && req.files.file[0]);
+
+    if (!file) {
       return res.status(400).json({
         success: false,
         message: 'No file uploaded'
@@ -2615,8 +2547,17 @@ app.post('/api/users/avatar', authenticateToken, upload.single('avatar'), async 
       }
     }
 
+    // Basic min-size validation
+    if (file.size < 10 * 1024) {
+      fs.unlinkSync(file.path);
+      return res.status(400).json({
+        success: false,
+        message: 'Image file is too small. Please upload a higher quality photo.'
+      });
+    }
+
     // Get the file path relative to the uploads directory
-    const avatarPath = `/uploads/avatars/${req.file.filename}`;
+    const avatarPath = `/uploads/avatars/${file.filename}`;
 
     // Update user in database
     const user = await prisma.user.update({
@@ -2631,6 +2572,7 @@ app.post('/api/users/avatar', authenticateToken, upload.single('avatar'), async 
         position: true,
         phone: true,
         status: true,
+        language: true,
         avatar: true,
         joinDate: true,
         createdAt: true
@@ -2691,6 +2633,7 @@ app.delete('/api/users/avatar', authenticateToken, async (req, res) => {
         position: true,
         phone: true,
         status: true,
+        language: true,
         avatar: true,
         joinDate: true,
         createdAt: true
@@ -3274,53 +3217,6 @@ app.get('/api/manager/reports', authenticateToken, async (req, res) => {
 
 // ==================== HR ADMIN ENDPOINTS ====================
 
-// HR Pending Approvals
-app.get('/api/hr/pending-approvals', authenticateToken, async (req, res) => {
-  try {
-    const pendingLeaves = await prisma.leave.findMany({
-      where: {
-        status: 'PENDING_HR'
-      },
-      include: {
-        employee: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            department: true,
-            position: true,
-            manager: {
-              select: {
-                name: true,
-                email: true
-              }
-            }
-          }
-        },
-        leaveType: true,
-        manager: {
-          select: {
-            name: true,
-            email: true
-          }
-        }
-      },
-      orderBy: { appliedDate: 'desc' }
-    });
-
-    res.json({
-      success: true,
-      data: pendingLeaves
-    });
-  } catch (error) {
-    console.error('HR pending approvals error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error'
-    });
-  }
-});
-
 // HR Leave Overview
 app.get('/api/hr/leave-overview', authenticateToken, async (req, res) => {
   try {
@@ -3370,6 +3266,7 @@ app.get('/api/users', authenticateToken, async (req, res) => {
         position: true,
         phone: true,
         status: true,
+        language: true,
         joinDate: true,
         createdAt: true,
         manager: {
@@ -3563,12 +3460,12 @@ app.post('/api/users', authenticateToken, async (req, res) => {
     });
   }
 });
- 
 
-// Leave Types Management
-app.post('/api/leave-types', authenticateToken, async (req, res) => {
+// Update user
+app.put('/api/users/:id', authenticateToken, async (req, res) => {
   try {
-    const { error, value } = leaveTypeSchema.validate(req.body);
+    const userId = parseInt(req.params.id);
+    const { error, value } = userUpdateSchema.validate(req.body);
     if (error) {
       return res.status(400).json({
         success: false,
@@ -3576,129 +3473,170 @@ app.post('/api/leave-types', authenticateToken, async (req, res) => {
       });
     }
 
-    const leaveType = await prisma.leaveType.create({
-      data: {
-        ...value,
-        isActive: true
-      }
-    });
+    const updateData = { ...value };
 
-    res.json({
-      success: true,
-      data: leaveType,
-      message: 'Leave type created successfully'
-    });
-  } catch (error) {
-    console.error('Create leave type error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error'
-    });
-  }
-});
-
-app.put('/api/leave-types/:id', authenticateToken, async (req, res) => {
-  try {
-    const leaveTypeId = parseInt(req.params.id);
-    const { error, value } = leaveTypeSchema.validate(req.body);
-    
-    if (error) {
-      return res.status(400).json({
-        success: false,
-        message: error.details[0].message
-      });
+    if (value.role) {
+      updateData.role = value.role.toUpperCase().replace('-', '_');
     }
 
-    const leaveType = await prisma.leaveType.update({
-      where: { id: leaveTypeId },
-      data: value
-    });
+    if (value.status) {
+      updateData.status = value.status.toUpperCase();
+    }
 
-    res.json({
-      success: true,
-      data: leaveType,
-      message: 'Leave type updated successfully'
-    });
-  } catch (error) {
-    console.error('Update leave type error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error'
-    });
-  }
-});
+    if (value.password) {
+      updateData.password = await bcrypt.hash(value.password, 10);
+    }
 
-app.delete('/api/leave-types/:id', authenticateToken, async (req, res) => {
-  try {
-    const leaveTypeId = parseInt(req.params.id);
+    if (value.managerId !== undefined) {
+      if (value.managerId === null) {
+        updateData.managerId = null;
+      } else {
+        const manager = await prisma.user.findUnique({
+          where: { id: parseInt(value.managerId) }
+        });
 
-    await prisma.leaveType.update({
-      where: { id: leaveTypeId },
-      data: { isActive: false }
-    });
+        if (!manager || !['MANAGER', 'HR_ADMIN', 'SUPER_ADMIN'].includes(manager.role)) {
+          return res.status(400).json({
+            success: false,
+            message: 'Selected manager not found or is not a manager'
+          });
+        }
 
-    res.json({
-      success: true,
-      message: 'Leave type deleted successfully'
-    });
-  } catch (error) {
-    console.error('Delete leave type error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error'
-    });
-  }
-});
+        updateData.managerId = parseInt(value.managerId);
+      }
+    }
 
-// System Settings
-app.get('/api/system/settings', authenticateToken, async (req, res) => {
-  try {
-    const settings = await prisma.systemSettings.findMany({
-      orderBy: { category: 'asc' }
-    });
-
-    res.json({
-      success: true,
-      data: settings
-    });
-  } catch (error) {
-    console.error('Get system settings error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error'
-    });
-  }
-});
-
-app.put('/api/system/settings/:key', authenticateToken, async (req, res) => {
-  try {
-    const { key } = req.params;
-    const { value } = req.body;
-
-    const setting = await prisma.systemSettings.upsert({
-      where: { key },
-      update: { value },
-      create: {
-        key,
-        value,
-        category: 'general',
-        description: `System setting for ${key}`
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: updateData,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        department: true,
+        position: true,
+        phone: true,
+        status: true,
+        language: true,
+        joinDate: true,
+        createdAt: true,
+        manager: {
+          select: {
+            name: true,
+            email: true
+          }
+        }
       }
     });
 
+    const frontendUser = {
+      ...updatedUser,
+      role: updatedUser.role.toLowerCase().replace('_', '-'),
+      status: updatedUser.status.toLowerCase()
+    };
+
     res.json({
       success: true,
-      data: setting,
-      message: 'Setting updated successfully'
+      data: frontendUser,
+      message: 'User updated successfully'
     });
   } catch (error) {
-    console.error('Update system setting error:', error);
+    console.error('Update user error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Internal server error: ' + error.message
     });
   }
 });
+
+// Delete (soft deactivate) user
+app.delete('/api/users/:id', authenticateToken, async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id);
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: { status: 'INACTIVE' },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        department: true,
+        position: true,
+        phone: true,
+        status: true,
+        joinDate: true,
+        createdAt: true,
+        manager: {
+          select: {
+            name: true,
+            email: true
+          }
+        }
+      }
+    });
+
+    const frontendUser = {
+      ...updatedUser,
+      role: updatedUser.role.toLowerCase().replace('_', '-'),
+      status: updatedUser.status.toLowerCase()
+    };
+
+    res.json({
+      success: true,
+      data: frontendUser,
+      message: 'User deactivated successfully'
+    });
+  } catch (error) {
+    console.error('Delete user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error: ' + error.message
+    });
+  }
+});
+
+// Get managers by department
+app.get('/api/managers/department/:department', authenticateToken, async (req, res) => {
+  try {
+    const department = req.params.department;
+
+    const managers = await prisma.user.findMany({
+      where: {
+        department,
+        role: { in: ['MANAGER', 'HR_ADMIN', 'SUPER_ADMIN'] },
+        status: 'ACTIVE'
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        department: true
+      },
+      orderBy: { name: 'asc' }
+    });
+
+    const transformed = managers.map(user => ({
+      ...user,
+      role: user.role.toLowerCase().replace('_', '-')
+    }));
+
+    res.json({
+      success: true,
+      data: transformed
+    });
+  } catch (error) {
+    console.error('Get managers by department error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error: ' + error.message
+    });
+  }
+});
+
 
 // HR Reports
 app.get('/api/hr/reports', authenticateToken, async (req, res) => {
@@ -3774,104 +3712,69 @@ app.get('/api/hr/reports', authenticateToken, async (req, res) => {
 });
 
 
-// ==================== PROFILE ENDPOINTS ====================
-
-app.put('/api/profile', authenticateToken, async (req, res) => {
-  try {
-    const userId = req.user.userId;
-    const { name, phone, department, position } = req.body;
-
-    const user = await prisma.user.update({
-      where: { id: userId },
-      data: {
-        name,
-        phone,
-        department,
-        position
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        department: true,
-        position: true,
-        phone: true,
-        status: true,
-        joinDate: true,
-        avatar: true
-      }
-    });
-
-    const frontendUser = {
-      ...user,
-      role: user.role.toLowerCase().replace('_', '-'),
-      status: user.status.toLowerCase()
-    };
-
-    res.json({
-      success: true,
-      data: frontendUser,
-      message: 'Profile updated successfully'
-    });
-  } catch (error) {
-    console.error('Update profile error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error'
-    });
-  }
-});
-
-app.post('/api/profile/change-password', authenticateToken, async (req, res) => {
-  try {
-    const userId = req.user.userId;
-    const { currentPassword, newPassword } = req.body;
-
-    // Get user with password
-    const user = await prisma.user.findUnique({
-      where: { id: userId }
-    });
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
-    }
-
-    // Verify current password
-    const validPassword = await bcrypt.compare(currentPassword, user.password);
-    if (!validPassword) {
-      return res.status(400).json({
-        success: false,
-        message: 'Current password is incorrect'
-      });
-    }
-
-    // Hash new password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    // Update password
-    await prisma.user.update({
-      where: { id: userId },
-      data: { password: hashedPassword }
-    });
-
-    res.json({
-      success: true,
-      message: 'Password changed successfully'
-    });
-  } catch (error) {
-    console.error('Change password error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error'
-    });
-  }
-});
-
 // ==================== ROOT ENDPOINT ====================
+
+// Health check (used by frontend healthCheck and deploy monitors)
+app.get('/health', (req, res) => {
+  res.json({
+    success: true,
+    status: 'ok',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Debug endpoints (development only)
+if (process.env.NODE_ENV !== 'production') {
+  app.get('/api/debug/user-relationships', authenticateToken, async (req, res) => {
+    try {
+      const users = await prisma.user.findMany({
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          department: true,
+          managerId: true,
+          manager: {
+            select: { id: true, name: true, email: true }
+          },
+          subordinates: {
+            select: { id: true, name: true, email: true }
+          }
+        }
+      });
+
+      res.json({ success: true, data: users });
+    } catch (error) {
+      console.error('Debug user relationships error:', error);
+      res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+  });
+
+  app.get('/api/debug/user/:id', authenticateToken, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        include: {
+          manager: { select: { id: true, name: true, email: true } },
+          subordinates: { select: { id: true, name: true, email: true } },
+          leaveBalances: true,
+          leaves: true
+        }
+      });
+
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found' });
+      }
+
+      res.json({ success: true, data: user });
+    } catch (error) {
+      console.error('Debug user error:', error);
+      res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+  });
+}
 
 app.get('/', (req, res) => {
   res.json({
@@ -3932,11 +3835,13 @@ app.use( (req, res) => {
   });
 });
 // Start server
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log('='.repeat(50));
   console.log('🚀 BACKEND SERVER RUNNING ON PORT 5000');
   console.log('='.repeat(50));
   console.log('📧 Available API endpoints:');
+  console.log('   HEALTH:');
+  console.log('     GET  /health');
   console.log('   AUTH:');
   console.log('     POST /api/auth/login');
   console.log('     GET  /api/auth/me');
@@ -3959,7 +3864,6 @@ app.listen(PORT, () => {
   console.log('     GET  /api/users');
   console.log('     POST /api/users');
   console.log('     DELETE /api/users/:id');
-  console.log('     PUT   /api/users/:id/manager'); // ADD THIS
   console.log('     GET   /api/managers/department/:department'); // ADD THIS
   console.log('     POST /api/leave-types');
   console.log('     PUT  /api/leave-types/:id');
@@ -3976,4 +3880,33 @@ app.listen(PORT, () => {
   console.log('🌐 Test server: http://localhost:5000/');
   console.log('🌐 Frontend should run on: http://localhost:5173');
   console.log('='.repeat(50));
+});
+
+// Graceful shutdown
+const shutdown = async (signal) => {
+  console.log(`\n🛑 Received ${signal}. Shutting down gracefully...`);
+  server.close(async () => {
+    try {
+      await prisma.$disconnect();
+      console.log('✅ Database disconnected');
+    } catch (err) {
+      console.error('❌ Error during database disconnect:', err);
+    } finally {
+      process.exit(0);
+    }
+  });
+};
+
+process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+
+// Runtime safety: log unexpected errors and exit so a process manager can restart
+process.on('unhandledRejection', (reason) => {
+  console.error('🔥 Unhandled Rejection:', reason);
+  shutdown('unhandledRejection');
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('🔥 Uncaught Exception:', err);
+  shutdown('uncaughtException');
 });

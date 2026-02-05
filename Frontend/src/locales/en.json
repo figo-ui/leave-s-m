@@ -1,0 +1,1230 @@
+{
+  "app": {
+    "university_name": "ODA BULTUM UNIVERSITY",
+    "system_name": "Leave Management System",
+    "system_short": "OBU Leave",
+    "management_system": "Management System"
+  },
+  "common": {
+    "welcome": "Welcome, {{name}}",
+    "welcome_generic": "Welcome",
+    "role": "Role",
+    "profile": "Profile",
+    "security": "Security",
+    "help_support": "Help & Support",
+    "about_system": "About System",
+    "sign_out": "Sign Out",
+    "close_sidebar": "Close sidebar",
+    "language": "Language",
+    "save": "Save",
+    "cancel": "Cancel",
+    "update": "Update",
+    "loading": "Loading...",
+    "try_again": "Try Again",
+    "na": "N/A",
+    "yes": "Yes",
+    "no": "No",
+    "unknown": "Unknown",
+    "days": {
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday",
+      "sunday": "Sunday"
+    }
+  },
+  "roles": {
+    "employee": "Employee",
+    "manager": "Manager",
+    "hr-admin": "HR Admin",
+    "super-admin": "Super Admin"
+  },
+  "menu": {
+    "dashboard": "Dashboard",
+    "apply_leave": "Apply for Leave",
+    "leave_history": "My Leave History",
+    "profile_settings": "Profile Settings",
+    "pending_requests": "Pending Requests",
+    "approvals_history": "Approvals History",
+    "team_overview": "Team Overview",
+    "reports": "Reports",
+    "leave_overview": "Leave Overview",
+    "user_management": "User Management",
+    "leave_types": "Leave Types",
+    "configuration": "Configuration",
+    "approvals": "Approvals"
+  },
+  "nav": {
+    "leave_management": "LEAVE MANAGEMENT",
+    "about_me": "About Me",
+    "password_security": "Password & Security"
+  },
+  "profile": {
+    "profile_settings": "Profile Settings",
+    "personal_tab": "Personal Info",
+    "security_tab": "Security",
+    "phone_updated": "Phone number updated successfully!",
+    "avatar_updated": "Profile picture updated successfully!",
+    "password_changed": "Password changed successfully!",
+    "language_label": "Preferred Language",
+    "language_updated": "Language updated successfully!"
+  },
+  "languages": {
+    "en": "English",
+    "am": "Amharic",
+    "om": "Afaan Oromo"
+  },
+  "status": {
+    "pending_manager": "Pending Manager",
+    "pending_hr": "Pending HR",
+    "approved": "Approved",
+    "hr_approved": "HR Approved",
+    "rejected": "Rejected",
+    "cancelled": "Cancelled"
+  },
+  "dashboard": {
+    "titles": {
+      "employee": "Employee Dashboard",
+      "manager": "Manager Dashboard",
+      "hr_admin": "HR Admin Dashboard",
+      "super_admin": "Super Admin Dashboard"
+    },
+    "subtitles": {
+      "employee": "Your leave management portal",
+      "manager": "Team management and leave approvals",
+      "hr_admin": "System administration and analytics",
+      "super_admin": "System administration and analytics"
+    },
+    "actions": {
+      "apply_leave": "Apply for Leave",
+      "review_pending": "Review Pending Requests",
+      "hr_approvals": "HR Approvals"
+    },
+    "quick_actions": {
+      "title": "Quick Actions",
+      "apply_desc": "Submit new leave request",
+      "history_desc": "View all your leaves",
+      "my_profile": "My Profile",
+      "profile_desc": "Update personal information",
+      "leave_balance": "Leave Balance",
+      "balance_desc": "Check available days",
+      "pending_desc": "Review team requests",
+      "team_desc": "View team members",
+      "reports_desc": "Generate analytics",
+      "calendar": "Calendar",
+      "calendar_desc": "Team leave calendar",
+      "hr_approvals_desc": "Final approval requests",
+      "users_desc": "Manage system users",
+      "overview_desc": "System-wide leaves",
+      "system_settings": "System Settings",
+      "settings_desc": "Configure system",
+      "analytics": "Analytics",
+      "analytics_desc": "HR reports & insights",
+      "system_admin": "System Admin",
+      "system_admin_desc": "System administration",
+      "users_desc_all": "Manage all users",
+      "audit_logs": "Audit Logs",
+      "audit_desc": "System activity logs",
+      "backup_restore": "Backup & Restore",
+      "backup_desc": "Data management"
+    },
+    "greetings": {
+      "hello": "Hello",
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening",
+      "night": "Good night"
+    },
+    "stats": {
+      "available_days": "Available Days",
+      "ready_to_use": "Ready to use",
+      "leaves_taken": "Leaves Taken",
+      "this_year": "This year",
+      "pending": "Pending",
+      "awaiting_approval": "Awaiting approval",
+      "utilization": "Utilization",
+      "usage_rate": "Leave usage rate",
+      "pending_requests": "Pending Requests",
+      "require_attention": "Require attention",
+      "team_size": "Team Size",
+      "active_members": "Active members",
+      "approval_rate": "Approval Rate",
+      "overall_approval": "Overall approval",
+      "on_leave": "On Leave",
+      "currently_out": "Currently out",
+      "total_employees": "Total Employees",
+      "active_users": "Active users",
+      "on_leave_today": "On Leave Today",
+      "pending_hr": "Pending HR",
+      "require_approval": "Require approval",
+      "system_alerts": "System Alerts",
+      "notifications": "Notifications"
+    },
+    "filters": {
+      "all": "All",
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "recent_activities": "Recent Activities",
+    "leave_request": "Leave Request",
+    "days": "days",
+    "no_activities": "No activities found",
+    "leave_balance": "Leave Balance",
+    "used": "Used",
+    "remaining": "Remaining",
+    "total": "Total",
+    "leaves": "leaves",
+    "on_leave": "On Leave",
+    "calendar": "Calendar",
+    "days_short": {
+      "sun": "Sun",
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat"
+    },
+    "unable_to_load": "Unable to Load Dashboard",
+    "refresh": "Refresh",
+    "refreshing": "Refreshing...",
+    "tabs": {
+      "overview": "Overview",
+      "activities": "Activities",
+      "team": "Team"
+    }
+  },
+  "apply_leave": {
+    "title": "Apply for Leave",
+    "subtitle": "Submit your leave request for manager approval",
+    "subtitle_loading": "Submit your leave request for approval",
+    "loading_info": "Loading leave information...",
+    "loading_setup": "Setting up your leave application form",
+    "sections": {
+      "details": "📅 Leave Details",
+      "additional": "📝 Additional Information"
+    },
+    "fields": {
+      "leave_type": "Leave Type",
+      "start_date": "Start Date",
+      "end_date": "End Date",
+      "reason": "Reason for Leave",
+      "emergency_contact": "Emergency Contact (Optional)",
+      "handover_notes": "Handover Notes (Optional)"
+    },
+    "placeholders": {
+      "select_leave_type": "Select Leave Type",
+      "reason": "Please provide a detailed reason for your leave. Include relevant details that will help your manager understand your request. Minimum 10 characters required.",
+      "emergency_contact": "Phone number for emergency contact",
+      "handover_notes": "Brief notes about work handover, pending tasks, or important contacts..."
+    },
+    "help": {
+      "emergency_contact": "For urgent contact during your absence",
+      "handover_notes": "Important information for colleagues covering your work"
+    },
+    "validation": {
+      "select_leave_type": "Please select a leave type",
+      "select_start_date": "Please select start date",
+      "select_end_date": "Please select end date",
+      "start_date_past": "Start date cannot be in the past",
+      "end_date_after": "End date must be after start date",
+      "reason_required": "Please provide a reason for leave",
+      "reason_min": "Reason must be at least 10 characters long",
+      "reason_max": "Reason must be less than 500 characters",
+      "insufficient_balance": "Insufficient leave balance. You have {{remaining}} days remaining but requested {{requested}} days.",
+      "max_days": "This leave type allows maximum {{max}} days. You selected {{requested}} days."
+    },
+    "errors": {
+      "load_leave_types": "Failed to load leave types. Please refresh the page.",
+      "load_required_data": "Failed to load required data. Please refresh the page or contact support.",
+      "fix_validation": "Please fix the validation errors below before submitting.",
+      "auth_failed": "User authentication failed. Please log in again.",
+      "submit_failed": "Failed to submit leave application. Please try again.",
+      "balance_missing": "Your leave balance record is missing. The system will attempt to create it automatically. Please try again in a moment.",
+      "service_unavailable": "Leave application service is currently unavailable. Please try again later or contact IT support.",
+      "network": "Network connection error. Please check your internet connection and try again.",
+      "server": "Server error occurred. This might be due to missing leave balances. The system administrator has been notified.",
+      "submission_failed": "Submission Failed",
+      "suggested_solutions": "Suggested Solutions:",
+      "solution_wait": "Wait a moment and try again",
+      "solution_contact_hr": "Contact HR to verify your leave balances",
+      "solution_select_other": "Try selecting a different leave type",
+      "solution_check_dates": "Ensure your dates are valid and within allowed limits",
+      "validation_error": "Validation Error"
+    },
+    "success": {
+      "header": "Application Submitted Successfully!",
+      "submitted": "✅ Leave application submitted successfully!",
+      "details": "📋 Application Details:",
+      "type": "• Type: {{type}}",
+      "duration": "• Duration: {{days}} days",
+      "dates": "• Dates: {{start}} - {{end}}",
+      "status": "• Status: Pending Manager Approval",
+      "requires_hr": "• ⚠️ Requires additional HR approval",
+      "next_steps": "Your manager will review it shortly. You'll receive notifications at each step.",
+      "next_title": "📋 What happens next?",
+      "step1_title": "Application Submitted",
+      "step1_desc": "Your leave request has been received",
+      "step2_title": "Manager Review",
+      "step2_desc": "Your manager will review the request",
+      "step2_time": "Usually within 24-48 hours",
+      "step3_title": "HR Approval",
+      "step3_desc": "HR department will give final approval",
+      "step3_time": "Additional review required",
+      "step4_title": "Final Confirmation",
+      "step4_desc": "You'll receive final decision notification"
+    },
+    "hr_approval": "HR Approval",
+    "hr_approval_notice": "This leave type requires additional HR approval",
+    "no_balance": "No Balance",
+    "balance": {
+      "your_balance": "Your Balance",
+      "of": "of",
+      "remaining": "days remaining",
+      "low": "Low balance",
+      "not_found": "Balance Not Found",
+      "using_default": "Using default {{days}} days"
+    },
+    "total_days": "Total Days: {{days}} day(s)",
+    "days_will_remain": "{{days}} days will remain",
+    "using_default_allocation": "Using default allocation",
+    "exceeds_max": "Exceeds maximum allowed days for this leave type ({{max}} days)",
+    "within_limits": "Within allowed limits for {{type}}",
+    "balance_auto_create": "Leave balance will be automatically created upon submission",
+    "characters_count": "{{count}}/500 characters",
+    "min_required": "minimum 10 required",
+    "approaching_limit": "approaching limit",
+    "submitting": "Submitting Application...",
+    "submit": "Submit Leave Application",
+    "validation_hint": "Please complete all required fields correctly to submit your application",
+    "quick_actions": "💡 Quick Actions",
+    "actions": {
+      "clear_form": "Clear Form",
+      "fill_example": "Fill Example",
+      "refresh_data": "Refresh Data"
+    }
+  },
+  "leave_history": {
+    "title": "My Leave History",
+    "subtitle": "Track and manage your leave applications",
+    "leave": "Leave",
+    "remaining": "remaining",
+    "used": "used",
+    "total_applications": "Total Applications",
+    "upcoming": "📅 Upcoming Approved Leaves",
+    "search_placeholder": "Search by leave type, reason, or status...",
+    "all_status": "All Status",
+    "loading": "Loading your leave history...",
+    "empty_title": "No leave applications found",
+    "empty_all": "You haven't applied for any leave yet. Start by applying for a new leave.",
+    "empty_filtered": "No {{status}} leave applications found.",
+    "columns": {
+      "leave_type": "Leave Type",
+      "start_date": "Start Date",
+      "end_date": "End Date",
+      "duration": "Duration",
+      "applied_date": "Applied Date",
+      "status": "Status",
+      "reason": "Reason",
+      "actions": "Actions"
+    },
+    "view_details": "View Details",
+    "details_title": "Leave Application Details",
+    "manager_approved": "Manager Approved",
+    "hr_approved": "HR Approved",
+    "manager_notes": "Manager's Notes",
+    "hr_notes": "HR Notes",
+    "hr_rejected": "HR Rejected",
+    "unknown": "Unknown",
+    "type_annual": "Annual",
+    "type_sick": "Sick",
+    "type_personal": "Personal"
+  },
+  "about_me": {
+    "subtitle": "Your professional profile and information",
+    "loading": "Loading your profile...",
+    "unable_title": "Unable to Load Profile",
+    "unable_subtitle": "There was an error loading your profile information.",
+    "status": "Status",
+    "joined": "Joined",
+    "employee_id": "Employee ID",
+    "personal_info": "👤 Personal Information",
+    "professional_info": "💼 Professional Information",
+    "reporting_manager": "👨‍💼 Reporting Manager",
+    "send_email": "Send Email",
+    "system_info": "⚙️ System Information",
+    "user_status": "User Status",
+    "account_type": "Account Type",
+    "member_since": "Member Since",
+    "account_security": "Account Security",
+    "employment_duration": "Employment Duration",
+    "full_name": "Full Name",
+    "email": "Email Address",
+    "phone": "Phone Number",
+    "phone_placeholder": "+251 91 234 5678",
+    "profile_picture": "Profile Picture",
+    "avatar_hint": "Click on your picture to upload a new one",
+    "department": "Department",
+    "position": "Position",
+    "role": "Role",
+    "cannot_edit": "Cannot edit",
+    "university_email": "University Email",
+    "not_provided": "Not provided",
+    "edit_phone": "Edit phone number",
+    "managed_by_hr": "Managed by HR",
+    "not_specified": "Not specified",
+    "hr_admin": "HR Administrator",
+    "super_admin": "System Administrator",
+    "years": "year",
+    "months": "month",
+    "less_than_month": "Less than a month",
+    "errors": {
+      "load_profile": "Failed to load profile",
+      "invalid_phone": "Please enter a valid phone number",
+      "update_phone": "Failed to update phone number"
+    },
+    "password": {
+      "title": "Change Password",
+      "current": "Current Password",
+      "new": "New Password",
+      "confirm": "Confirm New Password",
+      "update": "Update Password",
+      "updating": "Updating...",
+      "change": "Change Password",
+      "change_title": "Change your password",
+      "current_required": "Please enter your current password",
+      "new_required": "Please enter a new password",
+      "mismatch": "New passwords do not match",
+      "min_length": "New password must be at least 8 characters",
+      "failed": "Failed to change password"
+    }
+  },
+  "hr_approvals": {
+    "title": "HR Approvals",
+    "subtitle": "Review and approve leave requests",
+    "loading": "Loading leave requests...",
+    "na": "N/A",
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "pending_hr": "Pending HR Approval",
+    "tabs": {
+      "pending": "Pending Approvals",
+      "approved": "Approved Leaves",
+      "rejected": "Rejected Leaves"
+    },
+    "search_placeholder": "Search by employee name, email, or reason...",
+    "all_departments": "All Departments",
+    "all_leave_types": "All Leave Types",
+    "sort": {
+      "date": "Sort by Date",
+      "employee": "Sort by Employee",
+      "days": "Sort by Days",
+      "asc": "↑ Asc",
+      "desc": "↓ Desc"
+    },
+    "showing": "Showing {{shown}} of {{total}} leave requests",
+    "filtered": "(filtered)",
+    "empty": {
+      "pending": "No Pending Approvals",
+      "approved": "No Approved Leaves",
+      "rejected": "No Rejected Leaves",
+      "processed": "All leave requests have been processed.",
+      "no_records": "No records found for this category."
+    },
+    "hr_required": "HR Approval Required",
+    "manager": "Manager",
+    "applied_on": "Applied On",
+    "approve": "Approve",
+    "reject": "Reject",
+    "generate_certificate": "Generate Certificate",
+    "details_title": "Leave Request Details",
+    "employee_info": "Employee Information",
+    "manager_approval": "Manager Approval",
+    "timeline": "Application Timeline",
+    "applied": "Applied",
+    "notes": "Notes",
+    "approve_leave": "Approve Leave",
+    "reject_leave": "Reject Leave",
+    "reject_title": "Reject Leave Request",
+    "reject_warning": "Are you sure you want to reject this leave request? This action cannot be undone. Please provide a reason for rejection.",
+    "reject_reason": "Reason for Rejection",
+    "reject_placeholder": "Please provide a detailed reason for rejecting this leave request...",
+    "reject_help": "This feedback will be shared with the employee and their manager.",
+    "confirm_rejection": "Confirm Rejection",
+    "errors": {
+      "load_failed": "Failed to load leave approvals. Please try again.",
+      "approve_failed": "Failed to approve leave. Please try again.",
+      "reject_failed": "Failed to reject leave. Please try again.",
+      "pdf_failed": "Failed to generate PDF. Please try again."
+    }
+  },
+  "pending_requests": {
+    "title": "Pending Leave Requests",
+    "subtitle": "Review and approve leave applications",
+    "titles": {
+      "manager": "Pending Manager Approvals",
+      "hr": "Pending HR Approvals"
+    },
+    "subtitles": {
+      "manager": "First-level approval for your team members",
+      "hr": "Final approval for manager-reviewed requests"
+    },
+    "loading": "Loading leave requests...",
+    "loading_pending": "Loading pending requests...",
+    "errors": {
+      "unable": "Unable to Load Requests"
+    },
+    "stats": {
+      "total": "Total",
+      "urgent": "Urgent",
+      "requires_hr": "Requires HR"
+    },
+    "search_placeholder": "Search by employee, department, or reason...",
+    "filters": {
+      "all": "All Requests ({{count}})",
+      "urgent": "Urgent ({{count}})",
+      "requires_hr": "Requires HR ({{count}})",
+      "first_approval": "First Approval ({{count}})"
+    },
+    "sort": {
+      "urgency": "Sort by Urgency",
+      "date": "Sort by Date",
+      "employee": "Sort by Employee",
+      "department": "Sort by Department"
+    },
+    "bulk": {
+      "selected": "{{count}} requests selected",
+      "processing": "Processing...",
+      "approve": "Approve {{count}}",
+      "reject": "Reject {{count}}",
+      "clear": "Clear Selection"
+    },
+    "empty": {
+      "matching": "No matching requests found",
+      "manager": "No Pending Manager Approvals",
+      "hr": "No Pending HR Approvals",
+      "try_adjust": "Try adjusting your search criteria",
+      "processed": "All leave requests have been processed.",
+      "hr_review": "No manager-approved requests pending HR review."
+    },
+    "clear_filters": "Clear Filters",
+    "urgency": {
+      "overdue": "⏰ Overdue",
+      "starts_today": "🚨 Starts Today",
+      "urgent": "🚨 Urgent",
+      "soon": "⚠️ Soon",
+      "upcoming": "📅 Upcoming"
+    },
+    "time": {
+      "overdue": "{{days}} days overdue",
+      "starts_today": "Starts today",
+      "until_start": "{{days}} days until start"
+    },
+    "notes": {
+      "manager": "Add approval notes...",
+      "hr": "Add final approval notes..."
+    },
+    "actions": {
+      "forward_hr": "✅ Forward to HR",
+      "final_approve": "✅ Final Approve",
+      "reject": "❌ Reject"
+    },
+    "details": "Details",
+    "details_title": "Leave Request Details",
+    "status": {
+      "manager_to_hr": "✅ Manager Approved → ⏳ HR Review"
+    }
+  },
+  "approvals_history": {
+    "title": "Approvals History",
+    "subtitle": "Track your leave request decisions and patterns",
+    "loading": "Loading approvals history...",
+    "errors": {
+      "load_failed": "Failed to load approvals history",
+      "unable": "Unable to Load History"
+    },
+    "stats": {
+      "total": "Total Decisions",
+      "rate": "Approval Rate"
+    },
+    "filters": {
+      "status": "Status Filter:",
+      "all": "All Decisions",
+      "approved": "Approved Only",
+      "rejected": "Rejected Only",
+      "period": "Time Period:",
+      "all_time": "All Time",
+      "month": "This Month",
+      "quarter": "This Quarter",
+      "year": "This Year"
+    },
+    "showing": "Showing {{shown}} of {{total}} decisions",
+    "empty_title": "No Approval History",
+    "empty_subtitle": "No leave request decisions found for the selected filters.",
+    "unassigned": "Unassigned",
+    "decided": "Decided",
+    "your_notes": "Your Notes"
+  },
+  "team_overview": {
+    "title": "Team Overview",
+    "loading_info": "Loading team information...",
+    "loading_team": "Loading your team...",
+    "errors": {
+      "load_failed": "Failed to load team members"
+    },
+    "unassigned": "Unassigned",
+    "upcoming_leave": "Upcoming Leave",
+    "available": "Available",
+    "no_upcoming": "No upcoming leave",
+    "starts_today": "Starts today",
+    "starts_tomorrow": "Starts tomorrow",
+    "started_days_ago": "Started {{days}} days ago",
+    "starts_in_days": "Starts in {{days}} days",
+    "days_until_leave": "{{days}} days until leave",
+    "team_count": "{{count}} team member(s)",
+    "views": {
+      "grid": "Grid",
+      "table": "Table"
+    },
+    "stats": {
+      "total_members": "Total Members",
+      "on_leave_today": "On Leave Today",
+      "upcoming": "Upcoming Leaves",
+      "avg_leave": "Avg Leave Days"
+    },
+    "department_distribution": "Department Distribution",
+    "search_placeholder": "Search team members by name, email, or position...",
+    "filters": {
+      "all_status": "All Status",
+      "all_departments": "All Departments"
+    },
+    "showing": "Showing {{shown}} of {{total}} team members",
+    "empty_title": "No Team Members Found",
+    "empty_filtered": "Try adjusting your search or filters",
+    "empty_default": "No team members are assigned to you yet.",
+    "next_leave": "Next Leave",
+    "days_left": "days left",
+    "member_details": "Team Member Details",
+    "leave_info": "Leave Information",
+    "leave_balances": "Leave Balances",
+    "no_balance_info": "No leave balance information available.",
+    "current_leave": "Current Leave",
+    "upcoming_leaves": "Upcoming Leaves"
+  },
+  "manager_reports": {
+    "title": "Manager Reports",
+    "subtitle": "Analytics and insights for your team's leave management",
+    "loading": "Loading report data...",
+    "generating": "Generating your reports...",
+    "export": "Export Report",
+    "exporting": "Exporting...",
+    "errors": {
+      "export_failed": "Export failed. Please try again."
+    },
+    "date_range": "📅 Date Range",
+    "from": "From",
+    "to": "To",
+    "filters": "🎯 Filters",
+    "all_employees": "All Employees",
+    "quick_stats": {
+      "title": "Quick Stats",
+      "total_applications": "Total Applications",
+      "approval_rate": "Approval Rate",
+      "avg_processing_time": "Avg. Processing Time"
+    },
+    "report_period": "Report Period: {{start}} - {{end}}",
+    "refreshing": "🔄 Refreshing...",
+    "refresh": "🔄 Refresh Data",
+    "tabs": {
+      "overview": "Overview",
+      "performance": "Team Performance",
+      "analytics": "Analytics",
+      "details": "Detailed View"
+    },
+    "summary": {
+      "total_applications": "Total Applications",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "pending": "Pending"
+    },
+    "charts": {
+      "applications_by_month": "Applications by Month",
+      "applications_by_department": "Applications by Department",
+      "leave_type_distribution": "Leave Type Distribution",
+      "leave_trends": "Leave Trends"
+    },
+    "labels": {
+      "applications": "Applications",
+      "approval_rate_pct": "Approval Rate %",
+      "avg_processing_time_days": "Avg Processing Time (days)",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "performance": {
+      "title": "Team Performance Analysis",
+      "subtitle": "Individual performance metrics for team members",
+      "highest_approval": "Highest Approval Rate",
+      "avg_applications": "Avg Applications per Member",
+      "avg_duration": "Avg Leave Duration",
+      "insights_title": "Performance Insights",
+      "peak_period": "Peak Leave Period",
+      "peak_period_desc": "Most leaves were taken in {{period}}",
+      "processing_efficiency": "Processing Efficiency",
+      "processing_efficiency_desc": "Average approval time: {{days}} days",
+      "most_common_type": "Most Common Leave Type",
+      "most_common_type_desc": "{{type}} ({{percent}}% of all leaves)"
+    },
+    "table": {
+      "employee": "Employee",
+      "applications": "Applications",
+      "approval_rate": "Approval Rate",
+      "avg_duration": "Avg Leave Duration",
+      "performance_score": "Performance Score",
+      "days": "{{days}} days",
+      "score": "{{score}}/100"
+    },
+    "analytics": {
+      "title": "Advanced Analytics",
+      "department_comparison": "Department Comparison",
+      "approval_distribution": "Approval Rate Distribution",
+      "processing_time_trend": "Processing Time Trend",
+      "key_insights": "Key Insights",
+      "high_approval_title": "High Approval Rate:",
+      "high_approval_desc": "Your team has an excellent approval rate of {{rate}}%",
+      "approval_rate_title": "Approval Rate:",
+      "approval_rate_desc": "Consider reviewing processes to improve the {{rate}}% approval rate",
+      "processing_time_title": "Processing Time:",
+      "processing_time_desc": "Average processing time of {{days}} days could be improved",
+      "quick_processing_title": "Quick Processing:",
+      "quick_processing_desc": "Great job processing leaves in {{days}} days on average",
+      "leave_distribution_title": "Leave Distribution:",
+      "leave_distribution_desc": "{{type}} accounts for over 50% of all leaves"
+    },
+    "details": {
+      "title": "Detailed Report View",
+      "monthly_breakdown": "Monthly Breakdown",
+      "department_performance": "Department Performance",
+      "leave_type_analysis": "Leave Type Analysis",
+      "executive_summary": "Executive Summary",
+      "summary_period": "During the period from {{start}} to {{end}}, your team processed a total of {{total}} leave applications.",
+      "summary_approval": "The overall approval rate was {{rate}}% with an average processing time of {{days}} days.",
+      "summary_most_used": "{{type}} was the most frequently used leave type, accounting for {{percent}}% of all applications.",
+      "table": {
+        "month": "Month",
+        "applications": "Applications",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "approval_rate": "Approval Rate",
+        "department": "Department",
+        "performance": "Performance",
+        "leave_type": "Leave Type",
+        "count": "Count",
+        "percentage": "Percentage",
+        "avg_duration": "Avg Duration",
+        "days": "{{days}} days"
+      },
+      "performance": {
+        "excellent": "Excellent",
+        "good": "Good",
+        "average": "Average",
+        "needs_improvement": "Needs Improvement"
+      }
+    },
+    "csv": {
+      "metric": "Metric",
+      "value": "Value",
+      "total_applications": "Total Applications",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "pending": "Pending",
+      "approval_rate": "Approval Rate",
+      "avg_processing_time": "Average Processing Time",
+      "avg_processing_time_value": "{{days}} days",
+      "month": "Month",
+      "applications": "Applications"
+    },
+    "updating": "Updating report data..."
+  },
+  "hr_reports": {
+    "title": "HR Analytics & Reports",
+    "subtitle": "Comprehensive organizational leave analytics and insights",
+    "loading_data": "Loading HR analytics data...",
+    "error_title": "Unable to Load HR Reports",
+    "no_data_title": "No Report Data Available",
+    "no_data_desc": "No HR analytics data was loaded. Please try refreshing or contact support.",
+    "try_again": "Try Again",
+    "load_data": "Load Data",
+    "period": "Period: {{start}} - {{end}}",
+    "total_employees": "Total Employees",
+    "exporting": "Exporting...",
+    "export_report": "📥 Export Report",
+    "export_csv": "Export as CSV",
+    "export_pdf": "Export as PDF",
+    "export_excel": "Export as Excel",
+    "export_pdf_soon": "PDF export feature will be implemented soon",
+    "export_excel_soon": "Excel export feature will be implemented soon",
+    "date_range": "Date Range:",
+    "range": {
+      "month": "Month",
+      "quarter": "Quarter",
+      "year": "Year",
+      "custom": "Custom"
+    },
+    "to": "to",
+    "apply": "Apply",
+    "department": "Department:",
+    "status_filter": "Status Filter:",
+    "status": {
+      "all": "All Statuses",
+      "approved": "Approved Only",
+      "pending": "Pending Only",
+      "rejected": "Rejected Only"
+    },
+    "refresh_title": "Refresh data",
+    "refresh": "Refresh",
+    "tabs": {
+      "overview": "Overview",
+      "analytics": "Analytics",
+      "compliance": "Compliance",
+      "employees": "Employees"
+    },
+    "metrics": {
+      "total_employees": "Total Employees",
+      "change_from_last_period": "{{value}}% from last period",
+      "total_leaves": "Total Leaves",
+      "total_days": "{{days}} total days",
+      "approval_rate": "Approval Rate",
+      "change": "{{value}}% change",
+      "on_leave_today": "On Leave Today",
+      "workforce_pct": "{{value}}% of workforce",
+      "pending_approvals": "Pending Approvals",
+      "requires_attention": "Requires attention",
+      "avg_leave_duration": "Avg Leave Duration",
+      "avg_duration_value": "{{days}} days"
+    },
+    "department_performance": "Department Performance",
+    "department_employees": "{{count}} employees",
+    "department": {
+      "leaves": "Leaves",
+      "approval_rate": "Approval Rate",
+      "avg_duration": "Avg Duration",
+      "avg_duration_value": "{{days}}d"
+    },
+    "department_option": "{{department}} ({{count}} employees)",
+    "no_department_data": "No department data available",
+    "monthly_trends": "Monthly Leave Trends",
+    "last_6_months": "Last 6 months overview",
+    "trend_tooltip": "{{count}} leaves",
+    "no_trend_data": "No trend data available",
+    "leave_type_distribution": "Leave Type Distribution",
+    "most_used_types": "Most used leave types",
+    "no_leave_type_data": "No leave type data available",
+    "leave_type_analytics": "Leave Type Analytics",
+    "no_leave_type_analytics": "No leave type analytics data available",
+    "table": {
+      "leave_type": "Leave Type",
+      "total_requests": "Total Requests",
+      "approved": "Approved",
+      "approval_rate": "Approval Rate",
+      "avg_duration": "Avg Duration",
+      "utilization": "Utilization",
+      "avg_duration_value": "{{days}} days",
+      "rank": "Rank",
+      "employee": "Employee",
+      "department": "Department",
+      "leaves_taken": "Leaves Taken",
+      "total_days": "Total Days",
+      "trend": "Trend"
+    },
+    "compliance": {
+      "score": "Compliance Score",
+      "score_label": "Score",
+      "level": {
+        "excellent": "Excellent",
+        "good": "Good",
+        "fair": "Fair",
+        "needs_improvement": "Needs Improvement"
+      },
+      "policy_violations": "Policy Violations",
+      "late_applications": "Late Applications",
+      "overlapping_leaves": "Overlapping Leaves",
+      "high_frequency": "High Frequency Employees",
+      "weighted": "{{value}} × {{weight}}",
+      "details": "Compliance Details",
+      "violations_detected": "{{count}} violations detected",
+      "policy_violations_desc": "Includes leaves exceeding limits, unauthorized types",
+      "late_submissions": "{{count}} late submissions",
+      "late_applications_desc": "Applications submitted with insufficient notice",
+      "overlaps_detected": "{{count}} overlaps detected",
+      "overlapping_leaves_desc": "Multiple approved leaves for same period",
+      "employees_flagged": "{{count}} employees flagged",
+      "high_frequency_desc": "Employees with excessive leave frequency"
+    },
+    "top_employees": "Top 10 Employees by Leave Days",
+    "days_badge": "{{days}} days",
+    "no_employee_data": "No employee insights data available",
+    "employee_insights": "Employee Insights",
+    "insights": {
+      "most_active_department": "Most Active Department",
+      "most_active_department_desc": "Highest number of leave requests",
+      "highest_approval_rate": "Highest Approval Rate",
+      "highest_approval_rate_desc": "Most efficient approval process",
+      "top_leave_taker": "Top Leave Taker",
+      "top_leave_taker_desc": "{{days}} total leave days",
+      "most_used_leave_type": "Most Used Leave Type",
+      "most_used_leave_type_desc": "Most frequently requested leave type"
+    },
+    "errors": {
+      "load_failed": "Failed to load HR report data",
+      "no_data_export": "No data to export",
+      "export_failed": "Export failed: {{message}}"
+    }
+  },
+  "leave_types": {
+    "title": "Leave Types Management",
+    "subtitle": "Configure different types of leave available in the system",
+    "loading": "Loading leave types...",
+    "add": "Add Leave Type",
+    "add_title": "Add New Leave Type",
+    "edit_title": "Edit Leave Type",
+    "errors": {
+      "load_failed": "Failed to load leave types",
+      "update_status": "Failed to update leave type status",
+      "save_failed": "Failed to save leave type",
+      "name_required": "Leave type name is required",
+      "max_days_min": "Maximum days must be at least 1"
+    },
+    "messages": {
+      "activated": "Leave type \"{{name}}\" activated successfully",
+      "deactivated": "Leave type \"{{name}}\" deactivated successfully",
+      "created": "Leave type \"{{name}}\" created successfully",
+      "updated": "Leave type \"{{name}}\" updated successfully"
+    },
+    "form": {
+      "name": "Leave Type Name",
+      "name_placeholder": "e.g., Annual Leave, Sick Leave",
+      "max_days": "Maximum Days",
+      "description": "Description",
+      "description_placeholder": "Brief description of this leave type...",
+      "color": "Color",
+      "requires_hr": "Requires HR Approval",
+      "requires_hr_help": "This leave type will require additional HR approval after manager approval",
+      "carry_over": "Allow Carry Over",
+      "carry_over_help": "Unused days can be carried over to next year",
+      "requires_approval": "Requires Approval",
+      "requires_approval_help": "Leave requests require manager approval",
+      "update": "Update Leave Type",
+      "create": "Create Leave Type"
+    },
+    "table": {
+      "title": "Available Leave Types",
+      "total": "Total: {{count}}",
+      "active": "Active: {{count}}",
+      "name": "Name",
+      "max_days": "Max Days",
+      "hr_approval": "HR Approval",
+      "carry_over": "Carry Over",
+      "status": "Status",
+      "created": "Created",
+      "actions": "Actions",
+      "days": "{{days}} days",
+      "active_label": "Active",
+      "inactive_label": "Inactive",
+      "edit_title": "Edit leave type",
+      "edit": "Edit",
+      "activate": "Activate",
+      "deactivate": "Deactivate"
+    },
+    "empty": {
+      "title": "No Leave Types Configured",
+      "subtitle": "Get started by adding your first leave type to the system.",
+      "add_first": "Add First Leave Type"
+    }
+  },
+  "leave_overview": {
+    "title": "Leave Overview",
+    "subtitle": "Comprehensive view of all leave applications across the organization",
+    "loading": "Loading leave applications...",
+    "refresh": "🔄 Refresh",
+    "refreshing": "🔄 Loading...",
+    "export_csv": "📊 Export CSV",
+    "exporting": "📊 Exporting...",
+    "errors": {
+      "export_failed": "Failed to export data"
+    },
+    "stats": {
+      "total": "Total Applications",
+      "pending": "Pending",
+      "hr_pending": "({{count}} HR)",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "filters": {
+      "search_placeholder": "Search employees, departments, leave types...",
+      "all_departments": "All Departments",
+      "all_leave_types": "All Leave Types",
+      "all_time": "All Time",
+      "today": "Today",
+      "last_7_days": "Last 7 Days",
+      "last_30_days": "Last 30 Days",
+      "per_page": "{{count}} per page"
+    },
+    "tabs": {
+      "all": "All Applications ({{count}})",
+      "pending": "Pending ({{count}})",
+      "hr_badge": "HR: {{count}}",
+      "approved": "Approved ({{count}})",
+      "rejected": "Rejected ({{count}})"
+    },
+    "department_overview": "Department Overview",
+    "department": {
+      "total": "Total:",
+      "approved": "Approved:",
+      "pending": "Pending:",
+      "hr_pending": "({{count}} HR)",
+      "rejected": "Rejected:"
+    },
+    "table": {
+      "title": "Leave Applications",
+      "showing": "Showing {{shown}} of {{total}} applications",
+      "filtered": "(filtered)",
+      "auto_refresh": "Auto-refresh in 2m",
+      "employee": "Employee",
+      "department": "Department",
+      "leave_type": "Leave Type",
+      "leave_period": "Leave Period",
+      "duration": "Duration",
+      "applied": "Applied",
+      "status": "Status",
+      "approver": "Approver",
+      "to": "to {{end}}",
+      "days": "{{count}} day",
+      "days_plural": "{{count}} days"
+    },
+    "empty": {
+      "title": "No Applications Found",
+      "all": "No leave applications match your current filters",
+      "by_status": "No {{status}} applications found with the current filters",
+      "clear_filters": "Clear All Filters"
+    },
+    "pagination": {
+      "prev": "Previous",
+      "next": "Next"
+    },
+    "approver": {
+      "manager": "Manager",
+      "hr": "HR"
+    }
+  },
+  "user_management": {
+    "title": "User Management",
+    "loading": "Loading users...",
+    "user_count": "{{count}} users",
+    "add_user": "Add User",
+    "search_placeholder": "Search users by name or email...",
+    "refresh": "Refresh",
+    "filters": {
+      "all_roles": "All Roles",
+      "all_departments": "All Departments"
+    },
+    "modal": {
+      "add_title": "Add New User",
+      "basic_info": "Basic Information",
+      "additional_details": "Additional Details",
+      "security": "Security"
+    },
+    "fields": {
+      "full_name": "Full Name",
+      "email": "Email",
+      "role": "Role",
+      "department": "Department",
+      "position": "Position",
+      "phone": "Phone",
+      "manager": "Assign Manager",
+      "password": "Initial Password"
+    },
+    "placeholders": {
+      "full_name": "Enter full name (e.g., Obsa Mustefa)",
+      "email": "Email will be auto-generated",
+      "department": "Select Department",
+      "new_department": "Enter new department name",
+      "position": "e.g., Software Engineer",
+      "phone": "e.g., +1234567890",
+      "no_manager": "No Manager (Self-managed)",
+      "password": "Set initial password"
+    },
+    "help": {
+      "full_name": "Enter first name and last name for automatic email generation",
+      "auto_generated": "Auto-generated: {{email}}",
+      "valid_email": "✓ Valid OBU email",
+      "no_managers": "No managers found in {{department}} department",
+      "select_manager": "Select a manager from the same department",
+      "password_notice": "User will be asked to change this password on first login"
+    },
+    "actions": {
+      "generate_email": "Generate new email",
+      "add_department": "Add New Department",
+      "generate_password": "Generate",
+      "creating": "Creating...",
+      "create": "Create User",
+      "activate": "Activate",
+      "deactivate": "Deactivate",
+      "delete": "Delete"
+    },
+    "table": {
+      "user": "User",
+      "role": "Role",
+      "department": "Department",
+      "position": "Position",
+      "join_date": "Join Date",
+      "status": "Status",
+      "actions": "Actions",
+      "showing": "Showing {{shown}} of {{total}} users",
+      "filtered": "(filtered)"
+    },
+    "empty": {
+      "title": "No Users Found",
+      "filtered": "Try adjusting your search or filters",
+      "default": "Get started by adding your first user to the system.",
+      "add_first": "Add First User"
+    },
+    "errors": {
+      "load_failed": "Failed to load users",
+      "email_domain": "Please use @obu.edu.et email domain",
+      "required_fields": "Please fill in all required fields",
+      "email_used": "This email is already used by {{name}}",
+      "email_exists_suggested": "Email already exists. Suggested alternative: {{email}}",
+      "create_failed": "Failed to create user",
+      "delete_failed": "Failed to delete user",
+      "update_status": "Failed to update user status"
+    },
+    "messages": {
+      "created": "User \"{{name}}\" created successfully with email: {{email}}",
+      "deleted": "User deleted successfully!",
+      "activated": "User activated successfully!",
+      "deactivated": "User deactivated successfully!"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "confirm_delete": "Are you sure you want to delete this user? This action cannot be undone."
+  },
+  "system_config": {
+    "title": "System Configuration",
+    "subtitle": "Manage system-wide settings and preferences",
+    "loading": "Loading system configuration...",
+    "unsaved_changes": "Unsaved Changes",
+    "unsaved_warning": "You have unsaved changes. Don't forget to save your configuration.",
+    "saving": "Saving...",
+    "save": "Save Configuration",
+    "discard": "Discard Changes",
+    "reset": "Reset to Defaults",
+    "errors": {
+      "load_failed": "Failed to load system settings",
+      "save_failed": "Failed to save system configuration"
+    },
+    "messages": {
+      "saved": "System configuration saved successfully!"
+    },
+    "validation": {
+      "max_consecutive": "Maximum consecutive leaves must be at least 1 day",
+      "advance_notice": "Advance notice days cannot be negative",
+      "carry_over_limit": "Carry over limit cannot be negative",
+      "max_leave_days": "Maximum leave days per year must be at least 1",
+      "min_leave_duration": "Minimum leave duration cannot be negative",
+      "auto_approve_max": "Auto-approve maximum days cannot be negative",
+      "approval_reminder": "Approval reminder hours must be at least 1"
+    },
+    "sections": {
+      "leave_policies": {
+        "title": "Leave Policies",
+        "subtitle": "Configure leave duration, notice periods, and carry-over rules"
+      },
+      "approvals": {
+        "title": "Approval Settings",
+        "subtitle": "Configure approval workflows and automation"
+      },
+      "notifications": {
+        "title": "Notification Settings",
+        "subtitle": "Configure notification channels and recipients"
+      },
+      "behavior": {
+        "title": "System Behavior",
+        "subtitle": "Configure system rules and calendar settings"
+      },
+      "ui": {
+        "title": "Interface Settings",
+        "subtitle": "Customize the user interface appearance and behavior"
+      }
+    },
+    "fields": {
+      "max_consecutive": "Maximum Consecutive Leave Days",
+      "advance_notice": "Advance Notice Required (Days)",
+      "max_per_year": "Maximum Leave Days Per Year",
+      "min_duration": "Minimum Leave Duration (Days)",
+      "carry_over_enabled": "Allow Leave Carry Over to Next Year",
+      "carry_over_limit": "Maximum Carry Over Days",
+      "auto_approve": "Enable Auto-Approval for Short Leaves",
+      "auto_approve_max": "Auto-Approval Maximum Days",
+      "require_manager": "Require Manager Approval",
+      "require_hr": "Require HR Approval",
+      "approval_reminder": "Approval Reminder (Hours)",
+      "notify_email": "Email Notifications",
+      "notify_sms": "SMS Notifications",
+      "notify_managers": "Notify Managers",
+      "notify_hr": "Notify HR Team",
+      "system_alerts": "System Alerts & Reports",
+      "allow_backdate": "Allow Backdated Leaves",
+      "allow_overlap": "Allow Overlapping Leaves",
+      "fiscal_start": "Fiscal Year Start Date",
+      "working_days": "Working Days",
+      "holiday_calendar": "Holiday Calendar",
+      "theme": "Theme",
+      "language": "Language",
+      "timezone": "Timezone"
+    },
+    "help": {
+      "max_consecutive": "Maximum allowed continuous leave duration",
+      "advance_notice": "Minimum notice period before leave starts",
+      "max_per_year": "Total leave days allowed per calendar year",
+      "min_duration": "Minimum allowed leave duration (0.5 = half day)",
+      "carry_over_enabled": "Enable unused leave days to be carried over",
+      "carry_over_limit": "Maximum days that can be carried over to next year",
+      "auto_approve": "Automatically approve leaves shorter than specified duration",
+      "auto_approve_max": "Maximum duration for auto-approval (in days)",
+      "approval_reminder": "Send reminder after this many hours if not approved",
+      "system_alerts": "Receive system health alerts and weekly reports",
+      "fiscal_start": "Start date for the fiscal year (affects leave balances)",
+      "working_days": "Select which days are considered working days",
+      "holiday_calendar": "Holiday calendar for automatic leave calculations",
+      "timezone": "Time zone for all date and time displays"
+    },
+    "options": {
+      "calendar": {
+        "ethiopian": "Ethiopian Calendar",
+        "gregorian": "Gregorian Calendar",
+        "custom": "Custom Calendar"
+      },
+      "theme": {
+        "light": "Light",
+        "dark": "Dark",
+        "auto": "Auto (System)"
+      },
+      "timezone": {
+        "eat": "East Africa Time (EAT)",
+        "utc": "UTC"
+      }
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "mark_all": "Mark all read",
+    "empty": "No notifications yet",
+    "empty_hint": "You'll see updates about your leave requests here"
+  }
+}

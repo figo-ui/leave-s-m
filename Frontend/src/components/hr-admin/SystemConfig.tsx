@@ -1,16 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { apiService } from '../../utils/api';
+import type { SystemSetting } from '../../types';
+import { useTranslation } from 'react-i18next';
 import './SystemConfig.css';
-
-interface SystemSetting {
-  id: number;
-  key: string;
-  value: string;
-  description?: string;
-  category: string;
-  isPublic: boolean;
-  updatedAt: string;
-}
 
 interface SystemConfigState {
   // Leave Policies
@@ -49,6 +41,7 @@ interface SystemConfigState {
 }
 
 const SystemConfig: React.FC = () => {
+  const { t } = useTranslation();
   
   const [settings, setSettings] = useState<SystemConfigState>({
     // Leave Policies
@@ -110,11 +103,11 @@ const SystemConfig: React.FC = () => {
         setSettings(backendSettings);
         setOriginalSettings(backendSettings);
       } else {
-        setError('Failed to load system settings');
+        setError(t('system_config.errors.load_failed'));
       }
     } catch (error: any) {
       console.error('Error loading settings:', error);
-      setError(error.message || 'Failed to load system settings');
+      setError(error.message || t('system_config.errors.load_failed'));
     } finally {
       setLoading(false);
     }
@@ -210,7 +203,7 @@ const SystemConfig: React.FC = () => {
         throw new Error(`Failed to save ${failedSaves.length} settings`);
       }
 
-      setSuccess('System configuration saved successfully!');
+      setSuccess(t('system_config.messages.saved'));
       setOriginalSettings(settings);
       setHasChanges(false);
       
@@ -219,7 +212,7 @@ const SystemConfig: React.FC = () => {
       
     } catch (error: any) {
       console.error('Error saving settings:', error);
-      setError(error.message || 'Failed to save system configuration');
+      setError(error.message || t('system_config.errors.save_failed'));
     } finally {
       setSaving(false);
     }
@@ -227,31 +220,31 @@ const SystemConfig: React.FC = () => {
 
   const validateSettings = (): string | null => {
     if (settings.maxConsecutiveLeaves < 1) {
-      return 'Maximum consecutive leaves must be at least 1 day';
+      return t('system_config.validation.max_consecutive');
     }
     
     if (settings.advanceNoticeDays < 0) {
-      return 'Advance notice days cannot be negative';
+      return t('system_config.validation.advance_notice');
     }
     
     if (settings.carryOverEnabled && settings.carryOverLimit < 0) {
-      return 'Carry over limit cannot be negative';
+      return t('system_config.validation.carry_over_limit');
     }
     
     if (settings.maxLeaveDaysPerYear < 1) {
-      return 'Maximum leave days per year must be at least 1';
+      return t('system_config.validation.max_leave_days');
     }
     
     if (settings.minLeaveDuration < 0) {
-      return 'Minimum leave duration cannot be negative';
+      return t('system_config.validation.min_leave_duration');
     }
     
     if (settings.autoApproveEnabled && settings.autoApproveMaxDays < 0) {
-      return 'Auto-approve maximum days cannot be negative';
+      return t('system_config.validation.auto_approve_max');
     }
     
     if (settings.approvalReminderHours < 1) {
-      return 'Approval reminder hours must be at least 1';
+      return t('system_config.validation.approval_reminder');
     }
     
     return null;
@@ -347,12 +340,12 @@ const SystemConfig: React.FC = () => {
     return (
       <div className="system-config">
         <div className="page-header">
-          <h1>System Configuration</h1>
-          <p>Manage system-wide settings and preferences</p>
+          <h1>{t('system_config.title')}</h1>
+          <p>{t('system_config.subtitle')}</p>
         </div>
         <div className="loading-state">
           <div className="loading-spinner"></div>
-          <p>Loading system configuration...</p>
+          <p>{t('system_config.loading')}</p>
         </div>
       </div>
     );
@@ -363,12 +356,12 @@ const SystemConfig: React.FC = () => {
       <div className="page-header">
         <div className="header-content">
           <div>
-            <h1>System Configuration</h1>
-            <p>Manage system-wide settings and preferences</p>
+            <h1>{t('system_config.title')}</h1>
+            <p>{t('system_config.subtitle')}</p>
           </div>
           <div className="header-actions">
             {hasChanges && (
-              <span className="changes-indicator">• Unsaved Changes</span>
+              <span className="changes-indicator">• {t('system_config.unsaved_changes')}</span>
             )}
           </div>
         </div>
@@ -399,13 +392,13 @@ const SystemConfig: React.FC = () => {
         {/* Leave Policies Section */}
         <div className="config-section">
           <div className="section-header">
-            <h2>📅 Leave Policies</h2>
-            <p>Configure leave duration, notice periods, and carry-over rules</p>
+            <h2>📅 {t('system_config.sections.leave_policies.title')}</h2>
+            <p>{t('system_config.sections.leave_policies.subtitle')}</p>
           </div>
           <div className="setting-group">
             <div className="setting-row">
               <div className="setting-item">
-                <label>Maximum Consecutive Leave Days</label>
+                <label>{t('system_config.fields.max_consecutive')}</label>
                 <input 
                   type="number" 
                   value={settings.maxConsecutiveLeaves}
@@ -413,11 +406,11 @@ const SystemConfig: React.FC = () => {
                   min="1"
                   max="365"
                 />
-                <span className="help-text">Maximum allowed continuous leave duration</span>
+                <span className="help-text">{t('system_config.help.max_consecutive')}</span>
               </div>
               
               <div className="setting-item">
-                <label>Advance Notice Required (Days)</label>
+                <label>{t('system_config.fields.advance_notice')}</label>
                 <input 
                   type="number" 
                   value={settings.advanceNoticeDays}
@@ -425,13 +418,13 @@ const SystemConfig: React.FC = () => {
                   min="0"
                   max="30"
                 />
-                <span className="help-text">Minimum notice period before leave starts</span>
+                <span className="help-text">{t('system_config.help.advance_notice')}</span>
               </div>
             </div>
 
             <div className="setting-row">
               <div className="setting-item">
-                <label>Maximum Leave Days Per Year</label>
+                <label>{t('system_config.fields.max_per_year')}</label>
                 <input 
                   type="number" 
                   value={settings.maxLeaveDaysPerYear}
@@ -439,11 +432,11 @@ const SystemConfig: React.FC = () => {
                   min="1"
                   max="365"
                 />
-                <span className="help-text">Total leave days allowed per calendar year</span>
+                <span className="help-text">{t('system_config.help.max_per_year')}</span>
               </div>
               
               <div className="setting-item">
-                <label>Minimum Leave Duration (Days)</label>
+                <label>{t('system_config.fields.min_duration')}</label>
                 <input 
                   type="number" 
                   value={settings.minLeaveDuration}
@@ -452,7 +445,7 @@ const SystemConfig: React.FC = () => {
                   max="1"
                   step="0.5"
                 />
-                <span className="help-text">Minimum allowed leave duration (0.5 = half day)</span>
+                <span className="help-text">{t('system_config.help.min_duration')}</span>
               </div>
             </div>
 
@@ -463,14 +456,14 @@ const SystemConfig: React.FC = () => {
                   checked={settings.carryOverEnabled}
                   onChange={(e) => handleSettingChange('carryOverEnabled', e.target.checked)}
                 />
-                Allow Leave Carry Over to Next Year
+                {t('system_config.fields.carry_over_enabled')}
               </label>
-              <span className="help-text">Enable unused leave days to be carried over</span>
+              <span className="help-text">{t('system_config.help.carry_over_enabled')}</span>
             </div>
 
             {settings.carryOverEnabled && (
               <div className="setting-item">
-                <label>Maximum Carry Over Days</label>
+                <label>{t('system_config.fields.carry_over_limit')}</label>
                 <input 
                   type="number" 
                   value={settings.carryOverLimit}
@@ -478,7 +471,7 @@ const SystemConfig: React.FC = () => {
                   min="0"
                   max="30"
                 />
-                <span className="help-text">Maximum days that can be carried over to next year</span>
+                <span className="help-text">{t('system_config.help.carry_over_limit')}</span>
               </div>
             )}
           </div>
@@ -487,8 +480,8 @@ const SystemConfig: React.FC = () => {
         {/* Approval Settings Section */}
         <div className="config-section">
           <div className="section-header">
-            <h2>✅ Approval Settings</h2>
-            <p>Configure approval workflows and automation</p>
+            <h2>✅ {t('system_config.sections.approvals.title')}</h2>
+            <p>{t('system_config.sections.approvals.subtitle')}</p>
           </div>
           <div className="setting-group">
             <div className="setting-item checkbox-group">
@@ -498,14 +491,14 @@ const SystemConfig: React.FC = () => {
                   checked={settings.autoApproveEnabled}
                   onChange={(e) => handleSettingChange('autoApproveEnabled', e.target.checked)}
                 />
-                Enable Auto-Approval for Short Leaves
+                {t('system_config.fields.auto_approve')}
               </label>
-              <span className="help-text">Automatically approve leaves shorter than specified duration</span>
+              <span className="help-text">{t('system_config.help.auto_approve')}</span>
             </div>
 
             {settings.autoApproveEnabled && (
               <div className="setting-item">
-                <label>Auto-Approval Maximum Days</label>
+                <label>{t('system_config.fields.auto_approve_max')}</label>
                 <input 
                   type="number" 
                   value={settings.autoApproveMaxDays}
@@ -513,7 +506,7 @@ const SystemConfig: React.FC = () => {
                   min="1"
                   max="7"
                 />
-                <span className="help-text">Maximum duration for auto-approval (in days)</span>
+                <span className="help-text">{t('system_config.help.auto_approve_max')}</span>
               </div>
             )}
 
@@ -525,7 +518,7 @@ const SystemConfig: React.FC = () => {
                     checked={settings.requireManagerApproval}
                     onChange={(e) => handleSettingChange('requireManagerApproval', e.target.checked)}
                   />
-                  Require Manager Approval
+                  {t('system_config.fields.require_manager')}
                 </label>
               </div>
               
@@ -536,13 +529,13 @@ const SystemConfig: React.FC = () => {
                     checked={settings.requireHRApproval}
                     onChange={(e) => handleSettingChange('requireHRApproval', e.target.checked)}
                   />
-                  Require HR Approval
+                  {t('system_config.fields.require_hr')}
                 </label>
               </div>
             </div>
 
             <div className="setting-item">
-              <label>Approval Reminder (Hours)</label>
+              <label>{t('system_config.fields.approval_reminder')}</label>
               <input 
                 type="number" 
                 value={settings.approvalReminderHours}
@@ -550,7 +543,7 @@ const SystemConfig: React.FC = () => {
                 min="1"
                 max="168"
               />
-              <span className="help-text">Send reminder after this many hours if not approved</span>
+              <span className="help-text">{t('system_config.help.approval_reminder')}</span>
             </div>
           </div>
         </div>
@@ -558,8 +551,8 @@ const SystemConfig: React.FC = () => {
         {/* Notification Settings Section */}
         <div className="config-section">
           <div className="section-header">
-            <h2>🔔 Notification Settings</h2>
-            <p>Configure notification channels and recipients</p>
+            <h2>🔔 {t('system_config.sections.notifications.title')}</h2>
+            <p>{t('system_config.sections.notifications.subtitle')}</p>
           </div>
           <div className="setting-group">
             <div className="setting-row">
@@ -570,7 +563,7 @@ const SystemConfig: React.FC = () => {
                     checked={settings.notificationEmails}
                     onChange={(e) => handleSettingChange('notificationEmails', e.target.checked)}
                   />
-                  Email Notifications
+                  {t('system_config.fields.notify_email')}
                 </label>
               </div>
               
@@ -581,7 +574,7 @@ const SystemConfig: React.FC = () => {
                     checked={settings.notificationSMS}
                     onChange={(e) => handleSettingChange('notificationSMS', e.target.checked)}
                   />
-                  SMS Notifications
+                  {t('system_config.fields.notify_sms')}
                 </label>
               </div>
             </div>
@@ -594,7 +587,7 @@ const SystemConfig: React.FC = () => {
                     checked={settings.managerNotifications}
                     onChange={(e) => handleSettingChange('managerNotifications', e.target.checked)}
                   />
-                  Notify Managers
+                  {t('system_config.fields.notify_managers')}
                 </label>
               </div>
               
@@ -605,7 +598,7 @@ const SystemConfig: React.FC = () => {
                     checked={settings.hrNotifications}
                     onChange={(e) => handleSettingChange('hrNotifications', e.target.checked)}
                   />
-                  Notify HR Team
+                  {t('system_config.fields.notify_hr')}
                 </label>
               </div>
             </div>
@@ -617,9 +610,9 @@ const SystemConfig: React.FC = () => {
                   checked={settings.systemAlerts}
                   onChange={(e) => handleSettingChange('systemAlerts', e.target.checked)}
                 />
-                System Alerts & Reports
+                {t('system_config.fields.system_alerts')}
               </label>
-              <span className="help-text">Receive system health alerts and weekly reports</span>
+              <span className="help-text">{t('system_config.help.system_alerts')}</span>
             </div>
           </div>
         </div>
@@ -627,8 +620,8 @@ const SystemConfig: React.FC = () => {
         {/* System Behavior Section */}
         <div className="config-section">
           <div className="section-header">
-            <h2>⚙️ System Behavior</h2>
-            <p>Configure system rules and calendar settings</p>
+            <h2>⚙️ {t('system_config.sections.behavior.title')}</h2>
+            <p>{t('system_config.sections.behavior.subtitle')}</p>
           </div>
           <div className="setting-group">
             <div className="setting-row">
@@ -639,7 +632,7 @@ const SystemConfig: React.FC = () => {
                     checked={settings.allowBackdateLeaves}
                     onChange={(e) => handleSettingChange('allowBackdateLeaves', e.target.checked)}
                   />
-                  Allow Backdated Leaves
+                  {t('system_config.fields.allow_backdate')}
                 </label>
               </div>
               
@@ -650,32 +643,32 @@ const SystemConfig: React.FC = () => {
                     checked={settings.allowOverlappingLeaves}
                     onChange={(e) => handleSettingChange('allowOverlappingLeaves', e.target.checked)}
                   />
-                  Allow Overlapping Leaves
+                  {t('system_config.fields.allow_overlap')}
                 </label>
               </div>
             </div>
 
             <div className="setting-item">
-              <label>Fiscal Year Start Date</label>
+              <label>{t('system_config.fields.fiscal_start')}</label>
               <input 
                 type="date" 
                 value={settings.fiscalYearStart}
                 onChange={(e) => handleSettingChange('fiscalYearStart', e.target.value)}
               />
-              <span className="help-text">Start date for the fiscal year (affects leave balances)</span>
+              <span className="help-text">{t('system_config.help.fiscal_start')}</span>
             </div>
 
             <div className="setting-item">
-              <label>Working Days</label>
+              <label>{t('system_config.fields.working_days')}</label>
               <div className="checkbox-grid">
                 {[
-                  { value: 'monday', label: 'Monday' },
-                  { value: 'tuesday', label: 'Tuesday' },
-                  { value: 'wednesday', label: 'Wednesday' },
-                  { value: 'thursday', label: 'Thursday' },
-                  { value: 'friday', label: 'Friday' },
-                  { value: 'saturday', label: 'Saturday' },
-                  { value: 'sunday', label: 'Sunday' }
+                  { value: 'monday', label: t('common.days.monday') },
+                  { value: 'tuesday', label: t('common.days.tuesday') },
+                  { value: 'wednesday', label: t('common.days.wednesday') },
+                  { value: 'thursday', label: t('common.days.thursday') },
+                  { value: 'friday', label: t('common.days.friday') },
+                  { value: 'saturday', label: t('common.days.saturday') },
+                  { value: 'sunday', label: t('common.days.sunday') }
                 ].map(day => (
                   <label key={day.value} className="checkbox-label small">
                     <input 
@@ -687,20 +680,20 @@ const SystemConfig: React.FC = () => {
                   </label>
                 ))}
               </div>
-              <span className="help-text">Select which days are considered working days</span>
+              <span className="help-text">{t('system_config.help.working_days')}</span>
             </div>
 
             <div className="setting-item">
-              <label>Holiday Calendar</label>
+              <label>{t('system_config.fields.holiday_calendar')}</label>
               <select 
                 value={settings.holidayCalendar}
                 onChange={(e) => handleSettingChange('holidayCalendar', e.target.value)}
               >
-                <option value="ethiopian">Ethiopian Calendar</option>
-                <option value="gregorian">Gregorian Calendar</option>
-                <option value="custom">Custom Calendar</option>
+                <option value="ethiopian">{t('system_config.options.calendar.ethiopian')}</option>
+                <option value="gregorian">{t('system_config.options.calendar.gregorian')}</option>
+                <option value="custom">{t('system_config.options.calendar.custom')}</option>
               </select>
-              <span className="help-text">Holiday calendar for automatic leave calculations</span>
+              <span className="help-text">{t('system_config.help.holiday_calendar')}</span>
             </div>
           </div>
         </div>
@@ -708,45 +701,46 @@ const SystemConfig: React.FC = () => {
         {/* UI Settings Section */}
         <div className="config-section">
           <div className="section-header">
-            <h2>🎨 Interface Settings</h2>
-            <p>Customize the user interface appearance and behavior</p>
+            <h2>🎨 {t('system_config.sections.ui.title')}</h2>
+            <p>{t('system_config.sections.ui.subtitle')}</p>
           </div>
           <div className="setting-group">
             <div className="setting-row">
               <div className="setting-item">
-                <label>Theme</label>
+                <label>{t('system_config.fields.theme')}</label>
                 <select 
                   value={settings.theme}
                   onChange={(e) => handleSettingChange('theme', e.target.value)}
                 >
-                  <option value="light">Light</option>
-                  <option value="dark">Dark</option>
-                  <option value="auto">Auto (System)</option>
+                  <option value="light">{t('system_config.options.theme.light')}</option>
+                  <option value="dark">{t('system_config.options.theme.dark')}</option>
+                  <option value="auto">{t('system_config.options.theme.auto')}</option>
                 </select>
               </div>
               
               <div className="setting-item">
-                <label>Language</label>
+                <label>{t('system_config.fields.language')}</label>
                 <select 
                   value={settings.language}
                   onChange={(e) => handleSettingChange('language', e.target.value)}
                 >
-                  <option value="en">English</option>
-                  <option value="am">Amharic</option>
+                  <option value="en">{t('languages.en')}</option>
+                  <option value="am">{t('languages.am')}</option>
+                  <option value="om">{t('languages.om')}</option>
                 </select>
               </div>
             </div>
 
             <div className="setting-item">
-              <label>Timezone</label>
+              <label>{t('system_config.fields.timezone')}</label>
               <select 
                 value={settings.timezone}
                 onChange={(e) => handleSettingChange('timezone', e.target.value)}
               >
-                <option value="Africa/Addis_Ababa">East Africa Time (EAT)</option>
-                <option value="UTC">UTC</option>
+                <option value="Africa/Addis_Ababa">{t('system_config.options.timezone.eat')}</option>
+                <option value="UTC">{t('system_config.options.timezone.utc')}</option>
               </select>
-              <span className="help-text">Time zone for all date and time displays</span>
+              <span className="help-text">{t('system_config.help.timezone')}</span>
             </div>
           </div>
         </div>
@@ -756,7 +750,7 @@ const SystemConfig: React.FC = () => {
           <div className="actions-info">
             {hasChanges && (
               <div className="changes-warning">
-                ⚠️ You have unsaved changes. Don't forget to save your configuration.
+                ⚠️ {t('system_config.unsaved_warning')}
               </div>
             )}
           </div>
@@ -770,10 +764,10 @@ const SystemConfig: React.FC = () => {
               {saving ? (
                 <>
                   <div className="loading-spinner-small"></div>
-                  Saving...
+                  {t('system_config.saving')}
                 </>
               ) : (
-                'Save Configuration'
+                t('system_config.save')
               )}
             </button>
             
@@ -783,7 +777,7 @@ const SystemConfig: React.FC = () => {
                 onClick={discardChanges}
                 disabled={saving}
               >
-                Discard Changes
+                {t('system_config.discard')}
               </button>
             )}
             
@@ -792,7 +786,7 @@ const SystemConfig: React.FC = () => {
               onClick={resetToDefaults}
               disabled={saving}
             >
-              Reset to Defaults
+              {t('system_config.reset')}
             </button>
           </div>
         </div>

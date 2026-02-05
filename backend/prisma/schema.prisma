@@ -20,6 +20,7 @@ model User {
   phone        String?
   avatar       String?
   status       UserStatus @default(ACTIVE)
+  language     String    @default("en")
   joinDate     DateTime? @default(now())
   
   // Manager relationship (self-referencing)

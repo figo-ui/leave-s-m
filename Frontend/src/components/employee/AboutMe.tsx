@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { apiService } from '../../utils/api';
 import AvatarUpload from '../common/AvatarUpload';
+import { useTranslation } from 'react-i18next';
 
 import './AboutMe.css';
 
@@ -11,11 +12,11 @@ interface UserProfile {
   name: string;
   email: string;
   role: string;
-  department: string;
+  department?: string;
   position?: string;
   phone?: string;
   avatar?: string;
-  status: string;
+  status?: string;
   joinDate?: string;
   employeeId?: string;
   manager?: {
@@ -25,8 +26,116 @@ interface UserProfile {
   };
 }
 
+interface ChangePasswordModalProps {
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ onClose, onSuccess }) => {
+  const { t } = useTranslation();
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (!currentPassword) {
+      setError(t('about_me.password.current_required'));
+      return;
+    }
+    if (!newPassword) {
+      setError(t('about_me.password.new_required'));
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setError(t('about_me.password.mismatch'));
+      return;
+    }
+    if (newPassword.length < 8) {
+      setError(t('about_me.password.min_length'));
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await apiService.changePassword({
+        currentPassword,
+        newPassword
+      });
+
+      if (response.success) {
+        onSuccess();
+      } else {
+        setError(response.message || t('about_me.password.failed'));
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : t('about_me.password.failed');
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <div className="modal-header">
+          <h3>{t('about_me.password.title')}</h3>
+          <button onClick={onClose} className="close-btn">×</button>
+        </div>
+        <form onSubmit={handleSubmit} className="modal-body">
+          {error && <div className="error-message">{error}</div>}
+          <div className="form-group">
+            <label htmlFor="currentPassword">{t('about_me.password.current')}</label>
+            <input
+              id="currentPassword"
+              type="password"
+              value={currentPassword}
+              onChange={e => setCurrentPassword(e.target.value)}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="newPassword">{t('about_me.password.new')}</label>
+            <input
+              id="newPassword"
+              type="password"
+              value={newPassword}
+              onChange={e => setNewPassword(e.target.value)}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="confirmPassword">{t('about_me.password.confirm')}</label>
+            <input
+              id="confirmPassword"
+              type="password"
+              value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)}
+              required
+            />
+          </div>
+          <div className="modal-actions">
+            <button type="button" onClick={onClose} className="secondary-btn" disabled={loading}>
+              {t('common.cancel')}
+            </button>
+            <button type="submit" className="primary-btn" disabled={loading}>
+              {loading ? t('about_me.password.updating') : t('about_me.password.update')}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 const AboutMe: React.FC = () => {
   const { user, updateUser } = useAuth();
+  const { t, i18n } = useTranslation();
   const [profile, setProfile] = useState<UserProfile>();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -58,11 +167,11 @@ const AboutMe: React.FC = () => {
         setPhoneValue(userData.phone || '');
         setOriginalPhone(userData.phone || '');
       } else {
-        setError('Failed to load profile data');
+        setError(t('about_me.errors.load_profile'));
       }
     } catch (error: any) {
       console.error('Error loading profile:', error);
-      setError(error.message || 'Failed to load profile');
+      setError(error.message || t('about_me.errors.load_profile'));
     } finally {
       setLoading(false);
     }
@@ -72,8 +181,8 @@ const AboutMe: React.FC = () => {
     if (updateUser && typeof updateUser === 'function') {
       updateUser(updatedUser);
     }
-    setProfile(prev => prev ? { ...prev, avatar: updatedUser.avatar } : null);
-    showMessage('Profile picture updated successfully!');
+    setProfile(prev => prev ? { ...prev, avatar: updatedUser.avatar } : undefined);
+    showMessage(t('profile.avatar_updated'));
   };
 
   const handleSavePhone = async () => {
@@ -81,7 +190,7 @@ const AboutMe: React.FC = () => {
 
     // Validate phone format (optional)
     if (phoneValue && !isValidPhone(phoneValue)) {
-      setError('Please enter a valid phone number');
+      setError(t('about_me.errors.invalid_phone'));
       return;
     }
 
@@ -101,12 +210,12 @@ const AboutMe: React.FC = () => {
         setProfile(response.data);
         setOriginalPhone(phoneValue);
         setEditingPhone(false);
-        showMessage('Phone number updated successfully!');
+        showMessage(t('profile.phone_updated'));
       } else {
-        setError(response.message || 'Failed to update phone number');
+        setError(response.message || t('about_me.errors.update_phone'));
       }
     } catch (error: any) {
-      setError(error.message || 'Failed to update phone number');
+      setError(error.message || t('about_me.errors.update_phone'));
     } finally {
       setSaving(false);
     }
@@ -124,7 +233,7 @@ const AboutMe: React.FC = () => {
 
   const isValidPhone = (phone: string): boolean => {
     // Basic validation - adjust as needed
-    const phoneRegex = /^[\+]?[0-9\s\-\(\)]{10,}$/;
+    const phoneRegex = /^\+?[0-9\s\-()]{10,}$/;
     return phoneRegex.test(phone);
   };
 
@@ -134,7 +243,9 @@ const AboutMe: React.FC = () => {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    const localeMap: Record<string, string> = { en: 'en-US', am: 'am-ET', om: 'om-ET' };
+    const locale = localeMap[i18n.language] || 'en-US';
+    return new Date(dateString).toLocaleDateString(locale, {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
@@ -149,21 +260,21 @@ const AboutMe: React.FC = () => {
     
     let duration = '';
     if (years > 0) {
-      duration += `${years} year${years > 1 ? 's' : ''}`;
+      duration += `${years} ${t('about_me.years', { count: years })}`;
     }
     if (months > 0) {
       if (duration) duration += ', ';
-      duration += `${months} month${months > 1 ? 's' : ''}`;
+      duration += `${months} ${t('about_me.months', { count: months })}`;
     }
-    return duration || 'Less than a month';
+    return duration || t('about_me.less_than_month');
   };
 
   const getRoleLabel = (role: string) => {
     const roleLabels: Record<string, string> = {
-      'employee': 'Employee',
-      'manager': 'Manager',
-      'hr-admin': 'HR Administrator',
-      'super-admin': 'System Administrator'
+      'employee': t('roles.employee'),
+      'manager': t('roles.manager'),
+      'hr-admin': t('about_me.hr_admin'),
+      'super-admin': t('about_me.super_admin')
     };
     return roleLabels[role] || role;
   };
@@ -173,7 +284,7 @@ const AboutMe: React.FC = () => {
       <div className="about-me">
         <div className="loading-state">
           <div className="loading-spinner"></div>
-          <p>Loading your profile...</p>
+          <p>{t('about_me.loading')}</p>
         </div>
       </div>
     );
@@ -183,10 +294,10 @@ const AboutMe: React.FC = () => {
     return (
       <div className="about-me">
         <div className="error-state">
-          <h2>Unable to Load Profile</h2>
-          <p>There was an error loading your profile information.</p>
+          <h2>{t('about_me.unable_title')}</h2>
+          <p>{t('about_me.unable_subtitle')}</p>
           <button onClick={loadUserProfile} className="retry-btn">
-            Try Again
+            {t('common.try_again')}
           </button>
         </div>
       </div>
@@ -200,15 +311,15 @@ const AboutMe: React.FC = () => {
         <ChangePasswordModal
           onClose={() => setShowChangePassword(false)}
           onSuccess={() => {
-            showMessage('Password changed successfully!');
+            showMessage(t('profile.password_changed'));
             setShowChangePassword(false);
           }}
         />
       )}
 
       <div className="about-me-header">
-        <h1>About Me</h1>
-        <p>Your professional profile and information</p>
+        <h1>{t('nav.about_me')}</h1>
+        <p>{t('about_me.subtitle')}</p>
       </div>
 
       {/* Messages */}
@@ -254,14 +365,14 @@ const AboutMe: React.FC = () => {
             
             <div className="profile-stats">
               <div className="stat-item">
-                <span className="stat-label">Status</span>
-                <span className={`status-badge status-${profile.status.toLowerCase()}`}>
-                  {profile.status}
+                <span className="stat-label">{t('about_me.status')}</span>
+                <span className={`status-badge status-${(profile.status || 'active').toLowerCase()}`}>
+                  {profile.status || 'active'}
                 </span>
               </div>
               {profile.joinDate && (
                 <div className="stat-item">
-                  <span className="stat-label">Joined</span>
+                  <span className="stat-label">{t('about_me.joined')}</span>
                   <span className="stat-value">
                     {formatDate(profile.joinDate)}
                   </span>
@@ -269,7 +380,7 @@ const AboutMe: React.FC = () => {
               )}
               {profile.employeeId && (
                 <div className="stat-item">
-                  <span className="stat-label">Employee ID</span>
+                  <span className="stat-label">{t('about_me.employee_id')}</span>
                   <span className="stat-value">{profile.employeeId}</span>
                 </div>
               )}
@@ -281,9 +392,9 @@ const AboutMe: React.FC = () => {
               <button 
                 className="action-btn password-btn"
                 onClick={() => setShowChangePassword(true)}
-                title="Change your password"
+                title={t('about_me.password.change_title')}
               >
-                🔒 Change Password
+                🔒 {t('about_me.password.change')}
               </button>
             </div>
           </div>
@@ -294,27 +405,27 @@ const AboutMe: React.FC = () => {
           {/* Personal Information Card */}
           <div className="info-card">
             <div className="card-header">
-              <h3>👤 Personal Information</h3>
+              <h3>{t('about_me.personal_info')}</h3>
             </div>
             <div className="card-content">
               <div className="info-group">
-                <label>Full Name</label>
+                <label>{t('about_me.full_name')}</label>
                 <div className="info-value readonly">
                   {profile.name}
-                  <span className="readonly-badge">Cannot edit</span>
+                  <span className="readonly-badge">{t('about_me.cannot_edit')}</span>
                 </div>
               </div>
 
               <div className="info-group">
-                <label>Email Address</label>
+                <label>{t('about_me.email')}</label>
                 <div className="info-value readonly">
                   {profile.email}
-                  <span className="readonly-badge">University Email</span>
+                  <span className="readonly-badge">{t('about_me.university_email')}</span>
                 </div>
               </div>
 
               <div className="info-group">
-                <label>Phone Number</label>
+                <label>{t('about_me.phone')}</label>
                 {editingPhone ? (
                   <div className="edit-phone-container">
                     <input
@@ -322,7 +433,7 @@ const AboutMe: React.FC = () => {
                       value={phoneValue}
                       onChange={handlePhoneChange}
                       className="editable-input"
-                      placeholder="+251 91 234 5678"
+                      placeholder={t('about_me.phone_placeholder')}
                       disabled={saving}
                     />
                     <div className="edit-phone-actions">
@@ -331,26 +442,26 @@ const AboutMe: React.FC = () => {
                         onClick={handleSavePhone}
                         disabled={saving || phoneValue === originalPhone}
                       >
-                        {saving ? '...' : 'Save'}
+                        {saving ? '...' : t('common.save')}
                       </button>
                       <button 
                         className="cancel-btn small"
                         onClick={handleCancelPhoneEdit}
                         disabled={saving}
                       >
-                        Cancel
+                        {t('common.cancel')}
                       </button>
                     </div>
                   </div>
                 ) : (
                   <div className="info-value-with-action">
                     <span className="phone-value">
-                      {profile.phone || 'Not provided'}
+                      {profile.phone || t('about_me.not_provided')}
                     </span>
                     <button 
                       className="edit-field-btn"
                       onClick={() => setEditingPhone(true)}
-                      title="Edit phone number"
+                      title={t('about_me.edit_phone')}
                     >
                       ✏️
                     </button>
@@ -359,7 +470,7 @@ const AboutMe: React.FC = () => {
               </div>
 
               <div className="info-group">
-                <label>Profile Picture</label>
+                <label>{t('about_me.profile_picture')}</label>
                 <div className="info-value">
                   <div className="avatar-info">
                     <div className="avatar-preview">
@@ -372,7 +483,7 @@ const AboutMe: React.FC = () => {
                       )}
                     </div>
                     <div className="avatar-actions">
-                      <p className="avatar-hint">Click on your picture to upload a new one</p>
+                      <p className="avatar-hint">{t('about_me.avatar_hint')}</p>
                     </div>
                   </div>
                 </div>
@@ -383,27 +494,27 @@ const AboutMe: React.FC = () => {
           {/* Professional Information Card */}
           <div className="info-card">
             <div className="card-header">
-              <h3>💼 Professional Information</h3>
+              <h3>{t('about_me.professional_info')}</h3>
             </div>
             <div className="card-content">
               <div className="info-group">
-                <label>Department</label>
+                <label>{t('about_me.department')}</label>
                 <div className="info-value readonly">
                   {profile.department}
-                  <span className="readonly-badge">Managed by HR</span>
+                  <span className="readonly-badge">{t('about_me.managed_by_hr')}</span>
                 </div>
               </div>
 
               <div className="info-group">
-                <label>Position</label>
+                <label>{t('about_me.position')}</label>
                 <div className="info-value readonly">
-                  {profile.position || 'Not specified'}
-                  <span className="readonly-badge">Managed by HR</span>
+                  {profile.position || t('about_me.not_specified')}
+                  <span className="readonly-badge">{t('about_me.managed_by_hr')}</span>
                 </div>
               </div>
 
               <div className="info-group">
-                <label>Role</label>
+                <label>{t('about_me.role')}</label>
                 <div className="info-value">
                   <span className={`role-badge role-${profile.role}`}>
                     {getRoleLabel(profile.role)}
@@ -413,7 +524,7 @@ const AboutMe: React.FC = () => {
 
               {profile.joinDate && (
                 <div className="info-group">
-                  <label>Employment Duration</label>
+                  <label>{t('about_me.employment_duration')}</label>
                   <div className="info-value">
                     {getEmploymentDuration(profile.joinDate)}
                   </div>
@@ -426,7 +537,7 @@ const AboutMe: React.FC = () => {
           {profile.manager && (
             <div className="info-card">
               <div className="card-header">
-                <h3>👨‍💼 Reporting Manager</h3>
+                <h3>{t('about_me.reporting_manager')}</h3>
               </div>
               <div className="card-content">
                 <div className="manager-info">
@@ -446,7 +557,7 @@ const AboutMe: React.FC = () => {
                     href={`mailto:${profile.manager.email}`}
                     className="contact-btn"
                   >
-                    📧 Send Email
+                    📧 {t('about_me.send_email')}
                   </a>
                 </div>
               </div>
@@ -456,20 +567,20 @@ const AboutMe: React.FC = () => {
           {/* System Information Card */}
           <div className="info-card">
             <div className="card-header">
-              <h3>⚙️ System Information</h3>
+              <h3>{t('about_me.system_info')}</h3>
             </div>
             <div className="card-content">
               <div className="info-group">
-                <label>User Status</label>
+                <label>{t('about_me.user_status')}</label>
                 <div className="info-value">
-                  <span className={`status-badge status-${profile.status.toLowerCase()}`}>
-                    {profile.status}
+                  <span className={`status-badge status-${(profile.status || 'active').toLowerCase()}`}>
+                    {profile.status || 'active'}
                   </span>
                 </div>
               </div>
 
               <div className="info-group">
-                <label>Account Type</label>
+                <label>{t('about_me.account_type')}</label>
                 <div className="info-value">
                   {getRoleLabel(profile.role)}
                 </div>
@@ -477,7 +588,7 @@ const AboutMe: React.FC = () => {
 
               {profile.joinDate && (
                 <div className="info-group">
-                  <label>Member Since</label>
+                  <label>{t('about_me.member_since')}</label>
                   <div className="info-value">
                     {formatDate(profile.joinDate)}
                   </div>
@@ -485,13 +596,13 @@ const AboutMe: React.FC = () => {
               )}
 
               <div className="info-group">
-                <label>Account Security</label>
+                <label>{t('about_me.account_security')}</label>
                 <div className="info-value">
                   <button 
                     className="security-btn"
                     onClick={() => setShowChangePassword(true)}
                   >
-                    🔐 Change Password
+                    🔐 {t('about_me.password.change')}
                   </button>
                 </div>
               </div>
@@ -501,18 +612,18 @@ const AboutMe: React.FC = () => {
 
         {/* Quick Actions - Role-based */}
         <div className="quick-actions-section">
-          <h3>Quick Actions</h3>
+          <h3>{t('dashboard.quick_actions.title')}</h3>
           <div className="actions-grid">
             {profile.role === 'employee' && (
               <>
                 <button className="action-card" onClick={() => window.location.href = '/apply-leave'}>
                   <span className="action-icon">📝</span>
-                  <span className="action-label">Apply for Leave</span>
+                  <span className="action-label">{t('menu.apply_leave')}</span>
                 </button>
                 
                 <button className="action-card" onClick={() => window.location.href = '/leave-history'}>
                   <span className="action-icon">📋</span>
-                  <span className="action-label">View Leave History</span>
+                  <span className="action-label">{t('leave_history.view_details')}</span>
                 </button>
               </>
             )}
@@ -521,12 +632,12 @@ const AboutMe: React.FC = () => {
               <>
                 <button className="action-card" onClick={() => window.location.href = '/pending-requests'}>
                   <span className="action-icon">✅</span>
-                  <span className="action-label">Review Leave Requests</span>
+                  <span className="action-label">{t('dashboard.actions.review_pending')}</span>
                 </button>
                 
                 <button className="action-card" onClick={() => window.location.href = '/team-overview'}>
                   <span className="action-icon">👥</span>
-                  <span className="action-label">View Team</span>
+                  <span className="action-label">{t('menu.team_overview')}</span>
                 </button>
               </>
             )}
@@ -535,24 +646,24 @@ const AboutMe: React.FC = () => {
               <>
                 <button className="action-card" onClick={() => window.location.href = '/hr/pending-approvals'}>
                   <span className="action-icon">✅</span>
-                  <span className="action-label">HR Approvals</span>
+                  <span className="action-label">{t('dashboard.actions.hr_approvals')}</span>
                 </button>
                 
                 <button className="action-card" onClick={() => window.location.href = '/users'}>
                   <span className="action-icon">👥</span>
-                  <span className="action-label">Manage Users</span>
+                  <span className="action-label">{t('menu.user_management')}</span>
                 </button>
               </>
             )}
 
             <button className="action-card" onClick={() => window.location.href = '/notifications'}>
               <span className="action-icon">🔔</span>
-              <span className="action-label">Notifications</span>
+              <span className="action-label">{t('dashboard.stats.notifications')}</span>
             </button>
 
             <button className="action-card" onClick={() => window.location.href = '/help'}>
               <span className="action-icon">❓</span>
-              <span className="action-label">Help & Support</span>
+              <span className="action-label">{t('common.help_support')}</span>
             </button>
           </div>
         </div>

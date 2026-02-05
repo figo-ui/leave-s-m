@@ -1,23 +1,11 @@
 import React, { useState, useEffect } from 'react';
-
 import { apiService } from '../../utils/api';
+import type { LeaveType } from '../../types';
+import { useTranslation } from 'react-i18next';
 import './LeaveTypes.css';
 
-interface LeaveType {
-  id: number;
-  name: string;
-  maxDays: number;
-  description?: string;
-  color?: string;
-  isActive: boolean;
-  requiresHRApproval: boolean;
-  carryOver: boolean;
-  requiresApproval: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
 const LeaveTypes: React.FC = () => {
+  const { t, i18n } = useTranslation();
 
   const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,11 +38,11 @@ const LeaveTypes: React.FC = () => {
       if (response.success) {
         setLeaveTypes(response.data || []);
       } else {
-        setError(response.message || 'Failed to load leave types');
+        setError(response.message || t('leave_types.errors.load_failed'));
       }
     } catch (error: any) {
       console.error('Error loading leave types:', error);
-      setError(error.message || 'Failed to load leave types');
+      setError(error.message || t('leave_types.errors.load_failed'));
     } finally {
       setLoading(false);
     }
@@ -78,7 +66,11 @@ const LeaveTypes: React.FC = () => {
       });
 
       if (response.success) {
-        setSuccess(`Leave type "${leaveType.name}" ${!leaveType.isActive ? 'activated' : 'deactivated'} successfully`);
+        setSuccess(
+          !leaveType.isActive
+            ? t('leave_types.messages.activated', { name: leaveType.name })
+            : t('leave_types.messages.deactivated', { name: leaveType.name })
+        );
         
         // Update local state
         setLeaveTypes(prev => 
@@ -89,11 +81,11 @@ const LeaveTypes: React.FC = () => {
           )
         );
       } else {
-        throw new Error(response.message || 'Failed to update status');
+        throw new Error(response.message || t('leave_types.errors.update_status'));
       }
     } catch (error: any) {
       console.error('Error toggling leave type status:', error);
-      setError(error.message || 'Failed to update leave type status');
+      setError(error.message || t('leave_types.errors.update_status'));
     } finally {
       setActionLoading(null);
     }
@@ -108,12 +100,12 @@ const LeaveTypes: React.FC = () => {
 
       // Validate form
       if (!formData.name.trim()) {
-        setError('Leave type name is required');
+        setError(t('leave_types.errors.name_required'));
         return;
       }
 
       if (formData.maxDays < 1) {
-        setError('Maximum days must be at least 1');
+        setError(t('leave_types.errors.max_days_min'));
         return;
       }
 
@@ -152,15 +144,19 @@ const LeaveTypes: React.FC = () => {
       }
 
       if (response.success) {
-        setSuccess(`Leave type "${formData.name}" ${editingType ? 'updated' : 'created'} successfully`);
+        setSuccess(
+          editingType
+            ? t('leave_types.messages.updated', { name: formData.name })
+            : t('leave_types.messages.created', { name: formData.name })
+        );
         resetForm();
         await loadLeaveTypes();
       } else {
-        throw new Error(response.message || `Failed to ${editingType ? 'update' : 'create'} leave type`);
+        throw new Error(response.message || t('leave_types.errors.save_failed'));
       }
     } catch (error: any) {
       console.error('Error saving leave type:', error);
-      setError(error.message || `Failed to ${editingType ? 'update' : 'create'} leave type`);
+      setError(error.message || t('leave_types.errors.save_failed'));
     }
   };
 
@@ -180,13 +176,13 @@ const LeaveTypes: React.FC = () => {
 
   const handleEdit = (leaveType: LeaveType) => {
     setFormData({
-      name: leaveType.name,
+      name: leaveType.name || '',
       maxDays: leaveType.maxDays,
       description: leaveType.description || '',
       color: leaveType.color || '#3B82F6',
-      requiresHRApproval: leaveType.requiresHRApproval,
+      requiresHRApproval: leaveType.requiresHRApproval ?? false,
       carryOver: leaveType.carryOver,
-      requiresApproval: leaveType.requiresApproval
+      requiresApproval: leaveType.requiresApproval ?? true
     });
     setEditingType(leaveType);
     setShowAddForm(true);
@@ -205,8 +201,11 @@ const LeaveTypes: React.FC = () => {
     }));
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return t('common.na');
+    const localeMap: Record<string, string> = { en: 'en-US', am: 'am-ET', om: 'om-ET' };
+    const locale = localeMap[i18n.language] || 'en-US';
+    return new Date(dateString).toLocaleDateString(locale, {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -222,12 +221,12 @@ const LeaveTypes: React.FC = () => {
     return (
       <div className="leave-types">
         <div className="page-header">
-          <h1>Leave Types Management</h1>
-          <p>Configure different types of leave available in the system</p>
+          <h1>{t('leave_types.title')}</h1>
+          <p>{t('leave_types.subtitle')}</p>
         </div>
         <div className="loading-state">
           <div className="loading-spinner"></div>
-          <p>Loading leave types...</p>
+          <p>{t('leave_types.loading')}</p>
         </div>
       </div>
     );
@@ -238,8 +237,8 @@ const LeaveTypes: React.FC = () => {
       <div className="page-header">
         <div className="header-content">
           <div>
-            <h1>Leave Types Management</h1>
-            <p>Configure different types of leave available in the system</p>
+            <h1>{t('leave_types.title')}</h1>
+            <p>{t('leave_types.subtitle')}</p>
           </div>
           <button 
             className="add-btn primary"
@@ -249,7 +248,7 @@ const LeaveTypes: React.FC = () => {
             }}
             disabled={showAddForm}
           >
-            + Add Leave Type
+            + {t('leave_types.add')}
           </button>
         </div>
       </div>
@@ -279,14 +278,14 @@ const LeaveTypes: React.FC = () => {
       {showAddForm && (
         <div className="form-section">
           <div className="form-header">
-            <h3>{editingType ? 'Edit Leave Type' : 'Add New Leave Type'}</h3>
+            <h3>{editingType ? t('leave_types.edit_title') : t('leave_types.add_title')}</h3>
             <button className="close-btn" onClick={resetForm}>×</button>
           </div>
           
           <form onSubmit={handleSubmit} className="leave-type-form">
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="name">Leave Type Name *</label>
+                <label htmlFor="name">{t('leave_types.form.name')} *</label>
                 <input
                   type="text"
                   id="name"
@@ -294,12 +293,12 @@ const LeaveTypes: React.FC = () => {
                   value={formData.name}
                   onChange={handleInputChange}
                   required
-                  placeholder="e.g., Annual Leave, Sick Leave"
+                  placeholder={t('leave_types.form.name_placeholder')}
                 />
               </div>
               
               <div className="form-group">
-                <label htmlFor="maxDays">Maximum Days *</label>
+                <label htmlFor="maxDays">{t('leave_types.form.max_days')} *</label>
                 <input
                   type="number"
                   id="maxDays"
@@ -314,19 +313,19 @@ const LeaveTypes: React.FC = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="description">Description</label>
+              <label htmlFor="description">{t('leave_types.form.description')}</label>
               <textarea
                 id="description"
                 name="description"
                 value={formData.description}
                 onChange={handleInputChange}
-                placeholder="Brief description of this leave type..."
+                placeholder={t('leave_types.form.description_placeholder')}
                 rows={3}
               />
             </div>
 
             <div className="form-group">
-              <label htmlFor="color">Color</label>
+              <label htmlFor="color">{t('leave_types.form.color')}</label>
               <div className="color-input-group">
                 <input
                   type="color"
@@ -349,9 +348,9 @@ const LeaveTypes: React.FC = () => {
                     onChange={handleInputChange}
                   />
                   <span className="checkmark"></span>
-                  Requires HR Approval
+                  {t('leave_types.form.requires_hr')}
                 </label>
-                <small>This leave type will require additional HR approval after manager approval</small>
+                <small>{t('leave_types.form.requires_hr_help')}</small>
               </div>
 
               <div className="form-group checkbox-group">
@@ -363,9 +362,9 @@ const LeaveTypes: React.FC = () => {
                     onChange={handleInputChange}
                   />
                   <span className="checkmark"></span>
-                  Allow Carry Over
+                  {t('leave_types.form.carry_over')}
                 </label>
-                <small>Unused days can be carried over to next year</small>
+                <small>{t('leave_types.form.carry_over_help')}</small>
               </div>
 
               <div className="form-group checkbox-group">
@@ -377,18 +376,18 @@ const LeaveTypes: React.FC = () => {
                     onChange={handleInputChange}
                   />
                   <span className="checkmark"></span>
-                  Requires Approval
+                  {t('leave_types.form.requires_approval')}
                 </label>
-                <small>Leave requests require manager approval</small>
+                <small>{t('leave_types.form.requires_approval_help')}</small>
               </div>
             </div>
 
             <div className="form-actions">
               <button type="submit" className="save-btn primary">
-                {editingType ? 'Update Leave Type' : 'Create Leave Type'}
+                {editingType ? t('leave_types.form.update') : t('leave_types.form.create')}
               </button>
               <button type="button" className="cancel-btn" onClick={resetForm}>
-                Cancel
+                {t('common.cancel')}
               </button>
             </div>
           </form>
@@ -398,13 +397,13 @@ const LeaveTypes: React.FC = () => {
       {/* Leave Types Table */}
       <div className="table-section">
         <div className="table-header">
-          <h3>Available Leave Types</h3>
+          <h3>{t('leave_types.table.title')}</h3>
           <div className="table-stats">
             <span className="stat">
-              Total: {leaveTypes.length}
+              {t('leave_types.table.total', { count: leaveTypes.length })}
             </span>
             <span className="stat">
-              Active: {leaveTypes.filter(lt => lt.isActive).length}
+              {t('leave_types.table.active', { count: leaveTypes.filter(lt => lt.isActive).length })}
             </span>
           </div>
         </div>
@@ -412,8 +411,8 @@ const LeaveTypes: React.FC = () => {
         {leaveTypes.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">📋</div>
-            <h3>No Leave Types Configured</h3>
-            <p>Get started by adding your first leave type to the system.</p>
+            <h3>{t('leave_types.empty.title')}</h3>
+            <p>{t('leave_types.empty.subtitle')}</p>
             <button 
               className="add-btn primary"
               onClick={() => {
@@ -421,7 +420,7 @@ const LeaveTypes: React.FC = () => {
                 setShowAddForm(true);
               }}
             >
-              + Add First Leave Type
+              + {t('leave_types.empty.add_first')}
             </button>
           </div>
         ) : (
@@ -429,13 +428,13 @@ const LeaveTypes: React.FC = () => {
             <table className="leave-types-table">
               <thead>
                 <tr>
-                  <th>Name</th>
-                  <th>Max Days</th>
-                  <th>HR Approval</th>
-                  <th>Carry Over</th>
-                  <th>Status</th>
-                  <th>Created</th>
-                  <th>Actions</th>
+                  <th>{t('leave_types.table.name')}</th>
+                  <th>{t('leave_types.table.max_days')}</th>
+                  <th>{t('leave_types.table.hr_approval')}</th>
+                  <th>{t('leave_types.table.carry_over')}</th>
+                  <th>{t('leave_types.table.status')}</th>
+                  <th>{t('leave_types.table.created')}</th>
+                  <th>{t('leave_types.table.actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -456,21 +455,21 @@ const LeaveTypes: React.FC = () => {
                       </div>
                     </td>
                     <td>
-                      <span className="max-days">{leaveType.maxDays} days</span>
+                      <span className="max-days">{t('leave_types.table.days', { days: leaveType.maxDays })}</span>
                     </td>
                     <td>
                       <span className={`status-badge ${leaveType.requiresHRApproval ? 'yes' : 'no'}`}>
-                        {leaveType.requiresHRApproval ? 'Yes' : 'No'}
+                        {leaveType.requiresHRApproval ? t('common.yes') : t('common.no')}
                       </span>
                     </td>
                     <td>
                       <span className={`status-badge ${leaveType.carryOver ? 'yes' : 'no'}`}>
-                        {leaveType.carryOver ? 'Yes' : 'No'}
+                        {leaveType.carryOver ? t('common.yes') : t('common.no')}
                       </span>
                     </td>
                     <td>
                       <span className={`status-badge ${leaveType.isActive ? 'active' : 'inactive'}`}>
-                        {leaveType.isActive ? 'Active' : 'Inactive'}
+                        {leaveType.isActive ? t('leave_types.table.active_label') : t('leave_types.table.inactive_label')}
                       </span>
                     </td>
                     <td>
@@ -483,18 +482,18 @@ const LeaveTypes: React.FC = () => {
                         <button
                           className="edit-btn"
                           onClick={() => handleEdit(leaveType)}
-                          title="Edit leave type"
+                          title={t('leave_types.table.edit_title')}
                         >
-                          ✏️ Edit
+                          ✏️ {t('leave_types.table.edit')}
                         </button>
                         <button
                           className={`toggle-btn ${leaveType.isActive ? 'deactivate' : 'activate'}`}
                           onClick={() => toggleStatus(leaveType)}
                           disabled={actionLoading === leaveType.id}
-                          title={leaveType.isActive ? 'Deactivate' : 'Activate'}
+                          title={leaveType.isActive ? t('leave_types.table.deactivate') : t('leave_types.table.activate')}
                         >
                           {actionLoading === leaveType.id ? '...' : 
-                           leaveType.isActive ? '⏸️ Deactivate' : '▶️ Activate'}
+                           leaveType.isActive ? `⏸️ ${t('leave_types.table.deactivate')}` : `▶️ ${t('leave_types.table.activate')}`}
                         </button>
                       </div>
                     </td>

@@ -1,31 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
 import { apiService } from '../../utils/api';
+import type { Leave } from '../../types';
+import { useTranslation } from 'react-i18next';
 import './ApprovalsHistory.css';
 
-interface ApprovalHistory {
-  id: number;
-  employee: {
-    name: string;
-    email: string;
-    department: string;
-  };
-  leaveType: {
-    name: string;
-  };
-  startDate: string;
-  endDate: string;
-  days: number;
-  reason: string;
-  status: string;
-  managerApprovedDate: string;
-  managerNotes?: string;
-  appliedDate: string;
-}
-
 const ApprovalsHistory: React.FC = () => {
-  const { user } = useAuth();
-  const [approvals, setApprovals] = useState<ApprovalHistory[]>([]);
+  const { t, i18n } = useTranslation();
+  const [approvals, setApprovals] = useState<Leave[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filter, setFilter] = useState<'all' | 'approved' | 'rejected'>('all');
@@ -44,11 +25,11 @@ const ApprovalsHistory: React.FC = () => {
       if (response.success) {
         setApprovals(response.data || []);
       } else {
-        setError(response.message || 'Failed to load approvals history');
+        setError(response.message || t('approvals_history.errors.load_failed'));
       }
     } catch (error: any) {
       console.error('Error loading approvals history:', error);
-      setError(error.message || 'Failed to load approvals history');
+      setError(error.message || t('approvals_history.errors.load_failed'));
     } finally {
       setLoading(false);
     }
@@ -63,7 +44,7 @@ const ApprovalsHistory: React.FC = () => {
     return true;
   });
 
-  const getFilteredByDate = (approvalsList: ApprovalHistory[]) => {
+  const getFilteredByDate = (approvalsList: Leave[]) => {
     const now = new Date();
     let startDate: Date;
 
@@ -82,9 +63,10 @@ const ApprovalsHistory: React.FC = () => {
         return approvalsList;
     }
 
-    return approvalsList.filter(approval => 
-      new Date(approval.managerApprovedDate) >= startDate
-    );
+    return approvalsList.filter(approval => {
+      const decisionDate = approval.managerApprovedDate || approval.hrApprovedDate || approval.appliedDate;
+      return decisionDate ? new Date(decisionDate) >= startDate : false;
+    });
   };
 
   const finalApprovals = getFilteredByDate(filteredApprovals);
@@ -98,16 +80,22 @@ const ApprovalsHistory: React.FC = () => {
     return { total, approved, rejected, approvalRate };
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return t('hr_approvals.na');
+    const localeMap: Record<string, string> = { en: 'en-US', am: 'am-ET', om: 'om-ET' };
+    const locale = localeMap[i18n.language] || 'en-US';
+    return new Date(dateString).toLocaleDateString(locale, {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
     });
   };
 
-  const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString('en-US', {
+  const formatDateTime = (dateString?: string) => {
+    if (!dateString) return t('hr_approvals.na');
+    const localeMap: Record<string, string> = { en: 'en-US', am: 'am-ET', om: 'om-ET' };
+    const locale = localeMap[i18n.language] || 'en-US';
+    return new Date(dateString).toLocaleString(locale, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -116,11 +104,17 @@ const ApprovalsHistory: React.FC = () => {
     });
   };
 
+  const getLeaveTypeName = (leaveType?: string | { name?: string }) => {
+    if (!leaveType) return t('leave_history.unknown');
+    if (typeof leaveType === 'string') return leaveType;
+    return leaveType.name || t('leave_history.unknown');
+  };
+
   const getStatusBadge = (status: string) => {
     if (status === 'APPROVED') {
-      return <span className="status-badge approved">✅ Approved</span>;
+      return <span className="status-badge approved">✅ {t('status.approved')}</span>;
     } else if (status === 'REJECTED') {
-      return <span className="status-badge rejected">❌ Rejected</span>;
+      return <span className="status-badge rejected">❌ {t('status.rejected')}</span>;
     }
     return <span className="status-badge pending">⏳ {status}</span>;
   };
@@ -132,11 +126,11 @@ const ApprovalsHistory: React.FC = () => {
       <div className="approvals-history">
         <div className="page-header">
           <h1>Approvals History</h1>
-          <p>Track your leave request decisions and patterns</p>
+          <p>{t('approvals_history.subtitle')}</p>
         </div>
         <div className="loading-state">
           <div className="loading-spinner"></div>
-          <p>Loading approvals history...</p>
+          <p>{t('approvals_history.loading')}</p>
         </div>
       </div>
     );
@@ -147,13 +141,13 @@ const ApprovalsHistory: React.FC = () => {
       <div className="approvals-history">
         <div className="page-header">
           <h1>Approvals History</h1>
-          <p>Track your leave request decisions and patterns</p>
+          <p>{t('approvals_history.subtitle')}</p>
         </div>
         <div className="error-state">
-          <h3>Unable to Load History</h3>
+          <h3>{t('approvals_history.errors.unable')}</h3>
           <p>{error}</p>
           <button onClick={loadApprovalsHistory} className="retry-btn">
-            Try Again
+            {t('common.try_again')}
           </button>
         </div>
       </div>
@@ -165,8 +159,8 @@ const ApprovalsHistory: React.FC = () => {
       <div className="page-header">
         <div className="header-content">
           <div>
-            <h1>Approvals History</h1>
-            <p>Track your leave request decisions and patterns</p>
+            <h1>{t('approvals_history.title')}</h1>
+            <p>{t('approvals_history.subtitle')}</p>
           </div>
           <div className="header-actions">
             <button 
@@ -174,7 +168,7 @@ const ApprovalsHistory: React.FC = () => {
               onClick={loadApprovalsHistory} 
               disabled={loading}
             >
-              🔄 Refresh
+              🔄 {t('dashboard.refresh')}
             </button>
           </div>
         </div>
@@ -186,7 +180,7 @@ const ApprovalsHistory: React.FC = () => {
           <div className="stat-icon total">📋</div>
           <div className="stat-content">
             <div className="stat-number">{stats.total}</div>
-            <div className="stat-label">Total Decisions</div>
+            <div className="stat-label">{t('approvals_history.stats.total')}</div>
           </div>
         </div>
         
@@ -194,7 +188,7 @@ const ApprovalsHistory: React.FC = () => {
           <div className="stat-icon approved">✅</div>
           <div className="stat-content">
             <div className="stat-number">{stats.approved}</div>
-            <div className="stat-label">Approved</div>
+            <div className="stat-label">{t('status.approved')}</div>
           </div>
         </div>
         
@@ -202,7 +196,7 @@ const ApprovalsHistory: React.FC = () => {
           <div className="stat-icon rejected">❌</div>
           <div className="stat-content">
             <div className="stat-number">{stats.rejected}</div>
-            <div className="stat-label">Rejected</div>
+            <div className="stat-label">{t('status.rejected')}</div>
           </div>
         </div>
         
@@ -210,7 +204,7 @@ const ApprovalsHistory: React.FC = () => {
           <div className="stat-icon rate">📈</div>
           <div className="stat-content">
             <div className="stat-number">{stats.approvalRate}%</div>
-            <div className="stat-label">Approval Rate</div>
+            <div className="stat-label">{t('approvals_history.stats.rate')}</div>
           </div>
         </div>
       </div>
@@ -218,34 +212,34 @@ const ApprovalsHistory: React.FC = () => {
       {/* Filters */}
       <div className="filters-section">
         <div className="filter-group">
-          <label>Status Filter:</label>
+          <label>{t('approvals_history.filters.status')}</label>
           <select 
             value={filter} 
             onChange={(e) => setFilter(e.target.value as any)}
             className="filter-select"
           >
-            <option value="all">All Decisions</option>
-            <option value="approved">Approved Only</option>
-            <option value="rejected">Rejected Only</option>
+            <option value="all">{t('approvals_history.filters.all')}</option>
+            <option value="approved">{t('approvals_history.filters.approved')}</option>
+            <option value="rejected">{t('approvals_history.filters.rejected')}</option>
           </select>
         </div>
         
         <div className="filter-group">
-          <label>Time Period:</label>
+          <label>{t('approvals_history.filters.period')}</label>
           <select 
             value={dateRange} 
             onChange={(e) => setDateRange(e.target.value as any)}
             className="filter-select"
           >
-            <option value="all">All Time</option>
-            <option value="month">This Month</option>
-            <option value="quarter">This Quarter</option>
-            <option value="year">This Year</option>
+            <option value="all">{t('approvals_history.filters.all_time')}</option>
+            <option value="month">{t('approvals_history.filters.month')}</option>
+            <option value="quarter">{t('approvals_history.filters.quarter')}</option>
+            <option value="year">{t('approvals_history.filters.year')}</option>
           </select>
         </div>
 
         <div className="results-count">
-          Showing {finalApprovals.length} of {approvals.length} decisions
+          {t('approvals_history.showing', { shown: finalApprovals.length, total: approvals.length })}
         </div>
       </div>
 
@@ -254,8 +248,8 @@ const ApprovalsHistory: React.FC = () => {
         {finalApprovals.length === 0 ? (
           <div className="no-data">
             <div className="no-data-icon">📝</div>
-            <h3>No Approval History</h3>
-            <p>No leave request decisions found for the selected filters.</p>
+            <h3>{t('approvals_history.empty_title')}</h3>
+            <p>{t('approvals_history.empty_subtitle')}</p>
           </div>
         ) : (
           finalApprovals.map((approval) => (
@@ -263,18 +257,22 @@ const ApprovalsHistory: React.FC = () => {
               <div className="approval-header">
                 <div className="employee-info">
                   <div className="employee-avatar">
-                    {approval.employee.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                    {(approval.employee?.name || 'U')
+                      .split(' ')
+                      .map(n => n[0])
+                      .join('')
+                      .toUpperCase()}
                   </div>
                   <div className="employee-details">
-                    <h4>{approval.employee.name}</h4>
-                    <p>{approval.employee.department}</p>
-                    <span className="employee-email">{approval.employee.email}</span>
+                    <h4>{approval.employee?.name || t('leave_history.unknown')}</h4>
+                    <p>{approval.employee?.department || t('approvals_history.unassigned')}</p>
+                    <span className="employee-email">{approval.employee?.email || '—'}</span>
                   </div>
                 </div>
                 <div className="approval-meta">
                   {getStatusBadge(approval.status)}
                   <span className="decision-date">
-                    Decided: {formatDateTime(approval.managerApprovedDate)}
+                    {t('approvals_history.decided')}: {formatDateTime(approval.managerApprovedDate || approval.hrApprovedDate || approval.appliedDate)}
                   </span>
                 </div>
               </div>
@@ -283,34 +281,34 @@ const ApprovalsHistory: React.FC = () => {
                 <div className="leave-info">
                   <div className="info-grid">
                     <div className="info-item">
-                      <span className="label">Leave Type:</span>
-                      <span className="value">{approval.leaveType.name}</span>
+                      <span className="label">{t('leave_history.columns.leave_type')}:</span>
+                      <span className="value">{getLeaveTypeName(approval.leaveType)}</span>
                     </div>
                     <div className="info-item">
-                      <span className="label">Dates:</span>
+                      <span className="label">{t('leave_history.columns.start_date')} - {t('leave_history.columns.end_date')}:</span>
                       <span className="value">
                         {formatDate(approval.startDate)} - {formatDate(approval.endDate)}
                       </span>
                     </div>
                     <div className="info-item">
-                      <span className="label">Duration:</span>
-                      <span className="value">{approval.days} days</span>
+                      <span className="label">{t('leave_history.columns.duration')}:</span>
+                      <span className="value">{approval.days} {t('dashboard.days')}</span>
                     </div>
                     <div className="info-item">
-                      <span className="label">Applied:</span>
+                      <span className="label">{t('leave_history.columns.applied_date')}:</span>
                       <span className="value">{formatDate(approval.appliedDate)}</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="reason-section">
-                  <span className="label">Reason:</span>
-                  <p className="reason-text">{approval.reason}</p>
+                  <span className="label">{t('leave_history.columns.reason')}:</span>
+                  <p className="reason-text">{approval.reason || '—'}</p>
                 </div>
 
                 {approval.managerNotes && (
                   <div className="notes-section">
-                    <span className="label">Your Notes:</span>
+                    <span className="label">{t('approvals_history.your_notes')}:</span>
                     <p className="notes-text">{approval.managerNotes}</p>
                   </div>
                 )}
