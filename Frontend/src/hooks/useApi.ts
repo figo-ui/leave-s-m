@@ -21,7 +21,7 @@ export function useApi<T>(
     onSuccess,
     onError,
     cacheKey,
-    cacheTtl = 300000
+
   } = options;
 
   const [data, setData] = useState<T | undefined>(initialData);
@@ -31,7 +31,7 @@ export function useApi<T>(
   
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  const execute = useCallback(async (overrides?: any) => {
+  const execute = useCallback(async () => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -51,7 +51,7 @@ export function useApi<T>(
       setData(response.data);
       onSuccess?.(response.data);
       return response;
-    } catch (err: any) {
+    } catch (err: unknown) {
       const error = err instanceof Error ? err : new Error(String(err));
       setError(error);
       onError?.(error);

@@ -27,7 +27,7 @@ interface UserProfile {
 
 const AboutMe: React.FC = () => {
   const { user, updateUser } = useAuth();
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [profile, setProfile] = useState<UserProfile>();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -90,7 +90,7 @@ const AboutMe: React.FC = () => {
 
     try {
       const response = await apiService.updateProfile({
-        phone: phoneValue || null
+        phone: phoneValue 
       });
 
       if (response.success && response.data) {

@@ -9,12 +9,12 @@ interface UserProfile {
   name: string;
   email: string;
   role: string;
-  department: string;
+  department?: string;
   employeeId?: string;
-  phone?: string;
+  phone: string;
   position?: string;
   avatar?: string;
-  status: string;
+  status?: string;
   joinDate?: string;
 }
 
@@ -112,9 +112,7 @@ const ProfileSettings: React.FC = () => {
     setError('');
     
     try {
-      const response = await apiService.updateProfile({
-        phone: phone || null // Send null if empty
-      });
+      const response = await apiService.updateProfile({phone: phone});
       
       if (response.success && response.data) {
         updateUser(response.data);

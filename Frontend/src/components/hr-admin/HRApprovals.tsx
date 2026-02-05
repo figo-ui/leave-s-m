@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { apiService } from '../../utils/api';
-import { Leave, User } from '../../types';
+import type { User, Leave,LeaveType } from '../../types';
 import { jsPDF } from 'jspdf';
 
 import './HRApprovals.css';
@@ -11,14 +11,10 @@ interface HRApprovalData {
   leave: Leave;
   employee: User;
   manager?: User;
-  leaveType?: any;
+  leaveType?: LeaveType;
 }
 
-interface ApprovalAction {
-  type: 'approve' | 'reject';
-  leaveId: number;
-  notes?: string;
-}
+
 
 const HRApprovals: React.FC = () => {
   const { user } = useAuth();
@@ -45,7 +41,7 @@ const HRApprovals: React.FC = () => {
 
   // Load pending approvals
   useEffect(() => {
-    if (user && (user.role === 'hr-admin' || user.role === 'super-admin')) {
+    if (user && (user.role === 'hr-admin' || user.role === 'hr-admin')) {
       loadHRApprovals();
     }
   }, [user]);
@@ -86,7 +82,7 @@ const HRApprovals: React.FC = () => {
         const allLeaves = response.data;
         
         const approved = allLeaves.filter((leave: Leave) => 
-          Leave.status === 'HR_APPROVED' || leave.status === 'APPROVED'
+          leave.status === 'HR_APPROVED' || leave.status === 'APPROVED'
         ).map((leave: Leave) => ({
           leave,
           employee: leave.employee || {} as User,
@@ -854,9 +850,11 @@ const HRApprovals: React.FC = () => {
                         <div className="timeline-marker rejected"></div>
                         <div className="timeline-content">
                           <strong>Rejected</strong>
-                          <p>{selectedLeave.leave.hrApprovedDate 
-                            ? new Date(selectedLeave.leave.hrApprovedDate).toLocaleString()
-                            : new Date(selectedLeave.leave.managerApprovedDate).toLocaleString()}
+                          <p>{selectedLeave.leave.hrApprovedDate
+  ? new Date(selectedLeave.leave.hrApprovedDate).toLocaleString()
+  : selectedLeave.leave.managerApprovedDate
+    ? new Date(selectedLeave.leave.managerApprovedDate).toLocaleString()
+    : '—'}
                           </p>
                           {selectedLeave.leave.hrNotes && (
                             <small>Notes: {selectedLeave.leave.hrNotes}</small>

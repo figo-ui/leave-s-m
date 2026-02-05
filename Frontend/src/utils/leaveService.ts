@@ -1,25 +1,6 @@
 // src/utils/leaveService.ts
 
-export interface LeaveApplication {
-  id: number;
-  employeeName: string;
-  employeeId: string;
-  employeeEmail: string;
-  department: string;
-  leaveType: string;
-  startDate: string;
-  endDate: string;
-  days: number;
-  status: 'pending' | 'approved' | 'rejected' | 'hr_pending' | 'hr_approved' | 'hr_rejected';
-  reason: string;
-  appliedDate: string;
-  currentApprover: 'manager' | 'hr';
-  managerNotes?: string;
-  managerApprovedDate?: string;
-  hrNotes?: string;
-  hrApprovedDate?: string;
-}
-
+import type { LeaveApplication } from '../types';
 export interface Employee {
   id: string;
   name: string;
@@ -114,14 +95,14 @@ class DataService {
   getPendingHRApplications(): LeaveApplication[] {
     const applications = this.getLeaveApplications();
     return applications.filter(app => 
-      app.status === 'hr_pending' && app.currentApprover === 'hr'
+      app.status === 'HR_APPROVED' && app.currentApprover === 'hr'
     );
   }
 
   getPendingManagerApplications(): LeaveApplication[] {
     const applications = this.getLeaveApplications();
     return applications.filter(app => 
-      app.status === 'pending' && app.currentApprover === 'manager'
+      app.status === 'PENDING' && app.currentApprover === 'manager'
     );
   }
 
@@ -129,7 +110,7 @@ class DataService {
     const applications = this.getLeaveApplications();
     return applications.filter(app => 
       app.department === managerDepartment && 
-      (app.status === 'approved' || app.status === 'rejected' || app.status === 'hr_pending')
+      (app.status === 'APPROVED' || app.status === 'REJECTED' || app.status === 'HR_APPROVED')
     );
   }
 
@@ -161,14 +142,14 @@ class DataService {
   }
 
   private handleStatusChangeNotifications(updatedApp: LeaveApplication, previousApp: LeaveApplication): void {
-    if (updatedApp.status === 'hr_pending' && previousApp.status === 'pending') {
+    if (updatedApp.status === 'PENDING_HR' && previousApp.status === 'PENDING') {
       NotificationService.notifyEmployeeManagerApproved(updatedApp);
       NotificationService.notifyHRManagerApproved(updatedApp);
-    } else if (updatedApp.status === 'rejected' && previousApp.status === 'pending') {
+    } else if (updatedApp.status === 'REJECTED' && previousApp.status === 'PENDING') {
       NotificationService.notifyEmployeeManagerRejected(updatedApp, updatedApp.managerNotes || 'No reason provided');
-    } else if (updatedApp.status === 'hr_approved' && previousApp.status === 'hr_pending') {
+    } else if (updatedApp.status === 'HR_APPROVED' && previousApp.status === 'PENDING_HR') {
       NotificationService.notifyEmployeeFinalApproved(updatedApp);
-    } else if (updatedApp.status === 'hr_rejected' && previousApp.status === 'hr_pending') {
+    } else if (updatedApp.status === 'REJECTED' && previousApp.status === 'PENDING_HR') {
       NotificationService.notifyEmployeeFinalRejected(updatedApp, updatedApp.hrNotes || 'No reason provided');
     }
   }

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
 import { apiService } from '../../utils/api';
 import './SystemConfig.css';
 
@@ -50,7 +49,7 @@ interface SystemConfigState {
 }
 
 const SystemConfig: React.FC = () => {
-  const { user } = useAuth();
+  
   const [settings, setSettings] = useState<SystemConfigState>({
     // Leave Policies
     maxConsecutiveLeaves: 15,

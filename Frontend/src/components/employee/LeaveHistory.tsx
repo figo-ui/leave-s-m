@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiService } from '../../utils/api';
-import { LeaveApplication, LeaveBalance } from '../../types';
+import type{ LeaveApplication, LeaveBalance } from '../../types';
 import './LeaveHistory.css';
 
 

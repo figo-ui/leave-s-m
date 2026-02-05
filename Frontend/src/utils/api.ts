@@ -3,12 +3,14 @@ import {
   User, 
   Leave, 
   LeaveType, 
+  UserRole,
   LeaveBalance, 
   DashboardStats, 
-  SystemSettings, 
+   LeaveUsageReport,
+   SystemSettings,
   Notification, 
   TeamMember, 
-  ReportData 
+   
 } from '../types';
 
 // Environment detection
@@ -44,7 +46,7 @@ const getBaseURL = (): string => {
   return `${protocol}//${hostname}/api`;
 };
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T> {
   success: boolean;
   data?: T;
   message?: string;
@@ -91,7 +93,7 @@ export interface RequestConfig extends RequestInit {
 
 // Cache interface with LRU support
 interface CacheEntry {
-  data: any;
+  data: string;
   timestamp: number;
   expiresAt: number;
   hits: number;
@@ -99,8 +101,8 @@ interface CacheEntry {
 
 // Queue item interface
 interface QueueItem {
-  resolve: (value: any) => void;
-  reject: (reason?: any) => void;
+  resolve: (value: string) => void;
+  reject: (reason?: string) => void;
   controller: AbortController;
 }
 
@@ -293,8 +295,8 @@ class ApiService {
           // Handle other HTTP errors
           if (!response.ok) {
             const errorData = await this.parseResponse(response);
-            const errorMessage = errorData?.message || 
-                               errorData?.error || 
+            const errorMessage = errorData?.message  
+                               errorData?.errors || 
                                `HTTP error! status: ${response.status}`;
             
             if (isDevelopment) {
@@ -667,7 +669,7 @@ class ApiService {
     return this.request<T>(endpoint, { ...config, method: 'GET' });
   }
 
-  async post<T>(endpoint: string, data?: any, config?: RequestConfig): Promise<ApiResponse<T>> {
+  async post<T>(endpoint: string, data?: unknown, config?: RequestConfig): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
       ...config,
       method: 'POST',
@@ -783,7 +785,7 @@ class ApiService {
   async getCurrentUser(): Promise<ApiResponse<{ user: User }>> {
     // Check cache first with shorter TTL for user data
     const cached = this.getFromCache<{ user: User }>('current_user');
-    if (cached && (Date.now() - cached.timestamp) < 60000) { // 1 minute
+    if (cached && (Date.now() - cached.timestamp) ) { // 1 minute
       return cached;
     }
 
@@ -835,9 +837,10 @@ class ApiService {
   }
 
   async createUser(userData: {
+    id:number;
     name: string;
     email: string;
-    role: string;
+    role: UserRole;
     department: string;
     position?: string;
     phone?: string;
@@ -845,7 +848,8 @@ class ApiService {
     managerId?: number | string;
   }): Promise<ApiResponse<User>> {
     // Normalize and clean the data before sending
-    const cleanData: any = {
+    const cleanData: User = {
+      id: userData.id,
       name: userData.name.trim(),
       email: userData.email.toLowerCase().trim(),
       role: userData.role,
@@ -1000,7 +1004,7 @@ class ApiService {
     return response;
   }
 
-  // ==================== PROFILE ENDPOINTS ====================
+  // ====================   ENDPOINTS ====================
   async updateProfile(profileData: {
     name?: string;
     phone?: string;
@@ -1051,8 +1055,8 @@ class ApiService {
     return this.get<Leave[]>('/manager/approvals-history');
   }
 
-  async getManagerReports(): Promise<ApiResponse<ReportData>> {
-    return this.get<ReportData>('/manager/reports');
+  async getManagerReports(): Promise<ApiResponse<LeaveUsageReport>> {
+    return this.get<LeaveUsageReport>('/manager/reports');
   }
 
   async getHRPendingApprovals(): Promise<ApiResponse<Leave[]>> {
@@ -1066,27 +1070,27 @@ class ApiService {
   async getHrReportsAnalytics(params?: {
     startDate?: string;
     endDate?: string;
-  }): Promise<ApiResponse<any>> {
+  }): Promise<ApiResponse<LeaveUsageReport>> {
     const queryParams = new URLSearchParams();
     if (params?.startDate) queryParams.append('startDate', params.startDate);
     if (params?.endDate) queryParams.append('endDate', params.endDate);
     
     const endpoint = `/hr/reports/analytics${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-    return this.get<any>(endpoint);
+    return this.get<LeaveUsageReport>(endpoint);
   }
 
   async exportHrReport(params: {
     startDate?: string;
     endDate?: string;
     reportType: string;
-  }): Promise<ApiResponse<any>> {
+  }): Promise<ApiResponse<LeaveUsageReport>> {
     const queryParams = new URLSearchParams();
     if (params.startDate) queryParams.append('startDate', params.startDate);
     if (params.endDate) queryParams.append('endDate', params.endDate);
     queryParams.append('reportType', params.reportType);
     
     const endpoint = `/hr/reports/export?${queryParams.toString()}`;
-    return this.get<any>(endpoint);
+    return this.get<LeaveUsageReport>(endpoint);
   }
 
   async getLeaveTypes(): Promise<ApiResponse<LeaveType[]>> {
@@ -1133,14 +1137,14 @@ class ApiService {
   }
 
   // ==================== SYSTEM ENDPOINTS ====================
-  async getSystemSettings(): Promise<ApiResponse<SystemSetting[]>> {
-    return this.get<SystemSetting[]>('/system/settings');
+  async getSystemSettings(): Promise<ApiResponse<SystemSettings[]>> {
+    return this.get<SystemSettings[]>('/system/settings');
   }
 
   
 // In your ApiService class
-async updateSystemSetting(key: string, value: string): Promise<ApiResponse<SystemSetting>> {
-  const response = await this.put<SystemSetting>(`/system/settings/${key}`, { value });
+async updateSystemSetting(key: string, value: string): Promise<ApiResponse<SystemSettings>> {
+  const response = await this.put<SystemSettings>(`/system/settings/${key}`, { value });
   
   if (response.success) {
     this.clearCache('/system/settings');
@@ -1160,11 +1164,11 @@ async updateSystemSetting(key: string, value: string): Promise<ApiResponse<Syste
   }
 
   // ==================== DEBUG ENDPOINTS ====================
-  async debugUserRelationships(): Promise<ApiResponse<any>> {
+  async debugUserRelationships(): Promise<ApiResponse<User>> {
     return this.get('/debug/user-relationships');
   }
 
-  async debugUser(userId: number): Promise<ApiResponse<any>> {
+  async debugUser(userId: number): Promise<ApiResponse<User>> {
     return this.get(`/debug/user/${userId}`);
   }
 
@@ -1276,8 +1280,8 @@ export type {
   LeaveType, 
   LeaveBalance, 
   DashboardStats, 
-  SystemSetting,
+  SystemSettings,
   Notification,
   TeamMember,
-  ReportData
+  
 };

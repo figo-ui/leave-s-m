@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { DashboardStats, Leave,TeamMember } from '../types';
+import type { DashboardStats, Leave,TeamMember,LeaveType, UserRole } from '../types';
 import { apiService } from '../utils/api';
 import './Dashboard.css';
 
@@ -13,6 +13,7 @@ interface EnhancedDashboardStats extends DashboardStats {
   leaveUtilization?: number;
   notifications?: number;
   recentApprovals?:number;
+  teamSize?:number;
 }
 
 interface QuickAction {
@@ -26,10 +27,7 @@ interface QuickAction {
 
 interface ActivityItem {
   id: number;
-  leaveType?: {
-    name: string;
-    color?: string;
-  };
+  leaveType?: LeaveType;
   startDate: string;
   endDate: string;
   days: number;
@@ -55,11 +53,11 @@ interface LeaveBalanceCard {
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [dashboardData, setDashboardData] = useState<EnhancedDashboardStats>({});
+  const [dashboardData, setDashboardData] = useState<DashboardStats>([]);
   const [recentActivities, setRecentActivities] = useState<ActivityItem[]>([]);
   const [leaveBalances, setLeaveBalances] = useState<LeaveBalanceCard[]>([]);
   const [upcomingLeaves, setUpcomingLeaves] = useState<Leave[]>([]);
-  const [teamOnLeave, setTeamOnLeave] = useState<number[]>([]);
+  const [teamOnLeave, setTeamOnLeave] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
@@ -250,7 +248,7 @@ const loadLeaveBalances = async () => {
         }).slice(0, 5);
         
         // Make sure setTeamOnLeave expects TeamMember[], not number[]
-        setTeamOnLeave(todayOnLeave);
+      setTeamOnLeave(todayOnLeave);
       }
     }
   } catch (error) {
@@ -386,7 +384,7 @@ const loadLeaveBalances = async () => {
       );
     }
 
-    const stats = {
+  const stats: Record<UserRole, DashboardStats[]> = {
       employee: [
         {
           title: 'Available Days',
@@ -416,7 +414,7 @@ const loadLeaveBalances = async () => {
         },
         {
           title: 'Utilization',
-          value: dashboardData.leaveUtilization ? `${dashboardData.leaveUtilization}%` : '0%',
+          value: dashboardData.leaveUtilization || 0,
           icon: '📊',
           color: '#9b59b6',
           subtitle: 'Leave usage rate',
@@ -438,11 +436,11 @@ const loadLeaveBalances = async () => {
           icon: '👥',
           color: '#3498db',
           subtitle: 'Active members',
-          trend: dashboardData.teamSize ? '+' : null
+          trend:  '+' 
         },
         {
           title: 'Approval Rate',
-          value: `${dashboardData.approvalRate || 0}%`,
+          value: dashboardData.approvalRate || 0,
           icon: '📈',
           color: '#27ae60',
           subtitle: 'Overall approval',
@@ -454,7 +452,7 @@ const loadLeaveBalances = async () => {
           icon: '🏖️',
           color: '#e74c3c',
           subtitle: 'Currently out',
-          badge: dashboardData.teamOnLeave ? 'active' : null
+          badge:  'active'
         }
       ],
       'hr-admin': [
@@ -488,7 +486,7 @@ const loadLeaveBalances = async () => {
           icon: '🔔',
           color: '#f39c12',
           subtitle: 'Notifications',
-          badge: dashboardData.systemAlerts ? 'alert' : null
+          badge: 'alert'
         }
       ]
     };
@@ -698,7 +696,7 @@ const loadLeaveBalances = async () => {
               <div className="action-title">{action.label}</div>
               <div className="action-description">{action.description}</div>
             </div>
-            {action.badge > 0 && (
+            {action.badge=0 && (
               <span className="action-badge">{action.badge}</span>
             )}
           </button>

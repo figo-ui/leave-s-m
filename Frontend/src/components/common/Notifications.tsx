@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { NotificationService } from '../../utils/notificationService';
+import type { Notification} from '../../types';
 import './Notifications.css';
 
 

@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { apiService } from '../../utils/api';
-import { User, Leave, LeaveBalance } from '../../types';
+import type{ User, Leave, LeaveBalance } from '../../types';
 import './TeamOverview.css';
 
 interface TeamMember extends User {
@@ -518,7 +518,7 @@ const TeamOverview: React.FC = () => {
                   <td>
                     {member.leaveBalance && member.leaveBalance.length > 0 ? (
                       <div className="leave-balance-summary">
-                        {member.leaveBalance[0].remainingDays} days left
+                        {member.leaveBalance[0].remaining} days left
                       </div>
                     ) : 'N/A'}
                   </td>
@@ -611,7 +611,7 @@ const TeamOverview: React.FC = () => {
                             <div key={balance.leaveTypeId} className="balance-item">
                               <span className="balance-type">{balance.leaveType?.name}:</span>
                               <span className="balance-days">
-                                {balance.remainingDays} / {balance.totalDays} days
+                                {balance.remaining} / {balance.total} days
                               </span>
                             </div>
                           ))}

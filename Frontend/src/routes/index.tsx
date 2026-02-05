@@ -2,6 +2,7 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
+
 // Layout
 import Layout from '../components/common/Layout';
 
@@ -102,7 +103,7 @@ const AppRoutes: React.FC = () => {
               <Routes>
                 {/* Common routes for all roles */}
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                <Route path="/dashboard" element={<Dashboard userRole={user?.role || 'employee'} />} />
+                <Route path="/dashboard" element={<Dashboard  />} />
                 <Route path="/profile" element={<ProfileSettings />} />
 
                 {/* Employee specific routes */}

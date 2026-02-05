@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { apiService } from '../../utils/api';
-import { LeaveType, LeaveBalance } from '../../types';
+import type { LeaveType, LeaveBalance } from '../../types';
 import './ApplyLeave.css';
 
 interface LeaveFormData {
- 
+  leaveTypeId?: string;
   startDate: string;
   endDate: string;
   reason: string;
@@ -78,7 +78,7 @@ const ApplyLeave: React.FC = () => {
         Last Updated: ${new Date().toLocaleTimeString()}
       `);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('💥 Error loading initial data:', error);
       setError('Failed to load required data. Please refresh the page or contact support.');
     } finally {
@@ -174,8 +174,8 @@ const ApplyLeave: React.FC = () => {
       
       // Check if we have sufficient balance
       if (balance) {
-        if (days > balance.remainingDays) {
-          errors.general = `Insufficient leave balance. You have ${balance.remainingDays} days remaining but requested ${days} days.`;
+        if (days > balance.remaining) {
+          errors.general = `Insufficient leave balance. You have ${balance.remaining} days remaining but requested ${days} days.`;
         }
       } else {
         // No balance record found - use leave type max days as fallback

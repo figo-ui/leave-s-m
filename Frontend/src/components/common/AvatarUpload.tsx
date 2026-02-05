@@ -5,7 +5,7 @@ import './AvatarUpload.css';
 interface AvatarUploadProps {
   currentAvatar?: string;
   userName: string;
-  onAvatarUpdate: (user: any) => void;
+  onAvatarUpdate: (user: string) => void;
   size?: 'small' | 'medium' | 'large';
 }
 
@@ -75,7 +75,7 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
       } else {
         setError(response.message || 'Failed to upload profile photo');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Avatar upload error:', error);
       setError(error.message || 'Failed to upload profile photo');
     } finally {

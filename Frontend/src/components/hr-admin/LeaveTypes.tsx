@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+
 import { apiService } from '../../utils/api';
 import './LeaveTypes.css';
 
@@ -18,7 +18,7 @@ interface LeaveType {
 }
 
 const LeaveTypes: React.FC = () => {
-  const { user } = useAuth();
+
   const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

@@ -78,7 +78,7 @@ interface ComparisonData {
 }
 
 const HRReports: React.FC = () => {
-  const { user } = useAuth();
+ 
   const [reportData, setReportData] = useState<HRReportData | null>(null);
   const [comparisonData, setComparisonData] = useState<ComparisonData | null>(null);
   const [loading, setLoading] = useState(true);

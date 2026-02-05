@@ -14,6 +14,7 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
+  password:string
   status?: UserStatus;
   department?: string;
   position?: string;
@@ -50,50 +51,54 @@ export interface SystemConfigProps {
   onSettingsUpdate?: (settings: SystemSettings) => void;
 }
 // Leave Types
-export type LeaveStatus = 'pending' | 'approved' | 'rejected';
+export type LeaveStatus =
+  | 'PENDING'
+  | 'PENDING_MANAGER'
+  | 'PENDING_HR'
+  | 'APPROVED'
+  | 'HR_APPROVED'
+  | 'REJECTED'
+  | 'CANCELLED';
+
 
 export interface LeaveApplication {
   id: number;
-
-  employeeId?: number;
+  employeeId?: string;
   employeeName?: string;
   employeeDepartment: string;
-
   employee?: User;
-
+  department:string;
   leaveType?: string;
   leaveTypeId?: number;
-
   startDate: string;
   endDate: string;
   days: number;
   appliedDate:string;
   reason?: string;
   status: LeaveStatus;
-
   managerNotes?: string;
   hrNotes?: string;
-
   managerApprovedDate?: string;
   hrApprovedDate?: string;
-
   createdAt?: string;
   updatedAt?: string;
+  currentApprover: 'manager' | 'hr';
 }
+
 
 /* Common alias used across UI */
 
 
 export interface LeaveType {
   id: number;
-  name: string;
+  name?: string;
   description?: string;
-
+  color: string;
   maxDays: number;
   carryOver: boolean;
 
   requiresApproval: boolean;
-  requiresHRApproval: boolean;
+  requiresHRApproval?: boolean;
   isActive:string;
   createdAt?: string;
   updatedAt?: string;
@@ -113,6 +118,10 @@ export interface UserFormData {
   email: string;
   role: UserRole;
   department: string;
+  phone:string;
+  managerId: string;
+  position: string;
+  password: string;
 }
 
 // Navigation Types
@@ -183,6 +192,8 @@ export interface ProfileFormData {
 // Enhanced Leave type with workflow information
 export interface Leave {
   id: number;
+  title: string;
+  date: string;
   employeeId: number;
   leaveTypeId: number;
   startDate: string;
@@ -240,6 +251,12 @@ export interface LeaveBalance {
   total: number;
   used: number;
   remaining: number;
+  leaveTypeId: number;
+   leaveType?: {
+    id: number
+    name: string
+    color: string
+  }
 }
 
 // Manager Dashboard & Team Types
@@ -249,6 +266,7 @@ export interface TeamMember {
   position: string;
   department: string;
   leavesTaken: number;
+   leaves?: Leave[];
   todayOnLeave:number;
   remainingLeaves: number;
   onLeave: boolean;
@@ -343,14 +361,24 @@ export interface DashboardStats {
   availableLeaves?: number;
   leavesTaken?: number;
   teamSize?: number;
+  title: string;
+  value?: number;
   totalEmployees?: number;
   onLeaveToday?: number;
   approvalRate?: number;
   systemAlerts?: number;
+    progress?: number;
+  badge?: 'urgent' | 'alert' | 'info' | 'active';
+  trend?: string;
+  icon?: React.ReactNode;
+  color:string;
+  subtitle:string;
 
 
 }
+export interface member{
 
+}
 export interface EnhancedDashboardStats extends DashboardStats {
   trend?: 'up' | 'down' | 'neutral';
 }
@@ -389,14 +417,12 @@ export interface Notification {
   id: number;
   title: string;
   message: string;
-
-  userId?: number | 'all';
+  userId?: string;
   relatedTo: string;
-
+  createdAt:string;
   type: NotificationCategory;
   isRead?: boolean;
-
-  createdAt?: string;
+  read: boolean
 }
 // Calendar Types
 export interface CalendarEvent {
