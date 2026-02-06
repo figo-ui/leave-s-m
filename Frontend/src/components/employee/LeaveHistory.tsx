@@ -381,10 +381,16 @@ const LeaveHistory: React.FC = () => {
       {/* Leave Details Modal */}
       {selectedLeave && (
         <div className="modal-overlay">
-          <div className="modal-content">
+          <div className="modal-content" role="dialog" aria-modal="true" aria-label={t('leave_history.details_title')}>
             <div className="modal-header">
               <h2>{t('leave_history.details_title')}</h2>
-              <button className="close-btn" onClick={() => setSelectedLeave(null)}>×</button>
+              <button
+                className="close-btn"
+                onClick={() => setSelectedLeave(null)}
+                aria-label={t('common.close')}
+              >
+                ×
+              </button>
             </div>
             <div className="modal-body">
               <div className="detail-grid">

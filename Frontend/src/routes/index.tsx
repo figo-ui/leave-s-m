@@ -14,6 +14,9 @@ import Dashboard from '../components/Dashboard';
 import AboutMe from '../components/employee/AboutMe';
 import ProfileSettings from '../components/common/ProfileSettings';
 import Notifications from '../components/common/Notifications';
+import InfoPage from '../components/common/InfoPage';
+import HelpSupport from '../components/common/HelpSupport';
+import AboutSystem from '../components/common/AboutSystem';
 
 // Employee
 import ApplyLeave from '../components/employee/ApplyLeave';
@@ -32,6 +35,25 @@ import UserManagement from '../components/hr-admin/UserManagement';
 import LeaveTypes from '../components/hr-admin/LeaveTypes';
 import SystemConfig from '../components/hr-admin/SystemConfig';
 import HrReports from '../components/hr-admin/HrReports';
+
+// Info pages / placeholders
+const ReportsRedirect: React.FC = () => {
+  const { user } = useAuth();
+
+  if (!user) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  if (user.role === 'manager') {
+    return <Navigate to="/manager-reports" replace />;
+  }
+
+  if (user.role === 'hr-admin' || user.role === 'super-admin') {
+    return <Navigate to="/hr-reports" replace />;
+  }
+
+  return <Navigate to="/dashboard" replace />;
+};
 
 // Loading component
 const LoadingScreen: React.FC = () => (
@@ -107,8 +129,32 @@ const AppRoutes: React.FC = () => {
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 <Route path="/dashboard" element={<Dashboard  />} />
                 <Route path="/about-me" element={<AboutMe />} />
+                <Route path="/profile" element={<Navigate to="/about-me" replace />} />
                 <Route path="/profile-settings" element={<ProfileSettings />} />
                 <Route path="/notifications" element={<Notifications />} />
+                <Route 
+                  path="/help-support" 
+                  element={
+                    <HelpSupport />
+                  }
+                />
+                <Route 
+                  path="/about-system" 
+                  element={
+                    <AboutSystem />
+                  }
+                />
+                <Route 
+                  path="/calendar" 
+                  element={
+                    <InfoPage
+                      titleKey="pages.calendar.title"
+                      descriptionKey="pages.calendar.description"
+                      hintKey="pages.calendar.hint"
+                    />
+                  }
+                />
+                <Route path="/reports" element={<ReportsRedirect />} />
 
                 {/* Employee specific routes */}
                 <Route 
@@ -154,7 +200,7 @@ const AppRoutes: React.FC = () => {
                   } 
                 />
                 <Route 
-                  path="/reports" 
+                  path="/manager-reports" 
                   element={
                     <RoleRoute allowedRoles={['manager']}>
                       <ManagerReports />
@@ -166,7 +212,7 @@ const AppRoutes: React.FC = () => {
                 <Route 
                   path="/hr-approvals" 
                   element={
-                    <RoleRoute allowedRoles={['hr-admin']}>
+                    <RoleRoute allowedRoles={['hr-admin', 'super-admin']}>
                       <HRApprovals />
                     </RoleRoute>
                   } 
@@ -174,7 +220,7 @@ const AppRoutes: React.FC = () => {
                 <Route 
                   path="/leave-overview" 
                   element={
-                    <RoleRoute allowedRoles={['hr-admin']}>
+                    <RoleRoute allowedRoles={['hr-admin', 'super-admin']}>
                       <LeaveOverview />
                     </RoleRoute>
                   } 
@@ -182,7 +228,7 @@ const AppRoutes: React.FC = () => {
                 <Route 
                   path="/user-management" 
                   element={
-                    <RoleRoute allowedRoles={['hr-admin']}>
+                    <RoleRoute allowedRoles={['hr-admin', 'super-admin']}>
                       <UserManagement />
                     </RoleRoute>
                   } 
@@ -190,7 +236,7 @@ const AppRoutes: React.FC = () => {
                 <Route 
                   path="/leave-types" 
                   element={
-                    <RoleRoute allowedRoles={['hr-admin']}>
+                    <RoleRoute allowedRoles={['hr-admin', 'super-admin']}>
                       <LeaveTypes />
                     </RoleRoute>
                   } 
@@ -198,18 +244,56 @@ const AppRoutes: React.FC = () => {
                 <Route 
                   path="/system-config" 
                   element={
-                    <RoleRoute allowedRoles={['hr-admin']}>
+                    <RoleRoute allowedRoles={['hr-admin', 'super-admin']}>
                       <SystemConfig />
                     </RoleRoute>
                   } 
                 />
                 <Route 
-                  path="/reports" 
+                  path="/hr-reports" 
                   element={
-                    <RoleRoute allowedRoles={['hr-admin']}>
+                    <RoleRoute allowedRoles={['hr-admin', 'super-admin']}>
                       <HrReports />
                     </RoleRoute>
                   } 
+                />
+
+                {/* Super Admin specific routes */}
+                <Route 
+                  path="/admin" 
+                  element={
+                    <RoleRoute allowedRoles={['super-admin']}>
+                      <InfoPage
+                        titleKey="pages.admin.title"
+                        descriptionKey="pages.admin.description"
+                        hintKey="pages.admin.hint"
+                      />
+                    </RoleRoute>
+                  }
+                />
+                <Route 
+                  path="/audit-logs" 
+                  element={
+                    <RoleRoute allowedRoles={['super-admin']}>
+                      <InfoPage
+                        titleKey="pages.audit_logs.title"
+                        descriptionKey="pages.audit_logs.description"
+                        hintKey="pages.audit_logs.hint"
+                      />
+                    </RoleRoute>
+                  }
+                />
+                <Route 
+                  path="/backup" 
+                  element={
+                    <RoleRoute allowedRoles={['super-admin']}>
+                      <InfoPage
+                        titleKey="pages.backup_restore.title"
+                        descriptionKey="pages.backup_restore.description"
+                        hintKey="pages.backup_restore.hint"
+                      />
+                    </RoleRoute>
+                  }
                 />
 
                 {/* Catch all - redirect to dashboard */}

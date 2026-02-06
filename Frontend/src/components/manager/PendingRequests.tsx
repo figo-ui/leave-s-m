@@ -844,10 +844,20 @@ const PendingRequests: React.FC = () => {
       {/* Enhanced Details Modal */}
       {showDetailsModal && selectedRequest && (
         <div className="modal-overlay" onClick={() => setShowDetailsModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="modal-content"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label={t('pending_requests.details_title')}
+          >
             <div className="modal-header">
               <h3>{t('pending_requests.details_title')}</h3>
-              <button className="close-btn" onClick={() => setShowDetailsModal(false)}>
+              <button
+                className="close-btn"
+                onClick={() => setShowDetailsModal(false)}
+                aria-label={t('common.close')}
+              >
                 ×
               </button>
             </div>

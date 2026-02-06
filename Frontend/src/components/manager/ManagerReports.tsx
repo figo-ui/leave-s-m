@@ -445,7 +445,7 @@ const ManagerReports: React.FC = () => {
             <span className="error-icon">❌</span>
             {error}
           </div>
-          <button onClick={() => setError('')} className="error-close">×</button>
+          <button onClick={() => setError('')} className="error-close" aria-label={t('common.close')}>×</button>
         </div>
       )}
 

@@ -473,7 +473,7 @@ const HRApprovals: React.FC = () => {
             <span className="message-icon">❌</span>
             {error}
           </div>
-          <button onClick={() => setError('')} className="message-close">×</button>
+          <button onClick={() => setError('')} className="message-close" aria-label={t('common.close')}>×</button>
         </div>
       )}
 
@@ -483,7 +483,7 @@ const HRApprovals: React.FC = () => {
             <span className="message-icon">✅</span>
             {success}
           </div>
-          <button onClick={() => setSuccess('')} className="message-close">×</button>
+          <button onClick={() => setSuccess('')} className="message-close" aria-label={t('common.close')}>×</button>
         </div>
       )}
 
@@ -731,7 +731,7 @@ const HRApprovals: React.FC = () => {
       {/* Leave Details Modal */}
       {showDetailsModal && selectedLeave && (
         <div className="modal-overlay">
-          <div className="modal-content">
+          <div className="modal-content" role="dialog" aria-modal="true" aria-label={t('hr_approvals.details_title')}>
             <div className="modal-header">
               <h2>{t('hr_approvals.details_title')}</h2>
               <button 
@@ -740,6 +740,7 @@ const HRApprovals: React.FC = () => {
                   setShowDetailsModal(false);
                   setSelectedLeave(null);
                 }}
+                aria-label={t('common.close')}
               >
                 ×
               </button>
@@ -929,6 +930,7 @@ const HRApprovals: React.FC = () => {
                     setShowDetailsModal(false);
                     setSelectedLeave(null);
                   }}
+                  aria-label={t('common.close')}
                 >
                   {t('common.cancel')}
                 </button>
@@ -941,7 +943,7 @@ const HRApprovals: React.FC = () => {
       {/* Reject Modal */}
       {showRejectModal && (
         <div className="modal-overlay">
-          <div className="modal-content reject-modal">
+          <div className="modal-content reject-modal" role="dialog" aria-modal="true" aria-label={t('hr_approvals.reject_title')}>
             <div className="modal-header">
               <h2>{t('hr_approvals.reject_title')}</h2>
               <button 
@@ -951,6 +953,7 @@ const HRApprovals: React.FC = () => {
                   setLeaveToReject(null);
                   setRejectionNotes('');
                 }}
+                aria-label={t('common.close')}
               >
                 ×
               </button>

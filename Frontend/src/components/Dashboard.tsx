@@ -227,8 +227,8 @@ const loadLeaveBalances = async () => {
       if (response.success && response.data) {
         const upcoming = response.data.filter((leave: Leave) => {
           const startDate = new Date(leave.startDate);
-          return startDate >= today && startDate <= nextMonth && 
-                (leave.status|| leave.status === 'APPROVED');
+          return startDate >= today && startDate <= nextMonth &&
+                (leave.status === 'APPROVED' || leave.status === 'HR_APPROVED');
         }).slice(0, 3);
         setUpcomingLeaves(upcoming);
       }
@@ -282,27 +282,27 @@ const loadLeaveBalances = async () => {
       employee: [
         { label: t('menu.apply_leave'), icon: '📝', path: '/apply-leave', color: '#27ae60', description: t('dashboard.quick_actions.apply_desc'), badge: 0 },
         { label: t('menu.leave_history'), icon: '📋', path: '/leave-history', color: '#3498db', description: t('dashboard.quick_actions.history_desc'), badge: recentActivities.length },
-        { label: t('dashboard.quick_actions.my_profile'), icon: '👤', path: '/profile', color: '#9b59b6', description: t('dashboard.quick_actions.profile_desc'), badge: 0 },
-        { label: t('dashboard.quick_actions.leave_balance'), icon: '💰', path: '/leave-balance', color: '#f39c12', description: t('dashboard.quick_actions.balance_desc'), badge: leaveBalances.length },
+        { label: t('dashboard.quick_actions.my_profile'), icon: '👤', path: '/profile-settings', color: '#9b59b6', description: t('dashboard.quick_actions.profile_desc'), badge: 0 },
+        { label: t('dashboard.quick_actions.leave_balance'), icon: '💰', path: '/leave-history', color: '#f39c12', description: t('dashboard.quick_actions.balance_desc'), badge: leaveBalances.length },
       ],
       manager: [
         { label: t('menu.pending_requests'), icon: '✅', path: '/pending-requests', color: '#27ae60', description: t('dashboard.quick_actions.pending_desc'), badge: dashboardData.pendingRequests || 0 },
         { label: t('menu.team_overview'), icon: '👥', path: '/team-overview', color: '#3498db', description: t('dashboard.quick_actions.team_desc'), badge: dashboardData.teamSize || 0 },
-        { label: t('menu.reports'), icon: '📊', path: '/reports', color: '#9b59b6', description: t('dashboard.quick_actions.reports_desc'), badge: 0 },
+        { label: t('menu.reports'), icon: '📊', path: '/manager-reports', color: '#9b59b6', description: t('dashboard.quick_actions.reports_desc'), badge: 0 },
         { label: t('dashboard.quick_actions.calendar'), icon: '📅', path: '/calendar', color: '#f39c12', description: t('dashboard.quick_actions.calendar_desc'), badge: teamOnLeave.length },
       ],
       'hr-admin': [
         { label: t('menu.approvals'), icon: '✅', path: '/hr-approvals', color: '#e74c3c', description: t('dashboard.quick_actions.hr_approvals_desc'), badge: dashboardData.pendingApprovals || 0 },
         { label: t('menu.user_management'), icon: '👥', path: '/user-management', color: '#3498db', description: t('dashboard.quick_actions.users_desc'), badge: 0 },
         { label: t('menu.leave_overview'), icon: '👁️', path: '/leave-overview', color: '#27ae60', description: t('dashboard.quick_actions.overview_desc'), badge: 0 },
-        { label: t('dashboard.quick_actions.system_settings'), icon: '⚙️', path: '/system-settings', color: '#9b59b6', description: t('dashboard.quick_actions.settings_desc'), badge: 0 },
+        { label: t('dashboard.quick_actions.system_settings'), icon: '⚙️', path: '/system-config', color: '#9b59b6', description: t('dashboard.quick_actions.settings_desc'), badge: 0 },
         { label: t('dashboard.quick_actions.analytics'), icon: '📊', path: '/hr-reports', color: '#f39c12', description: t('dashboard.quick_actions.analytics_desc'), badge: 0 },
       ],
       'super-admin': [
         { label: t('dashboard.quick_actions.system_admin'), icon: '🛡️', path: '/admin', color: '#e74c3c', description: t('dashboard.quick_actions.system_admin_desc'), badge: 0 },
         { label: t('menu.user_management'), icon: '👥', path: '/user-management', color: '#3498db', description: t('dashboard.quick_actions.users_desc_all'), badge: 0 },
         { label: t('dashboard.quick_actions.audit_logs'), icon: '📋', path: '/audit-logs', color: '#2c3e50', description: t('dashboard.quick_actions.audit_desc'), badge: 0 },
-        { label: t('dashboard.quick_actions.system_settings'), icon: '⚙️', path: '/system-settings', color: '#9b59b6', description: t('dashboard.quick_actions.settings_desc'), badge: 0 },
+        { label: t('dashboard.quick_actions.system_settings'), icon: '⚙️', path: '/system-config', color: '#9b59b6', description: t('dashboard.quick_actions.settings_desc'), badge: 0 },
         { label: t('dashboard.quick_actions.backup_restore'), icon: '💾', path: '/backup', color: '#f39c12', description: t('dashboard.quick_actions.backup_desc'), badge: 0 },
       ]
     };
@@ -745,7 +745,7 @@ const loadLeaveBalances = async () => {
               <div className="action-title">{action.label}</div>
               <div className="action-description">{action.description}</div>
             </div>
-            {action.badge=0 && (
+            {typeof action.badge === 'number' && action.badge > 0 && (
               <span className="action-badge">{action.badge}</span>
             )}
           </button>

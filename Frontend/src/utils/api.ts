@@ -294,8 +294,9 @@ class ApiService {
           // Handle other HTTP errors
           if (!response.ok) {
             const errorData = await this.parseResponse(response);
-            const errorMessage = errorData?.message  
-                               errorData?.errors || 
+            const errorMessage =
+                               errorData?.message ||
+                               (Array.isArray(errorData?.errors) ? errorData.errors.join(', ') : errorData?.errors) ||
                                `HTTP error! status: ${response.status}`;
             
             if (isDevelopment) {

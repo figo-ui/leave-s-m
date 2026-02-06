@@ -260,7 +260,7 @@ const LeaveTypes: React.FC = () => {
             <span className="message-icon">❌</span>
             {error}
           </div>
-          <button onClick={clearMessages} className="message-close">×</button>
+          <button onClick={clearMessages} className="message-close" aria-label={t('common.close')}>×</button>
         </div>
       )}
 
@@ -270,7 +270,7 @@ const LeaveTypes: React.FC = () => {
             <span className="message-icon">✅</span>
             {success}
           </div>
-          <button onClick={clearMessages} className="message-close">×</button>
+          <button onClick={clearMessages} className="message-close" aria-label={t('common.close')}>×</button>
         </div>
       )}
 
@@ -279,7 +279,7 @@ const LeaveTypes: React.FC = () => {
         <div className="form-section">
           <div className="form-header">
             <h3>{editingType ? t('leave_types.edit_title') : t('leave_types.add_title')}</h3>
-            <button className="close-btn" onClick={resetForm}>×</button>
+            <button className="close-btn" onClick={resetForm} aria-label={t('common.close')}>×</button>
           </div>
           
           <form onSubmit={handleSubmit} className="leave-type-form">

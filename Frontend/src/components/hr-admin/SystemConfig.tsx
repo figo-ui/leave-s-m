@@ -374,7 +374,7 @@ const SystemConfig: React.FC = () => {
             <span className="message-icon">❌</span>
             {error}
           </div>
-          <button onClick={() => setError('')} className="message-close">×</button>
+          <button onClick={() => setError('')} className="message-close" aria-label={t('common.close')}>×</button>
         </div>
       )}
 
@@ -384,7 +384,7 @@ const SystemConfig: React.FC = () => {
             <span className="message-icon">✅</span>
             {success}
           </div>
-          <button onClick={() => setSuccess('')} className="message-close">×</button>
+          <button onClick={() => setSuccess('')} className="message-close" aria-label={t('common.close')}>×</button>
         </div>
       )}
 

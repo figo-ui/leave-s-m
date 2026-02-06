@@ -410,7 +410,7 @@ const LeaveOverview: React.FC = () => {
         <div className="error-banner">
           <span className="error-icon">❌</span>
           {error}
-          <button onClick={() => setError('')} className="error-close">×</button>
+          <button onClick={() => setError('')} className="error-close" aria-label={t('common.close')}>×</button>
         </div>
       )}
 

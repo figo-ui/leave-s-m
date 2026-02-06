@@ -51,7 +51,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole, isMobileOpen, onClose }) =>
         { path: '/pending-requests', label: t('menu.pending_requests'), icon: '⏳', },
         { path: '/approvals-history', label: t('menu.approvals_history'), icon: '✅' },
         { path: '/team-overview', label: t('menu.team_overview'), icon: '👥' },
-        { path: '/reports', label: t('menu.reports'), icon: '📈' }
+        { path: '/manager-reports', label: t('menu.reports'), icon: '📈' }
       ],
       'hr-admin': [
          { path: '/about-me', label: t('nav.about_me'), icon: '👤' },
@@ -61,7 +61,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole, isMobileOpen, onClose }) =>
         { path: '/user-management', label: t('menu.user_management'), icon: '👥' },
         { path: '/leave-types', label: t('menu.leave_types'), icon: '🏷️' },
         { path: '/system-config', label: t('menu.configuration'), icon: '⚙️' },
-        { path: '/reports', label: t('menu.reports'), icon: '📈' },
+        { path: '/hr-reports', label: t('menu.reports'), icon: '📈' },
         { path: '/hr-approvals', label: t('menu.approvals'), icon: '✅' }
 
       ],
@@ -73,7 +73,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole, isMobileOpen, onClose }) =>
         { path: '/user-management', label: t('menu.user_management'), icon: '👥' },
         { path: '/leave-types', label: t('menu.leave_types'), icon: '🏷️' },
         { path: '/system-config', label: t('menu.configuration'), icon: '⚙️' },
-        { path: '/reports', label: t('menu.reports'), icon: '📈' },
+        { path: '/hr-reports', label: t('menu.reports'), icon: '📈' },
         { path: '/hr-approvals', label: t('menu.approvals'), icon: '✅' }
       ],
     };
@@ -102,6 +102,12 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole, isMobileOpen, onClose }) =>
     }
   };
 
+  const handleToggle = () => {
+    if (isMobile) return;
+    setIsCollapsed(prev => !prev);
+    setIsHovered(false);
+  };
+
   const handleNavClick = () => {
     if (isMobile && onClose) {
       onClose();
@@ -125,6 +131,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole, isMobileOpen, onClose }) =>
         className={`sidebar ${isCollapsed ? 'collapsed' : ''} ${isHovered ? 'hover-expanded' : ''} ${isMobile ? 'mobile' : 'desktop'} ${isMobileOpen ? 'mobile-open' : ''}`}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
+        aria-label={t('nav.leave_management')}
       >
         {/* Sidebar Header with OBU Logo */}
         <div className="sidebar-header">
@@ -142,16 +149,30 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole, isMobileOpen, onClose }) =>
             )}
           </div>
           
-          {/* Close Button - Always visible when expanded */}
-          {isSidebarExpanded && (
-            <button 
-              className="sidebar-close"
-              onClick={handleClose}
-              title={t('common.close_sidebar')}
-            >
-              ×
-            </button>
-          )}
+          <div className="sidebar-actions">
+            {!isMobile && (
+              <button
+                className="sidebar-toggle"
+                onClick={handleToggle}
+                aria-label={isCollapsed ? t('common.expand_sidebar') : t('common.collapse_sidebar')}
+                title={isCollapsed ? t('common.expand_sidebar') : t('common.collapse_sidebar')}
+              >
+                {isCollapsed ? '›' : '‹'}
+              </button>
+            )}
+
+            {/* Close Button - Always visible when expanded */}
+            {isSidebarExpanded && (
+              <button 
+                className="sidebar-close"
+                onClick={handleClose}
+                aria-label={t('common.close_sidebar')}
+                title={t('common.close_sidebar')}
+              >
+                ×
+              </button>
+            )}
+          </div>
         </div>
 
        

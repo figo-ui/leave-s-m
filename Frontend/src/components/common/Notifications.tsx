@@ -65,6 +65,9 @@ const Notifications: React.FC = () => {
         className="notification-bell"
         onClick={() => setIsOpen(!isOpen)}
         title={t('notifications.title')}
+        aria-label={t('notifications.title')}
+        aria-expanded={isOpen}
+        aria-haspopup="dialog"
       >
         🔔
         {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}

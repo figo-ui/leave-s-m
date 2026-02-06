@@ -384,6 +384,7 @@ const ApplyLeave: React.FC = () => {
               <button 
                 onClick={() => setError('')} 
                 className="error-close"
+                aria-label={t('common.close')}
               >
                 ×
               </button>
@@ -421,6 +422,7 @@ const ApplyLeave: React.FC = () => {
               <button 
                 onClick={() => setSuccess('')} 
                 className="success-close"
+                aria-label={t('common.close')}
               >
                 ×
               </button>

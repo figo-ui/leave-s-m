@@ -14,7 +14,10 @@
     "help_support": "Help & Support",
     "about_system": "About System",
     "sign_out": "Sign Out",
+    "close": "Close",
     "close_sidebar": "Close sidebar",
+    "expand_sidebar": "Expand sidebar",
+    "collapse_sidebar": "Collapse sidebar",
     "language": "Language",
     "save": "Save",
     "cancel": "Cancel",
@@ -71,10 +74,215 @@
     "language_label": "Preferred Language",
     "language_updated": "Language updated successfully!"
   },
+  "profile_settings": {
+    "header_subtitle": "Manage your personal information and security preferences",
+    "tabs": {
+      "settings": "Settings",
+      "personal_info": "Personal Information",
+      "security_password": "Security & Password"
+    },
+    "sidebar_help": {
+      "title": "Need Help?",
+      "subtitle": "Contact HR department for changes to:",
+      "items": {
+        "name": "Name changes",
+        "email": "Email address",
+        "department": "Department changes",
+        "position": "Position updates"
+      },
+      "contact_hr": "Contact HR"
+    },
+    "sections": {
+      "personal_title": "Personal Information",
+      "personal_editable": "You can edit: Profile picture and phone number",
+      "personal_non_editable": "Other fields are managed by HR",
+      "security_title": "Security & Password",
+      "security_subtitle": "Change your password anytime for account security"
+    },
+    "profile_picture": {
+      "title": "Profile Picture",
+      "guidelines": "Upload a professional photo for your profile.",
+      "details": "Supported: JPG, PNG • Max: 5MB • Recommended: 400x400px"
+    },
+    "fields": {
+      "full_name": "Full Name",
+      "email": "Email Address",
+      "employee_id": "Employee ID",
+      "department": "Department",
+      "position": "Position",
+      "join_date": "Join Date",
+      "status": "Status",
+      "phone": "Phone Number",
+      "user_role": "User Role"
+    },
+    "badges": {
+      "editable": "Editable",
+      "managed_by_hr": "Managed by HR",
+      "university_email": "University Email",
+      "system_generated": "System Generated",
+      "system_record": "System Record",
+      "system_status": "System Status",
+      "system_assigned": "System Assigned"
+    },
+    "values": {
+      "not_assigned": "Not assigned",
+      "not_specified": "Not specified",
+      "not_available": "Not available",
+      "not_provided": "Not provided"
+    },
+    "help": {
+      "legal_name": "Legal name as per university records",
+      "primary_email": "Primary university email address"
+    },
+    "phone": {
+      "placeholder": "+251 91 234 5678",
+      "format_hint": "Format: +251 XX XXX XXXX or 09XX XXX XXX",
+      "help": "Your personal contact number (will not be shared publicly)",
+      "invalid": "Please enter a valid Ethiopian phone number (e.g., +251 91 234 5678)"
+    },
+    "language_help": "Choose the language you want to use in the system",
+    "actions": {
+      "editable": "You can edit",
+      "edit": "Edit",
+      "go_to_security": "Go to Security Settings",
+      "back_to_personal": "Back to Personal Info"
+    },
+    "password": {
+      "current": "Current Password",
+      "new": "New Password",
+      "confirm": "Confirm New Password",
+      "placeholder_current": "Enter your current password",
+      "placeholder_new": "Enter new password (min 8 characters)",
+      "placeholder_confirm": "Confirm your new password",
+      "help_current": "Enter your current account password",
+      "requirements_title": "Password must contain:",
+      "requirements": {
+        "min_length": "At least 8 characters",
+        "uppercase": "One uppercase letter",
+        "lowercase": "One lowercase letter",
+        "number": "One number"
+      },
+      "match": "Passwords match",
+      "no_match": "Passwords do not match"
+    },
+    "messages": {
+      "saving": "Saving...",
+      "password_requirements": "Password requirements: {{details}}",
+      "enter_current": "Please enter your current password",
+      "enter_new": "Please enter a new password",
+      "no_match": "New passwords do not match!",
+      "min_length": "New password must be at least 8 characters long!",
+      "update_phone_failed": "Failed to update phone number",
+      "update_language_failed": "Failed to update language",
+      "change_password_failed": "Failed to change password"
+    },
+    "buttons": {
+      "change_password": "Change Password",
+      "changing_password": "Changing Password..."
+    },
+    "security_tips": {
+      "title": "Security Best Practices",
+      "items": {
+        "unique": "Use a unique password that you don't use elsewhere",
+        "rotate": "Change your password every 90 days for maximum security",
+        "share": "Never share your password, even with colleagues or IT support",
+        "logout": "Log out when using shared or public computers",
+        "contact": "Contact IT immediately if you suspect unauthorized access"
+      }
+    }
+  },
   "languages": {
     "en": "English",
     "am": "Amharic",
     "om": "Afaan Oromo"
+  },
+  "pages": {
+    "help_support": {
+      "title": "Help & Support",
+      "description": "Find guidance and contact information for assistance with the system.",
+      "hint": "For urgent requests, contact HR or IT support directly.",
+      "sections": {
+        "getting_started": {
+          "title": "Getting Started",
+          "items": {
+            "apply": "Apply for leave from the dashboard quick actions.",
+            "track": "Track approvals and history in Leave History.",
+            "profile": "Update your contact info in Profile Settings."
+          }
+        },
+        "common_issues": {
+          "title": "Common Issues",
+          "items": {
+            "login": "Can’t log in? Verify your email and password or contact HR.",
+            "language": "Language not changing? Use the navbar language menu.",
+            "balance": "Leave balance missing? Refresh or contact HR."
+          }
+        },
+        "contact": {
+          "title": "Contact",
+          "description": "If you need help with approvals or account changes, reach out:",
+          "email": "Email: hr@bultum.edu.et",
+          "phone": "Phone: +251 91 234 5678",
+          "hours": "Hours: Mon–Fri, 8:30–17:30"
+        }
+      },
+      "actions": {
+        "profile": "Go to Profile Settings",
+        "leave_history": "Open Leave History",
+        "about": "About the System"
+      }
+    },
+    "about_system": {
+      "title": "About the System",
+      "description": "Overview of the Leave Management System and its purpose.",
+      "sections": {
+        "summary": {
+          "title": "Summary",
+          "body": "This system streamlines leave requests, approvals, and reporting for all roles.",
+          "version": "Version {{version}}"
+        },
+        "features": {
+          "title": "Core Features",
+          "items": {
+            "apply": "Leave application and balance tracking",
+            "approve": "Manager and HR approval workflows",
+            "reports": "Analytics and reporting dashboards"
+          }
+        },
+        "roles": {
+          "title": "Supported Roles",
+          "items": {
+            "employee": "Employees can apply and track leaves.",
+            "manager": "Managers review and approve requests.",
+            "hr": "HR manages policies, types, and reports."
+          }
+        }
+      },
+      "actions": {
+        "help": "Help & Support",
+        "dashboard": "Back to Dashboard"
+      }
+    },
+    "calendar": {
+      "title": "Calendar",
+      "description": "Team leave calendar view will appear here.",
+      "hint": "In the meantime, check Leave History for upcoming dates."
+    },
+    "admin": {
+      "title": "System Administration",
+      "description": "Administrative controls will be available here.",
+      "hint": "Only super admins can access this area."
+    },
+    "audit_logs": {
+      "title": "Audit Logs",
+      "description": "System activity and audit records will appear here.",
+      "hint": "Only super admins can access this area."
+    },
+    "backup_restore": {
+      "title": "Backup & Restore",
+      "description": "Backup and restore tools will be available here.",
+      "hint": "Only super admins can access this area."
+    }
   },
   "status": {
     "pending_manager": "Pending Manager",

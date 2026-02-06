@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { apiService, getServerOrigin } from '../../utils/api';
 import { LanguageCode } from '../../types';
+import Notifications from './Notifications';
 import './Navbar.css';
 
 // Import the logo image
@@ -131,6 +132,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
       </div>
 
       <div className="navbar-right">
+        <Notifications />
         <div className="language-select">
           <label className="language-label" htmlFor="navbar-language">
             {t('common.language')}
@@ -224,12 +226,18 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
 
               {/* Help & Support Section */}
               <div className="menu-section">
-                <button className="menu-item">
+                <button
+                  className="menu-item"
+                  onClick={() => handleNavigation('/help-support')}
+                >
                   <span className="menu-icon">❓</span>
                   <span className="menu-text">{t('common.help_support')}</span>
                 </button>
                 
-                <button className="menu-item">
+                <button
+                  className="menu-item"
+                  onClick={() => handleNavigation('/about-system')}
+                >
                   <span className="menu-icon">ℹ️</span>
                   <span className="menu-text">{t('common.about_system')}</span>
                 </button>

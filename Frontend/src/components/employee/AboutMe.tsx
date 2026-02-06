@@ -154,7 +154,7 @@ const AboutMe: React.FC = () => {
         <div className="success-message">
           <div className="message-icon">✅</div>
           <div className="message-text">{message}</div>
-          <button onClick={() => setMessage('')} className="message-close">×</button>
+          <button onClick={() => setMessage('')} className="message-close" aria-label={t('common.close')}>×</button>
         </div>
       )}
 
@@ -162,7 +162,7 @@ const AboutMe: React.FC = () => {
         <div className="error-message">
           <div className="message-icon">⚠️</div>
           <div className="message-text">{error}</div>
-          <button onClick={() => setError('')} className="message-close">×</button>
+          <button onClick={() => setError('')} className="message-close" aria-label={t('common.close')}>×</button>
         </div>
       )}
 

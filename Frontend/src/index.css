@@ -70,3 +70,127 @@ code {
   font-size: 0.9rem;
   color: var(--dark-gray);
 }
+
+/* Info Pages */
+.info-page {
+  background: white;
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  margin: 20px 0;
+}
+
+.info-header h1 {
+  color: var(--primary-blue);
+  margin-bottom: 8px;
+  font-size: 2rem;
+}
+
+.info-header p {
+  color: var(--dark-gray);
+  margin-bottom: 20px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.info-card {
+  background: var(--light-gray);
+  border-radius: 10px;
+  padding: 16px;
+  border: 1px solid var(--medium-gray);
+}
+
+.info-card h2 {
+  font-size: 1.1rem;
+  color: var(--primary-blue);
+  margin-bottom: 10px;
+}
+
+.info-paragraph {
+  color: var(--dark-gray);
+  margin-bottom: 12px;
+}
+
+.info-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.info-list li {
+  margin-bottom: 8px;
+  padding-left: 16px;
+  position: relative;
+}
+
+.info-list li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: var(--accent-gold);
+}
+
+.info-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.info-pill {
+  background: white;
+  border: 1px solid var(--medium-gray);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.85rem;
+  color: var(--dark-gray);
+}
+
+.info-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.info-actions .primary,
+.info-actions .secondary {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.info-actions .primary {
+  background: var(--primary-blue);
+  color: white;
+}
+
+.info-actions .secondary {
+  background: var(--medium-gray);
+  color: var(--primary-blue);
+}
+
+.info-note {
+  margin-top: 16px;
+  padding: 12px;
+  border-left: 4px solid var(--accent-gold);
+  background: var(--light-gray);
+  border-radius: 8px;
+  color: var(--dark-gray);
+}
+
+/* Focus visibility */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid var(--accent-gold);
+  outline-offset: 2px;
+}

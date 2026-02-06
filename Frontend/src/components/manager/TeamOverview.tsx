@@ -274,7 +274,7 @@ const TeamOverview: React.FC = () => {
             <span className="error-icon">❌</span>
             {error}
           </div>
-          <button onClick={() => setError('')} className="error-close">×</button>
+          <button onClick={() => setError('')} className="error-close" aria-label={t('common.close')}>×</button>
         </div>
       )}
 
@@ -516,7 +516,7 @@ const TeamOverview: React.FC = () => {
       {/* Member Details Modal */}
       {showMemberDetails && selectedMember && (
         <div className="modal-overlay">
-          <div className="modal-content">
+          <div className="modal-content" role="dialog" aria-modal="true" aria-label={t('team_overview.member_details')}>
             <div className="modal-header">
               <h2>{t('team_overview.member_details')}</h2>
               <button 
@@ -525,6 +525,7 @@ const TeamOverview: React.FC = () => {
                   setShowMemberDetails(false);
                   setSelectedMember(null);
                 }}
+                aria-label={t('common.close')}
               >
                 ×
               </button>

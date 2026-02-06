@@ -574,7 +574,7 @@ const UserManagement: React.FC = () => {
             <span className="message-icon">❌</span>
             {error}
           </div>
-          <button onClick={clearMessages} className="message-close">×</button>
+          <button onClick={clearMessages} className="message-close" aria-label={t('common.close')}>×</button>
         </div>
       )}
 
@@ -584,14 +584,14 @@ const UserManagement: React.FC = () => {
             <span className="message-icon">✅</span>
             {success}
           </div>
-          <button onClick={clearMessages} className="message-close">×</button>
+          <button onClick={clearMessages} className="message-close" aria-label={t('common.close')}>×</button>
         </div>
       )}
 
       {/* Add User Modal */}
        {showAddUser && (
         <div className="modal-overlay">
-          <div className="modal-content">
+          <div className="modal-content" role="dialog" aria-modal="true" aria-label={t('user_management.modal.add_title')}>
             <div className="modal-header">
               <h3>{t('user_management.modal.add_title')}</h3>
               <button 
@@ -600,6 +600,7 @@ const UserManagement: React.FC = () => {
                   setShowAddUser(false);
                   resetForm();
                 }}
+                aria-label={t('common.close')}
               >
                 ×
               </button>

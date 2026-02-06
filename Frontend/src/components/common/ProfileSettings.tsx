@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { apiService } from '../../utils/api';
 import { useTranslation } from 'react-i18next';
@@ -24,6 +25,7 @@ interface UserProfile {
 const ProfileSettings: React.FC = () => {
   const { user, updateUser } = useAuth();
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -110,7 +112,7 @@ const ProfileSettings: React.FC = () => {
     
     // Validate phone number format
     if (phone && !validatePhoneNumber(phone)) {
-      setError('Please enter a valid Ethiopian phone number (e.g., +251 91 234 5678)');
+      setError(t('profile_settings.phone.invalid'));
       return;
     }
 
@@ -125,10 +127,10 @@ const ProfileSettings: React.FC = () => {
         showSuccessMessage(t('profile.phone_updated'));
         setIsEditingPhone(false);
       } else {
-        setError(response.message || 'Failed to update phone number');
+        setError(response.message || t('profile_settings.messages.update_phone_failed'));
       }
     } catch (error: any) {
-      setError(error.message || 'Failed to update phone number');
+      setError(error.message || t('profile_settings.messages.update_phone_failed'));
     } finally {
       setLoading(false);
     }
@@ -157,10 +159,10 @@ const ProfileSettings: React.FC = () => {
         updateUser(response.data);
         showSuccessMessage(t('profile.language_updated'));
       } else {
-        setError(response.message || 'Failed to update language');
+        setError(response.message || t('profile_settings.messages.update_language_failed'));
       }
     } catch (error: any) {
-      setError(error.message || 'Failed to update language');
+      setError(error.message || t('profile_settings.messages.update_language_failed'));
     } finally {
       setLoading(false);
     }
@@ -173,29 +175,29 @@ const ProfileSettings: React.FC = () => {
 
     // Validation
     if (!passwordData.currentPassword) {
-      setError('Please enter your current password');
+      setError(t('profile_settings.messages.enter_current'));
       return;
     }
 
     if (!passwordData.newPassword) {
-      setError('Please enter a new password');
+      setError(t('profile_settings.messages.enter_new'));
       return;
     }
 
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setError('New passwords do not match!');
+      setError(t('profile_settings.messages.no_match'));
       return;
     }
 
     if (passwordData.newPassword.length < 8) {
-      setError('New password must be at least 8 characters long!');
+      setError(t('profile_settings.messages.min_length'));
       return;
     }
 
     // Additional password strength validation
     const passwordErrors = validatePasswordStrength(passwordData.newPassword);
     if (passwordErrors.length > 0) {
-      setError(`Password requirements: ${passwordErrors.join(', ')}`);
+      setError(t('profile_settings.messages.password_requirements', { details: passwordErrors.join(', ') }));
       return;
     }
 
@@ -221,10 +223,10 @@ const ProfileSettings: React.FC = () => {
           confirm: false
         });
       } else {
-        setError(response.message || 'Failed to change password');
+        setError(response.message || t('profile_settings.messages.change_password_failed'));
       }
     } catch (error: any) {
-      setError(error.message || 'Failed to change password');
+      setError(error.message || t('profile_settings.messages.change_password_failed'));
     } finally {
       setLoading(false);
     }
@@ -234,16 +236,16 @@ const ProfileSettings: React.FC = () => {
     const errors: string[] = [];
     
     if (password.length < 8) {
-      errors.push('At least 8 characters');
+      errors.push(t('profile_settings.password.requirements.min_length'));
     }
     if (!/[A-Z]/.test(password)) {
-      errors.push('At least one uppercase letter');
+      errors.push(t('profile_settings.password.requirements.uppercase'));
     }
     if (!/[a-z]/.test(password)) {
-      errors.push('At least one lowercase letter');
+      errors.push(t('profile_settings.password.requirements.lowercase'));
     }
     if (!/[0-9]/.test(password)) {
-      errors.push('At least one number');
+      errors.push(t('profile_settings.password.requirements.number'));
     }
     
     return errors;
@@ -262,17 +264,11 @@ const ProfileSettings: React.FC = () => {
   };
 
   const getRoleLabel = (role: string): string => {
-    const roleLabels: Record<string, string> = {
-      'employee': 'Employee',
-      'manager': 'Manager',
-      'hr-admin': 'HR Administrator',
-      'super-admin': 'System Administrator'
-    };
-    return roleLabels[role] || role;
+    return t(`roles.${role}`, role);
   };
 
   const formatDate = (dateString: string) => {
-    if (!dateString) return 'Not available';
+    if (!dateString) return t('profile_settings.values.not_available');
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
@@ -281,7 +277,7 @@ const ProfileSettings: React.FC = () => {
   };
 
   const formatPhoneNumber = (phone: string = ''): string => {
-    if (!phone.trim()) return 'Not provided';
+    if (!phone.trim()) return t('profile_settings.values.not_provided');
     
     // Format Ethiopian phone numbers
     const cleaned = phone.replace(/\D/g, '');
@@ -304,7 +300,7 @@ const ProfileSettings: React.FC = () => {
     <div className="profile-settings">
       <div className="profile-header">
         <h1>{t('profile.profile_settings')}</h1>
-        <p>Manage your personal information and security preferences</p>
+        <p>{t('profile_settings.header_subtitle')}</p>
       </div>
 
       {/* Messages */}
@@ -314,7 +310,7 @@ const ProfileSettings: React.FC = () => {
             <span className="message-icon">✅</span>
             <span className="message-text">{message}</span>
           </div>
-          <button onClick={() => setMessage('')} className="message-close">×</button>
+          <button onClick={() => setMessage('')} className="message-close" aria-label={t('common.close')}>×</button>
         </div>
       )}
       
@@ -324,7 +320,7 @@ const ProfileSettings: React.FC = () => {
             <span className="message-icon">⚠️</span>
             <span className="message-text">{error}</span>
           </div>
-          <button onClick={() => setError('')} className="message-close">×</button>
+          <button onClick={() => setError('')} className="message-close" aria-label={t('common.close')}>×</button>
         </div>
       )}
 
@@ -332,7 +328,7 @@ const ProfileSettings: React.FC = () => {
         {/* Sidebar Navigation */}
         <div className="profile-sidebar">
           <div className="sidebar-section">
-            <h3>Settings</h3>
+            <h3>{t('profile_settings.tabs.settings')}</h3>
             <nav className="sidebar-nav">
               <button 
                 className={`nav-item ${activeTab === 'personal' ? 'active' : ''}`}
@@ -340,7 +336,7 @@ const ProfileSettings: React.FC = () => {
                 type="button"
               >
                 <span className="nav-icon">👤</span>
-                <span className="nav-text">Personal Information</span>
+                <span className="nav-text">{t('profile_settings.tabs.personal_info')}</span>
               </button>
               <button 
                 className={`nav-item ${activeTab === 'security' ? 'active' : ''}`}
@@ -348,21 +344,26 @@ const ProfileSettings: React.FC = () => {
                 type="button"
               >
                 <span className="nav-icon">🔐</span>
-                <span className="nav-text">Security & Password</span>
+                <span className="nav-text">{t('profile_settings.tabs.security_password')}</span>
               </button>
             </nav>
           </div>
 
           <div className="sidebar-help">
-            <h4>Need Help?</h4>
-            <p>Contact HR department for changes to:</p>
+            <h4>{t('profile_settings.sidebar_help.title')}</h4>
+            <p>{t('profile_settings.sidebar_help.subtitle')}</p>
             <ul className="help-list">
-              <li>• Name changes</li>
-              <li>• Email address</li>
-              <li>• Department changes</li>
-              <li>• Position updates</li>
+              <li>• {t('profile_settings.sidebar_help.items.name')}</li>
+              <li>• {t('profile_settings.sidebar_help.items.email')}</li>
+              <li>• {t('profile_settings.sidebar_help.items.department')}</li>
+              <li>• {t('profile_settings.sidebar_help.items.position')}</li>
             </ul>
-            <button className="help-btn">Contact HR</button>
+            <button
+              className="help-btn"
+              onClick={() => navigate('/help-support')}
+            >
+              {t('profile_settings.sidebar_help.contact_hr')}
+            </button>
           </div>
         </div>
 
@@ -371,10 +372,10 @@ const ProfileSettings: React.FC = () => {
           {activeTab === 'personal' && (
             <div className="personal-info-section">
               <div className="section-header">
-                <h2>Personal Information</h2>
+                <h2>{t('profile_settings.sections.personal_title')}</h2>
                 <p className="section-subtitle">
-                  <span className="editable-info">You can edit: Profile picture and phone number</span>
-                  <span className="non-editable-info">Other fields are managed by HR</span>
+                  <span className="editable-info">{t('profile_settings.sections.personal_editable')}</span>
+                  <span className="non-editable-info">{t('profile_settings.sections.personal_non_editable')}</span>
                 </p>
               </div>
 
@@ -389,14 +390,14 @@ const ProfileSettings: React.FC = () => {
                   />
                 </div>
                 <div className="picture-info">
-                  <h4>Profile Picture</h4>
+                  <h4>{t('profile_settings.profile_picture.title')}</h4>
                   <p className="picture-guidelines">
-                    Upload a professional photo for your profile.
+                    {t('profile_settings.profile_picture.guidelines')}
                     <br/>
-                    <span className="guideline-detail">Supported: JPG, PNG • Max: 5MB • Recommended: 400x400px</span>
+                    <span className="guideline-detail">{t('profile_settings.profile_picture.details')}</span>
                   </p>
                   <div className="picture-status">
-                    <span className="editable-badge">Editable</span>
+                    <span className="editable-badge">{t('profile_settings.badges.editable')}</span>
                   </div>
                 </div>
               </div>
@@ -405,70 +406,70 @@ const ProfileSettings: React.FC = () => {
               <div className="info-grid">
                 {/* Read-only Fields */}
                 <div className="info-group read-only">
-                  <label className="info-label">Full Name</label>
+                  <label className="info-label">{t('profile_settings.fields.full_name')}</label>
                   <div className="info-value">
                     {profile.name}
-                    <span className="readonly-badge">Managed by HR</span>
+                    <span className="readonly-badge">{t('profile_settings.badges.managed_by_hr')}</span>
                   </div>
-                  <div className="info-help">Legal name as per university records</div>
+                  <div className="info-help">{t('profile_settings.help.legal_name')}</div>
                 </div>
 
                 <div className="info-group read-only">
-                  <label className="info-label">Email Address</label>
+                  <label className="info-label">{t('profile_settings.fields.email')}</label>
                   <div className="info-value">
                     {profile.email}
-                    <span className="readonly-badge">University Email</span>
+                    <span className="readonly-badge">{t('profile_settings.badges.university_email')}</span>
                   </div>
-                  <div className="info-help">Primary university email address</div>
+                  <div className="info-help">{t('profile_settings.help.primary_email')}</div>
                 </div>
 
                 <div className="info-group read-only">
-                  <label className="info-label">Employee ID</label>
+                  <label className="info-label">{t('profile_settings.fields.employee_id')}</label>
                   <div className="info-value">
-                    {profile.employeeId || 'Not assigned'}
-                    <span className="readonly-badge">System Generated</span>
+                    {profile.employeeId || t('profile_settings.values.not_assigned')}
+                    <span className="readonly-badge">{t('profile_settings.badges.system_generated')}</span>
                   </div>
                 </div>
 
                 <div className="info-group read-only">
-                  <label className="info-label">Department</label>
+                  <label className="info-label">{t('profile_settings.fields.department')}</label>
                   <div className="info-value">
                     {profile.department}
-                    <span className="readonly-badge">Managed by HR</span>
+                    <span className="readonly-badge">{t('profile_settings.badges.managed_by_hr')}</span>
                   </div>
                 </div>
 
                 <div className="info-group read-only">
-                  <label className="info-label">Position</label>
+                  <label className="info-label">{t('profile_settings.fields.position')}</label>
                   <div className="info-value">
-                    {profile.position || 'Not specified'}
-                    <span className="readonly-badge">Managed by HR</span>
+                    {profile.position || t('profile_settings.values.not_specified')}
+                    <span className="readonly-badge">{t('profile_settings.badges.managed_by_hr')}</span>
                   </div>
                 </div>
 
                 <div className="info-group read-only">
-                  <label className="info-label">Join Date</label>
+                  <label className="info-label">{t('profile_settings.fields.join_date')}</label>
                   <div className="info-value">
                     {formatDate(profile.joinDate || '')}
-                    <span className="readonly-badge">System Record</span>
+                    <span className="readonly-badge">{t('profile_settings.badges.system_record')}</span>
                   </div>
                 </div>
 
                 <div className="info-group read-only">
-                  <label className="info-label">Status</label>
+                  <label className="info-label">{t('profile_settings.fields.status')}</label>
                   <div className="info-value">
                     <span className={`status-badge ${(profile.status || 'active').toLowerCase()}`}>
                       {profile.status || 'active'}
                     </span>
-                    <span className="readonly-badge">System Status</span>
+                    <span className="readonly-badge">{t('profile_settings.badges.system_status')}</span>
                   </div>
                 </div>
 
                 {/* Editable Phone Number Field */}
                 <div className="info-group editable">
                   <label className="info-label">
-                    Phone Number
-                    <span className="editable-indicator">(You can edit)</span>
+                    {t('profile_settings.fields.phone')}
+                    <span className="editable-indicator">({t('profile_settings.actions.editable')})</span>
                   </label>
                   {isEditingPhone ? (
                     <div className="edit-phone-container">
@@ -478,11 +479,11 @@ const ProfileSettings: React.FC = () => {
                         value={profile.phone || ''}
                         onChange={(e) => handlePhoneNumberChange(e.target.value)}
                         className="phone-input"
-                        placeholder="+251 91 234 5678"
+                        placeholder={t('profile_settings.phone.placeholder')}
                         disabled={loading}
                       />
                       <div className="phone-format-hint">
-                        Format: +251 XX XXX XXXX or 09XX XXX XXX
+                        {t('profile_settings.phone.format_hint')}
                       </div>
                       <div className="phone-actions">
                         <button 
@@ -491,7 +492,7 @@ const ProfileSettings: React.FC = () => {
                           onClick={handlePhoneNumberSave}
                           disabled={loading}
                         >
-                          {loading ? 'Saving...' : 'Save'}
+                          {loading ? t('profile_settings.messages.saving') : t('common.save')}
                         </button>
                         <button 
                           type="button"
@@ -499,7 +500,7 @@ const ProfileSettings: React.FC = () => {
                           onClick={handlePhoneNumberCancel}
                           disabled={loading}
                         >
-                          Cancel
+                          {t('common.cancel')}
                         </button>
                       </div>
                     </div>
@@ -508,7 +509,7 @@ const ProfileSettings: React.FC = () => {
                       <div className="phone-display">
                         {formatPhoneNumber(profile.phone)}
                         <div className="phone-status">
-                          <span className="editable-badge">Editable</span>
+                          <span className="editable-badge">{t('profile_settings.badges.editable')}</span>
                         </div>
                       </div>
                       <button 
@@ -516,18 +517,18 @@ const ProfileSettings: React.FC = () => {
                         className="edit-btn"
                         onClick={() => setIsEditingPhone(true)}
                       >
-                        Edit
+                        {t('profile_settings.actions.edit')}
                       </button>
                     </div>
                   )}
-                  <div className="info-help">Your personal contact number (will not be shared publicly)</div>
+                  <div className="info-help">{t('profile_settings.phone.help')}</div>
                 </div>
 
                 {/* Language Selection */}
                 <div className="info-group editable">
                   <label className="info-label">
                     {t('profile.language_label')}
-                    <span className="editable-indicator">(You can edit)</span>
+                    <span className="editable-indicator">({t('profile_settings.actions.editable')})</span>
                   </label>
                   <div className="info-value-with-action">
                     <select
@@ -541,16 +542,16 @@ const ProfileSettings: React.FC = () => {
                       <option value="am">{t('languages.am')}</option>
                     </select>
                   </div>
-                  <div className="info-help">Choose the language you want to use in the system</div>
+                  <div className="info-help">{t('profile_settings.language_help')}</div>
                 </div>
 
                 <div className="info-group read-only">
-                  <label className="info-label">User Role</label>
+                  <label className="info-label">{t('profile_settings.fields.user_role')}</label>
                   <div className="info-value">
                     <span className={`role-badge role-${profile.role}`}>
                       {getRoleLabel(profile.role)}
                     </span>
-                    <span className="readonly-badge">System Assigned</span>
+                    <span className="readonly-badge">{t('profile_settings.badges.system_assigned')}</span>
                   </div>
                 </div>
               </div>
@@ -562,7 +563,7 @@ const ProfileSettings: React.FC = () => {
                   className="switch-tab-btn"
                   onClick={() => setActiveTab('security')}
                 >
-                  Go to Security Settings
+                  {t('profile_settings.actions.go_to_security')}
                 </button>
               </div>
             </div>
@@ -571,16 +572,16 @@ const ProfileSettings: React.FC = () => {
           {activeTab === 'security' && (
             <div className="security-section">
               <div className="section-header">
-                <h2>Security & Password</h2>
+                <h2>{t('profile_settings.sections.security_title')}</h2>
                 <p className="section-subtitle">
-                  <span className="editable-info">Change your password anytime for account security</span>
+                  <span className="editable-info">{t('profile_settings.sections.security_subtitle')}</span>
                 </p>
               </div>
 
               <form onSubmit={handlePasswordChange} className="password-form">
                 <div className="form-group">
                   <label htmlFor="currentPassword" className="form-label">
-                    Current Password
+                    {t('profile_settings.password.current')}
                   </label>
                   <div className="password-input-container">
                     <input
@@ -591,7 +592,7 @@ const ProfileSettings: React.FC = () => {
                         ...prev,
                         currentPassword: e.target.value
                       }))}
-                      placeholder="Enter your current password"
+                      placeholder={t('profile_settings.password.placeholder_current')}
                       required
                       disabled={loading}
                       className="password-input"
@@ -605,12 +606,12 @@ const ProfileSettings: React.FC = () => {
                       {showPassword.current ? '👁️' : '👁️‍🗨️'}
                     </button>
                   </div>
-                  <div className="input-help">Enter your current account password</div>
+                  <div className="input-help">{t('profile_settings.password.help_current')}</div>
                 </div>
 
                 <div className="form-group">
                   <label htmlFor="newPassword" className="form-label">
-                    New Password
+                    {t('profile_settings.password.new')}
                   </label>
                   <div className="password-input-container">
                     <input
@@ -621,7 +622,7 @@ const ProfileSettings: React.FC = () => {
                         ...prev,
                         newPassword: e.target.value
                       }))}
-                      placeholder="Enter new password (min 8 characters)"
+                      placeholder={t('profile_settings.password.placeholder_new')}
                       minLength={8}
                       required
                       disabled={loading}
@@ -637,19 +638,19 @@ const ProfileSettings: React.FC = () => {
                     </button>
                   </div>
                   <div className="password-requirements">
-                    <div className="requirements-title">Password must contain:</div>
+                    <div className="requirements-title">{t('profile_settings.password.requirements_title')}</div>
                     <ul className="requirements-list">
                       <li className={passwordData.newPassword.length >= 8 ? 'met' : ''}>
-                        ✓ At least 8 characters
+                        ✓ {t('profile_settings.password.requirements.min_length')}
                       </li>
                       <li className={/[A-Z]/.test(passwordData.newPassword) ? 'met' : ''}>
-                        ✓ One uppercase letter
+                        ✓ {t('profile_settings.password.requirements.uppercase')}
                       </li>
                       <li className={/[a-z]/.test(passwordData.newPassword) ? 'met' : ''}>
-                        ✓ One lowercase letter
+                        ✓ {t('profile_settings.password.requirements.lowercase')}
                       </li>
                       <li className={/[0-9]/.test(passwordData.newPassword) ? 'met' : ''}>
-                        ✓ One number
+                        ✓ {t('profile_settings.password.requirements.number')}
                       </li>
                     </ul>
                   </div>
@@ -657,7 +658,7 @@ const ProfileSettings: React.FC = () => {
 
                 <div className="form-group">
                   <label htmlFor="confirmPassword" className="form-label">
-                    Confirm New Password
+                    {t('profile_settings.password.confirm')}
                   </label>
                   <div className="password-input-container">
                     <input
@@ -668,7 +669,7 @@ const ProfileSettings: React.FC = () => {
                         ...prev,
                         confirmPassword: e.target.value
                       }))}
-                      placeholder="Confirm your new password"
+                      placeholder={t('profile_settings.password.placeholder_confirm')}
                       required
                       disabled={loading}
                       className="password-input"
@@ -686,7 +687,7 @@ const ProfileSettings: React.FC = () => {
                     {passwordData.confirmPassword && (
                       <span className={passwordData.newPassword === passwordData.confirmPassword ? 'match' : 'no-match'}>
                         {passwordData.newPassword === passwordData.confirmPassword ? 
-                          '✓ Passwords match' : '✗ Passwords do not match'}
+                          `✓ ${t('profile_settings.password.match')}` : `✗ ${t('profile_settings.password.no_match')}`}
                       </span>
                     )}
                   </div>
@@ -706,10 +707,10 @@ const ProfileSettings: React.FC = () => {
                     {loading ? (
                       <>
                         <span className="spinner"></span>
-                        Changing Password...
+                        {t('profile_settings.buttons.changing_password')}
                       </>
                     ) : (
-                      'Change Password'
+                      t('profile_settings.buttons.change_password')
                     )}
                   </button>
                   <button 
@@ -718,28 +719,28 @@ const ProfileSettings: React.FC = () => {
                     onClick={() => setActiveTab('personal')}
                     disabled={loading}
                   >
-                    Back to Personal Info
+                    {t('profile_settings.actions.back_to_personal')}
                   </button>
                 </div>
               </form>
 
               <div className="security-tips">
-                <h4>Security Best Practices</h4>
+                <h4>{t('profile_settings.security_tips.title')}</h4>
                 <ul className="tips-list">
                   <li>
-                    <span className="tip-text">Use a unique password that you don't use elsewhere</span>
+                    <span className="tip-text">{t('profile_settings.security_tips.items.unique')}</span>
                   </li>
                   <li>
-                    <span className="tip-text">Change your password every 90 days for maximum security</span>
+                    <span className="tip-text">{t('profile_settings.security_tips.items.rotate')}</span>
                   </li>
                   <li>
-                    <span className="tip-text">Never share your password, even with colleagues or IT support</span>
+                    <span className="tip-text">{t('profile_settings.security_tips.items.share')}</span>
                   </li>
                   <li>
-                    <span className="tip-text">Log out when using shared or public computers</span>
+                    <span className="tip-text">{t('profile_settings.security_tips.items.logout')}</span>
                   </li>
                   <li>
-                    <span className="tip-text">Contact IT immediately if you suspect unauthorized access</span>
+                    <span className="tip-text">{t('profile_settings.security_tips.items.contact')}</span>
                   </li>
                 </ul>
               </div>
