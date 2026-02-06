@@ -47,6 +47,13 @@ const getBaseURL = (): string => {
   return `${protocol}//${hostname}/api`;
 };
 
+export const getApiBaseUrl = (): string => getBaseURL();
+
+export const getServerOrigin = (): string => {
+  const apiBase = getBaseURL();
+  return apiBase.replace(/\/api\/?$/, '');
+};
+
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;

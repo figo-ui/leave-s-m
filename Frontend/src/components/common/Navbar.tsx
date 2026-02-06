@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate,  } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
+import { apiService, getServerOrigin } from '../../utils/api';
+import { LanguageCode } from '../../types';
 import './Navbar.css';
 
 // Import the logo image
@@ -12,11 +14,12 @@ interface NavbarProps {
 }
 
 const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
-  const { user, logout } = useAuth();
-  const { t } = useTranslation();
+  const { user, logout, updateUser } = useAuth();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
  
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isUpdatingLanguage, setIsUpdatingLanguage] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
@@ -62,6 +65,35 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
     return user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U';
   };
 
+  const getAvatarUrl = (avatarPath?: string) => {
+    if (!avatarPath) return '';
+    if (avatarPath.startsWith('http')) return avatarPath;
+    return `${getServerOrigin()}${avatarPath}`;
+  };
+
+  const handleLanguageChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedLanguage = event.target.value as LanguageCode;
+
+    if (i18n.language === selectedLanguage) return;
+
+    i18n.changeLanguage(selectedLanguage);
+    localStorage.setItem('language', selectedLanguage);
+
+    if (!user) return;
+
+    try {
+      setIsUpdatingLanguage(true);
+      const response = await apiService.updateProfile({ language: selectedLanguage });
+      if (response.success && response.data) {
+        updateUser(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to update language preference:', error);
+    } finally {
+      setIsUpdatingLanguage(false);
+    }
+  };
+
   return (
     <nav className="navbar">
       <div className="navbar-left">
@@ -99,6 +131,23 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
       </div>
 
       <div className="navbar-right">
+        <div className="language-select">
+          <label className="language-label" htmlFor="navbar-language">
+            {t('common.language')}
+          </label>
+          <select
+            id="navbar-language"
+            className="language-dropdown"
+            value={i18n.language}
+            onChange={handleLanguageChange}
+            disabled={isUpdatingLanguage}
+            aria-label={t('common.language')}
+          >
+            <option value="en">{t('languages.en')}</option>
+            <option value="om">{t('languages.om')}</option>
+            <option value="am">{t('languages.am')}</option>
+          </select>
+        </div>
         {/* User Profile Dropdown */}
         <div className="user-profile-dropdown" ref={dropdownRef}>
           <button 
@@ -108,7 +157,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
           >
             <div className="profile-avatar">
               {user?.avatar ? (
-                <img src={user.avatar} alt={user.name} className="avatar-image" />
+                <img src={getAvatarUrl(user.avatar)} alt={user.name} className="avatar-image" />
               ) : (
                 <span className="avatar-initials">{getUserInitials()}</span>
               )}
@@ -122,7 +171,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
               <div className="profile-header">
                 <div className="profile-avatar-large">
                   {user?.avatar ? (
-                    <img src={user.avatar} alt={user.name} className="avatar-image-large" />
+                    <img src={getAvatarUrl(user.avatar)} alt={user.name} className="avatar-image-large" />
                   ) : (
                     <span className="avatar-initials-large">{getUserInitials()}</span>
                   )}
@@ -164,7 +213,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
                 <div className="section-label">{t('common.security')}</div>
                 <button 
                   className="menu-item"
-                  onClick={() => handleNavigation('/security')}
+                  onClick={() => handleNavigation('/profile-settings')}
                 >
                   <span className="menu-icon">🔐</span>
                   <span className="menu-text">{t('nav.password_security')}</span>

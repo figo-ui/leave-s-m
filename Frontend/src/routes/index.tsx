@@ -11,7 +11,9 @@ import Login from '../components/auth/Login';
 
 // Common
 import Dashboard from '../components/Dashboard';
-import ProfileSettings from '../components/employee/AboutMe';
+import AboutMe from '../components/employee/AboutMe';
+import ProfileSettings from '../components/common/ProfileSettings';
+import Notifications from '../components/common/Notifications';
 
 // Employee
 import ApplyLeave from '../components/employee/ApplyLeave';
@@ -104,7 +106,9 @@ const AppRoutes: React.FC = () => {
                 {/* Common routes for all roles */}
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 <Route path="/dashboard" element={<Dashboard  />} />
-                <Route path="/profile" element={<ProfileSettings />} />
+                <Route path="/about-me" element={<AboutMe />} />
+                <Route path="/profile-settings" element={<ProfileSettings />} />
+                <Route path="/notifications" element={<Notifications />} />
 
                 {/* Employee specific routes */}
                 <Route 

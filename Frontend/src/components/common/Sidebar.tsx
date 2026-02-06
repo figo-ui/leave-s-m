@@ -41,10 +41,12 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole, isMobileOpen, onClose }) =>
         { path: '/dashboard', label: t('menu.dashboard'), icon: '📊' },
         { path: '/apply-leave', label: t('menu.apply_leave'), icon: '📝' },
         { path: '/leave-history', label: t('menu.leave_history'), icon: '📋' },
-        { path: '/profile', label: t('menu.profile_settings'), icon: '👤' }
+        { path: '/about-me', label: t('nav.about_me'), icon: '👤' },
+        { path: '/profile-settings', label: t('menu.profile_settings'), icon: '⚙️' }
       ],
       manager: [
-        { path: '/profile', label: t('menu.profile_settings'), icon: '👤' },
+        { path: '/about-me', label: t('nav.about_me'), icon: '👤' },
+        { path: '/profile-settings', label: t('menu.profile_settings'), icon: '⚙️' },
         { path: '/dashboard', label: t('menu.dashboard'), icon: '📊' },
         { path: '/pending-requests', label: t('menu.pending_requests'), icon: '⏳', },
         { path: '/approvals-history', label: t('menu.approvals_history'), icon: '✅' },
@@ -52,24 +54,26 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole, isMobileOpen, onClose }) =>
         { path: '/reports', label: t('menu.reports'), icon: '📈' }
       ],
       'hr-admin': [
-         { path: '/profile', label: t('menu.profile_settings'), icon: '👤' },
+         { path: '/about-me', label: t('nav.about_me'), icon: '👤' },
+         { path: '/profile-settings', label: t('menu.profile_settings'), icon: '⚙️' },
         { path: '/dashboard', label: t('menu.dashboard'), icon: '📊' },
         { path: '/leave-overview', label: t('menu.leave_overview'), icon: '👁️', },
         { path: '/user-management', label: t('menu.user_management'), icon: '👥' },
         { path: '/leave-types', label: t('menu.leave_types'), icon: '🏷️' },
         { path: '/system-config', label: t('menu.configuration'), icon: '⚙️' },
-        { path: '/hr-reports', label: t('menu.reports'), icon: '📈' },
+        { path: '/reports', label: t('menu.reports'), icon: '📈' },
         { path: '/hr-approvals', label: t('menu.approvals'), icon: '✅' }
 
       ],
       'super-admin': [
-        { path: '/profile', label: t('menu.profile_settings'), icon: '👤' },
+        { path: '/about-me', label: t('nav.about_me'), icon: '👤' },
+        { path: '/profile-settings', label: t('menu.profile_settings'), icon: '⚙️' },
         { path: '/dashboard', label: t('menu.dashboard'), icon: '📊' },
         { path: '/leave-overview', label: t('menu.leave_overview'), icon: '👁️', },
         { path: '/user-management', label: t('menu.user_management'), icon: '👥' },
         { path: '/leave-types', label: t('menu.leave_types'), icon: '🏷️' },
         { path: '/system-config', label: t('menu.configuration'), icon: '⚙️' },
-        { path: '/hr-reports', label: t('menu.reports'), icon: '📈' },
+        { path: '/reports', label: t('menu.reports'), icon: '📈' },
         { path: '/hr-approvals', label: t('menu.approvals'), icon: '✅' }
       ],
     };

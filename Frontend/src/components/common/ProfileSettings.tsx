@@ -304,7 +304,7 @@ const ProfileSettings: React.FC = () => {
     <div className="profile-settings">
       <div className="profile-header">
         <h1>{t('profile.profile_settings')}</h1>
-        <p>Manage your personal information and security settings</p>
+        <p>Manage your personal information and security preferences</p>
       </div>
 
       {/* Messages */}
@@ -354,7 +354,7 @@ const ProfileSettings: React.FC = () => {
           </div>
 
           <div className="sidebar-help">
-            <h4>❓ Need Help?</h4>
+            <h4>Need Help?</h4>
             <p>Contact HR department for changes to:</p>
             <ul className="help-list">
               <li>• Name changes</li>
@@ -362,7 +362,7 @@ const ProfileSettings: React.FC = () => {
               <li>• Department changes</li>
               <li>• Position updates</li>
             </ul>
-            <button className="help-btn">📞 Contact HR</button>
+            <button className="help-btn">Contact HR</button>
           </div>
         </div>
 
@@ -373,8 +373,8 @@ const ProfileSettings: React.FC = () => {
               <div className="section-header">
                 <h2>Personal Information</h2>
                 <p className="section-subtitle">
-                  <span className="editable-info">🟢 You can edit: Profile Picture & Phone Number</span>
-                  <span className="non-editable-info">🔴 Other fields are managed by HR</span>
+                  <span className="editable-info">You can edit: Profile picture and phone number</span>
+                  <span className="non-editable-info">Other fields are managed by HR</span>
                 </p>
               </div>
 
@@ -389,7 +389,7 @@ const ProfileSettings: React.FC = () => {
                   />
                 </div>
                 <div className="picture-info">
-                  <h4>🖼️ Profile Picture</h4>
+                  <h4>Profile Picture</h4>
                   <p className="picture-guidelines">
                     Upload a professional photo for your profile.
                     <br/>
@@ -467,7 +467,7 @@ const ProfileSettings: React.FC = () => {
                 {/* Editable Phone Number Field */}
                 <div className="info-group editable">
                   <label className="info-label">
-                    📱 Phone Number
+                    Phone Number
                     <span className="editable-indicator">(You can edit)</span>
                   </label>
                   {isEditingPhone ? (
@@ -491,7 +491,7 @@ const ProfileSettings: React.FC = () => {
                           onClick={handlePhoneNumberSave}
                           disabled={loading}
                         >
-                          {loading ? 'Saving...' : '💾 Save'}
+                          {loading ? 'Saving...' : 'Save'}
                         </button>
                         <button 
                           type="button"
@@ -516,7 +516,7 @@ const ProfileSettings: React.FC = () => {
                         className="edit-btn"
                         onClick={() => setIsEditingPhone(true)}
                       >
-                        ✏️ Edit
+                        Edit
                       </button>
                     </div>
                   )}
@@ -526,7 +526,7 @@ const ProfileSettings: React.FC = () => {
                 {/* Language Selection */}
                 <div className="info-group editable">
                   <label className="info-label">
-                    🌐 {t('profile.language_label')}
+                    {t('profile.language_label')}
                     <span className="editable-indicator">(You can edit)</span>
                   </label>
                   <div className="info-value-with-action">
@@ -562,7 +562,7 @@ const ProfileSettings: React.FC = () => {
                   className="switch-tab-btn"
                   onClick={() => setActiveTab('security')}
                 >
-                  🔐 Go to Security Settings
+                  Go to Security Settings
                 </button>
               </div>
             </div>
@@ -573,7 +573,7 @@ const ProfileSettings: React.FC = () => {
               <div className="section-header">
                 <h2>Security & Password</h2>
                 <p className="section-subtitle">
-                  <span className="editable-info">🟢 Change your password anytime for account security</span>
+                  <span className="editable-info">Change your password anytime for account security</span>
                 </p>
               </div>
 
@@ -709,7 +709,7 @@ const ProfileSettings: React.FC = () => {
                         Changing Password...
                       </>
                     ) : (
-                      '🔒 Change Password'
+                      'Change Password'
                     )}
                   </button>
                   <button 
@@ -718,32 +718,27 @@ const ProfileSettings: React.FC = () => {
                     onClick={() => setActiveTab('personal')}
                     disabled={loading}
                   >
-                    ← Back to Personal Info
+                    Back to Personal Info
                   </button>
                 </div>
               </form>
 
               <div className="security-tips">
-                <h4>🔒 Security Best Practices</h4>
+                <h4>Security Best Practices</h4>
                 <ul className="tips-list">
                   <li>
-                    <span className="tip-icon">✅</span>
                     <span className="tip-text">Use a unique password that you don't use elsewhere</span>
                   </li>
                   <li>
-                    <span className="tip-icon">✅</span>
                     <span className="tip-text">Change your password every 90 days for maximum security</span>
                   </li>
                   <li>
-                    <span className="tip-icon">✅</span>
                     <span className="tip-text">Never share your password, even with colleagues or IT support</span>
                   </li>
                   <li>
-                    <span className="tip-icon">✅</span>
                     <span className="tip-text">Log out when using shared or public computers</span>
                   </li>
                   <li>
-                    <span className="tip-icon">✅</span>
                     <span className="tip-text">Contact IT immediately if you suspect unauthorized access</span>
                   </li>
                 </ul>

@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { apiService } from '../../utils/api';
+import { apiService, getServerOrigin } from '../../utils/api';
 import type { User } from '../../types';
 import './AvatarUpload.css';
 
@@ -8,13 +8,15 @@ interface AvatarUploadProps {
   userName: string;
   onAvatarUpdate: (user: User) => void;
   size?: 'small' | 'medium' | 'large';
+  showGuidelines?: boolean;
 }
 
 const AvatarUpload: React.FC<AvatarUploadProps> = ({
   currentAvatar,
   userName,
   onAvatarUpdate,
-  size = 'medium'
+  size = 'medium',
+  showGuidelines = true
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -114,7 +116,7 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
   const getAvatarUrl = (avatarPath?: string) => {
     if (!avatarPath) return null;
     if (avatarPath.startsWith('http')) return avatarPath;
-    return `http://localhost:5000${avatarPath}`;
+    return `${getServerOrigin()}${avatarPath}`;
   };
 
   const getSizeClass = () => {
@@ -135,18 +137,20 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
 
   return (
     <div className="avatar-upload">
-      <div className="professional-photo-guidelines">
-        <h4>📸 Professional Photo Requirements</h4>
-        <ul>
-          <li>✅ Recent, clear headshot photo</li>
-          <li>✅ Plain light-colored background</li>
-          <li>✅ Professional attire</li>
-          <li>✅ Face clearly visible</li>
-          <li>✅ No filters or heavy editing</li>
-          <li>✅ JPG or PNG format only</li>
-          <li>✅ Max file size: 2MB</li>
-        </ul>
-      </div>
+      {showGuidelines && (
+        <div className="professional-photo-guidelines">
+          <h4>📸 Professional Photo Requirements</h4>
+          <ul>
+            <li>✅ Recent, clear headshot photo</li>
+            <li>✅ Plain light-colored background</li>
+            <li>✅ Professional attire</li>
+            <li>✅ Face clearly visible</li>
+            <li>✅ No filters or heavy editing</li>
+            <li>✅ JPG or PNG format only</li>
+            <li>✅ Max file size: 2MB</li>
+          </ul>
+        </div>
+      )}
 
       <div className={`avatar-container ${getSizeClass()} ${uploading ? 'uploading' : ''}`}>
         {currentAvatar ? (

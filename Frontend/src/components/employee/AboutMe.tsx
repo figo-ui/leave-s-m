@@ -1,9 +1,10 @@
 // AboutMe.tsx
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { apiService } from '../../utils/api';
+import { apiService, getServerOrigin } from '../../utils/api';
 import AvatarUpload from '../common/AvatarUpload';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 import './AboutMe.css';
 
@@ -26,129 +27,14 @@ interface UserProfile {
   };
 }
 
-interface ChangePasswordModalProps {
-  onClose: () => void;
-  onSuccess: () => void;
-}
-
-const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ onClose, onSuccess }) => {
-  const { t } = useTranslation();
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-
-    if (!currentPassword) {
-      setError(t('about_me.password.current_required'));
-      return;
-    }
-    if (!newPassword) {
-      setError(t('about_me.password.new_required'));
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      setError(t('about_me.password.mismatch'));
-      return;
-    }
-    if (newPassword.length < 8) {
-      setError(t('about_me.password.min_length'));
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const response = await apiService.changePassword({
-        currentPassword,
-        newPassword
-      });
-
-      if (response.success) {
-        onSuccess();
-      } else {
-        setError(response.message || t('about_me.password.failed'));
-      }
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : t('about_me.password.failed');
-      setError(message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <div className="modal-header">
-          <h3>{t('about_me.password.title')}</h3>
-          <button onClick={onClose} className="close-btn">×</button>
-        </div>
-        <form onSubmit={handleSubmit} className="modal-body">
-          {error && <div className="error-message">{error}</div>}
-          <div className="form-group">
-            <label htmlFor="currentPassword">{t('about_me.password.current')}</label>
-            <input
-              id="currentPassword"
-              type="password"
-              value={currentPassword}
-              onChange={e => setCurrentPassword(e.target.value)}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="newPassword">{t('about_me.password.new')}</label>
-            <input
-              id="newPassword"
-              type="password"
-              value={newPassword}
-              onChange={e => setNewPassword(e.target.value)}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="confirmPassword">{t('about_me.password.confirm')}</label>
-            <input
-              id="confirmPassword"
-              type="password"
-              value={confirmPassword}
-              onChange={e => setConfirmPassword(e.target.value)}
-              required
-            />
-          </div>
-          <div className="modal-actions">
-            <button type="button" onClick={onClose} className="secondary-btn" disabled={loading}>
-              {t('common.cancel')}
-            </button>
-            <button type="submit" className="primary-btn" disabled={loading}>
-              {loading ? t('about_me.password.updating') : t('about_me.password.update')}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-};
-
 const AboutMe: React.FC = () => {
   const { user, updateUser } = useAuth();
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState<UserProfile>();
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  
-  // States for password change modal
-  const [showChangePassword, setShowChangePassword] = useState(false);
-  
-  // States for phone editing
-  const [editingPhone, setEditingPhone] = useState(false);
-  const [phoneValue, setPhoneValue] = useState('');
-  const [originalPhone, setOriginalPhone] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -164,8 +50,6 @@ const AboutMe: React.FC = () => {
       if (response.success && response.data) {
         const userData = response.data.user;
         setProfile(userData);
-        setPhoneValue(userData.phone || '');
-        setOriginalPhone(userData.phone || '');
       } else {
         setError(t('about_me.errors.load_profile'));
       }
@@ -177,69 +61,18 @@ const AboutMe: React.FC = () => {
     }
   };
 
+
+  const showMessage = (msg: string) => {
+    setMessage(msg);
+    setTimeout(() => setMessage(''), 3000);
+  };
+
   const handleAvatarUpdate = (updatedUser: any) => {
     if (updateUser && typeof updateUser === 'function') {
       updateUser(updatedUser);
     }
     setProfile(prev => prev ? { ...prev, avatar: updatedUser.avatar } : undefined);
     showMessage(t('profile.avatar_updated'));
-  };
-
-  const handleSavePhone = async () => {
-    if (!profile) return;
-
-    // Validate phone format (optional)
-    if (phoneValue && !isValidPhone(phoneValue)) {
-      setError(t('about_me.errors.invalid_phone'));
-      return;
-    }
-
-    setSaving(true);
-    setError('');
-
-    try {
-      const response = await apiService.updateProfile({
-        phone: phoneValue 
-      });
-
-      if (response.success && response.data) {
-        // Update local state
-        if (updateUser && typeof updateUser === 'function') {
-          updateUser(response.data);
-        }
-        setProfile(response.data);
-        setOriginalPhone(phoneValue);
-        setEditingPhone(false);
-        showMessage(t('profile.phone_updated'));
-      } else {
-        setError(response.message || t('about_me.errors.update_phone'));
-      }
-    } catch (error: any) {
-      setError(error.message || t('about_me.errors.update_phone'));
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleCancelPhoneEdit = () => {
-    setPhoneValue(originalPhone);
-    setEditingPhone(false);
-    setError('');
-  };
-
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPhoneValue(e.target.value);
-  };
-
-  const isValidPhone = (phone: string): boolean => {
-    // Basic validation - adjust as needed
-    const phoneRegex = /^\+?[0-9\s\-()]{10,}$/;
-    return phoneRegex.test(phone);
-  };
-
-  const showMessage = (msg: string) => {
-    setMessage(msg);
-    setTimeout(() => setMessage(''), 3000);
   };
 
   const formatDate = (dateString: string) => {
@@ -279,6 +112,12 @@ const AboutMe: React.FC = () => {
     return roleLabels[role] || role;
   };
 
+  const getAvatarUrl = (avatarPath?: string) => {
+    if (!avatarPath) return '';
+    if (avatarPath.startsWith('http')) return avatarPath;
+    return `${getServerOrigin()}${avatarPath}`;
+  };
+
   if (loading) {
     return (
       <div className="about-me">
@@ -306,23 +145,11 @@ const AboutMe: React.FC = () => {
 
   return (
     <div className="about-me">
-      {/* Change Password Modal */}
-      {showChangePassword && (
-        <ChangePasswordModal
-          onClose={() => setShowChangePassword(false)}
-          onSuccess={() => {
-            showMessage(t('profile.password_changed'));
-            setShowChangePassword(false);
-          }}
-        />
-      )}
-
       <div className="about-me-header">
         <h1>{t('nav.about_me')}</h1>
         <p>{t('about_me.subtitle')}</p>
       </div>
 
-      {/* Messages */}
       {message && (
         <div className="success-message">
           <div className="message-icon">✅</div>
@@ -330,7 +157,7 @@ const AboutMe: React.FC = () => {
           <button onClick={() => setMessage('')} className="message-close">×</button>
         </div>
       )}
-      
+
       {error && (
         <div className="error-message">
           <div className="message-icon">⚠️</div>
@@ -348,6 +175,7 @@ const AboutMe: React.FC = () => {
               userName={profile.name}
               onAvatarUpdate={handleAvatarUpdate}
               size="large"
+              showGuidelines={false}
             />
           </div>
           
@@ -391,10 +219,16 @@ const AboutMe: React.FC = () => {
             <div className="action-buttons">
               <button 
                 className="action-btn password-btn"
-                onClick={() => setShowChangePassword(true)}
+                onClick={() => navigate('/profile-settings')}
                 title={t('about_me.password.change_title')}
               >
-                🔒 {t('about_me.password.change')}
+                {t('profile.profile_settings')}
+              </button>
+              <button
+                className="action-btn secondary-btn"
+                onClick={() => navigate('/profile-settings')}
+              >
+                {t('common.security')}
               </button>
             </div>
           </div>
@@ -426,47 +260,9 @@ const AboutMe: React.FC = () => {
 
               <div className="info-group">
                 <label>{t('about_me.phone')}</label>
-                {editingPhone ? (
-                  <div className="edit-phone-container">
-                    <input
-                      type="tel"
-                      value={phoneValue}
-                      onChange={handlePhoneChange}
-                      className="editable-input"
-                      placeholder={t('about_me.phone_placeholder')}
-                      disabled={saving}
-                    />
-                    <div className="edit-phone-actions">
-                      <button 
-                        className="save-btn small"
-                        onClick={handleSavePhone}
-                        disabled={saving || phoneValue === originalPhone}
-                      >
-                        {saving ? '...' : t('common.save')}
-                      </button>
-                      <button 
-                        className="cancel-btn small"
-                        onClick={handleCancelPhoneEdit}
-                        disabled={saving}
-                      >
-                        {t('common.cancel')}
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="info-value-with-action">
-                    <span className="phone-value">
-                      {profile.phone || t('about_me.not_provided')}
-                    </span>
-                    <button 
-                      className="edit-field-btn"
-                      onClick={() => setEditingPhone(true)}
-                      title={t('about_me.edit_phone')}
-                    >
-                      ✏️
-                    </button>
-                  </div>
-                )}
+                <div className="info-value">
+                  {profile.phone || t('about_me.not_provided')}
+                </div>
               </div>
 
               <div className="info-group">
@@ -475,7 +271,7 @@ const AboutMe: React.FC = () => {
                   <div className="avatar-info">
                     <div className="avatar-preview">
                       {profile.avatar ? (
-                        <img src={`http://localhost:5000${profile.avatar}`} alt={profile.name} />
+                        <img src={getAvatarUrl(profile.avatar)} alt={profile.name} />
                       ) : (
                         <div className="avatar-placeholder">
                           {profile.name.charAt(0).toUpperCase()}
@@ -557,7 +353,7 @@ const AboutMe: React.FC = () => {
                     href={`mailto:${profile.manager.email}`}
                     className="contact-btn"
                   >
-                    📧 {t('about_me.send_email')}
+                    {t('about_me.send_email')}
                   </a>
                 </div>
               </div>
@@ -600,9 +396,9 @@ const AboutMe: React.FC = () => {
                 <div className="info-value">
                   <button 
                     className="security-btn"
-                    onClick={() => setShowChangePassword(true)}
+                    onClick={() => navigate('/profile-settings')}
                   >
-                    🔐 {t('about_me.password.change')}
+                    {t('about_me.password.change')}
                   </button>
                 </div>
               </div>
@@ -644,12 +440,12 @@ const AboutMe: React.FC = () => {
 
             {['hr-admin', 'super-admin'].includes(profile.role) && (
               <>
-                <button className="action-card" onClick={() => window.location.href = '/hr/pending-approvals'}>
+                <button className="action-card" onClick={() => window.location.href = '/hr-approvals'}>
                   <span className="action-icon">✅</span>
                   <span className="action-label">{t('dashboard.actions.hr_approvals')}</span>
                 </button>
                 
-                <button className="action-card" onClick={() => window.location.href = '/users'}>
+                <button className="action-card" onClick={() => window.location.href = '/user-management'}>
                   <span className="action-icon">👥</span>
                   <span className="action-label">{t('menu.user_management')}</span>
                 </button>
@@ -661,7 +457,7 @@ const AboutMe: React.FC = () => {
               <span className="action-label">{t('dashboard.stats.notifications')}</span>
             </button>
 
-            <button className="action-card" onClick={() => window.location.href = '/help'}>
+            <button className="action-card" onClick={() => window.location.href = '/profile-settings'}>
               <span className="action-icon">❓</span>
               <span className="action-label">{t('common.help_support')}</span>
             </button>

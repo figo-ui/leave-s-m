@@ -1,294 +1,98 @@
-/* Add these styles */
-
-/* Editable field indicators */
-.readonly-badge {
-  font-size: 11px;
-  background: #f0f0f0;
-  color: #666;
-  padding: 2px 6px;
-  border-radius: 4px;
-  margin-left: 8px;
-  font-weight: normal;
+/* AboutMe.css - Executive Style */
+.about-me {
+  padding: 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+  background: #f5f7fb;
+  min-height: calc(100vh - 70px);
+  color: #111827;
 }
 
-.info-value-with-action {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.about-me-header {
+  margin-bottom: 24px;
 }
 
-.edit-field-btn {
-  background: none;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 4px 8px;
-  cursor: pointer;
-  font-size: 12px;
-  opacity: 0.7;
-  transition: all 0.2s;
+.about-me-header h1 {
+  margin: 0 0 6px 0;
+  font-size: 28px;
+  font-weight: 700;
 }
 
-.edit-field-btn:hover {
-  opacity: 1;
-  background: #f5f5f5;
-}
-
-.edit-phone-container {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.edit-phone-actions {
-  display: flex;
-  gap: 4px;
-}
-
-.save-btn.small,
-.cancel-btn.small {
-  padding: 4px 10px;
-  font-size: 12px;
-}
-
-.avatar-info {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.avatar-preview {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  overflow: hidden;
-}
-
-.avatar-preview img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.avatar-placeholder {
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  font-weight: bold;
-}
-
-.avatar-hint {
-  font-size: 13px;
-  color: #666;
+.about-me-header p {
   margin: 0;
+  color: #6b7280;
+  font-size: 15px;
 }
 
-/* Role badges */
-.role-badge {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.role-badge.role-employee {
-  background: #e3f2fd;
-  color: #1976d2;
-}
-
-.role-badge.role-manager {
-  background: #f3e5f5;
-  color: #7b1fa2;
-}
-
-.role-badge.role-hr-admin {
-  background: #e8f5e8;
-  color: #2e7d32;
-}
-
-.role-badge.role-super-admin {
-  background: #fff3e0;
-  color: #ef6c00;
-}
-
-/* Action buttons */
-.action-btn {
-  padding: 8px 16px;
-  border-radius: 6px;
-  border: 1px solid #ddd;
-  background: white;
-  color: #333;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.password-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-}
-
-.password-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
-}
-
-.security-btn {
-  background: #f5f5f5;
-  border: 1px solid #ddd;
-  padding: 8px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.security-btn:hover {
-  background: #e0e0e0;
-}
-
-/* Action cards */
-.actions-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-  margin-top: 16px;
-}
-
-.action-card {
-  background: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 10px;
-  padding: 20px;
+.loading-state,
+.error-state {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 30px;
+  border: 1px solid #e6ebf2;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.05);
   text-align: center;
-  cursor: pointer;
-  transition: all 0.3s;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
 }
 
-.action-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-  border-color: #667eea;
+.loading-spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #111827;
+  border-radius: 50%;
+  margin: 0 auto 12px;
+  animation: spin 1s linear infinite;
 }
 
-.action-icon {
-  font-size: 32px;
-  margin-bottom: 8px;
-}
-
-.action-label {
-  font-weight: 600;
-  color: #333;
-}
-
-/* Modal styles */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.password-modal {
-  background: white;
-  border-radius: 12px;
-  width: 90%;
-  max-width: 500px;
-  max-height: 90vh;
-  overflow-y: auto;
-  animation: slideUp 0.3s ease;
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
+@keyframes spin {
   to {
-    opacity: 1;
-    transform: translateY(0);
+    transform: rotate(360deg);
   }
-}/* Add these to your existing AboutMe.css */
-
-/* Password modal integration styles */
-.password-modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
 }
 
-/* Enhanced message styles */
+.retry-btn {
+  margin-top: 12px;
+  background: #111827;
+  color: #ffffff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Messages */
 .success-message,
 .error-message {
   display: flex;
   align-items: center;
-  padding: 14px 20px;
+  padding: 12px 16px;
   border-radius: 10px;
-  margin-bottom: 24px;
-  animation: slideDown 0.3s ease;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  margin-bottom: 20px;
+  border: 1px solid transparent;
+  background: #ffffff;
+  box-shadow: 0 8px 20px rgba(16, 24, 40, 0.06);
 }
 
 .success-message {
-  background: #d1fae5;
-  border: 1px solid #a7f3d0;
-  color: #065f46;
+  border-color: #cfe9da;
 }
 
 .error-message {
-  background: #fee;
-  border: 1px solid #fecaca;
-  color: #dc2626;
+  border-color: #f4c7c7;
 }
 
 .message-icon {
-  font-size: 20px;
-  margin-right: 12px;
+  font-size: 16px;
+  margin-right: 10px;
   flex-shrink: 0;
 }
 
 .message-text {
   flex: 1;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
 }
 
 .message-close {
@@ -306,26 +110,231 @@
   opacity: 1;
 }
 
-/* Enhanced phone editing */
+.about-me-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.profile-header-section {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 24px;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid #e6ebf2;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+  align-items: center;
+}
+
+.avatar-frame {
+  width: 84px;
+  height: 84px;
+  border-radius: 18px;
+  background: #f9fafb;
+  border: 1px solid #e6ebf2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-initial {
+  font-size: 26px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.profile-basic-info h2 {
+  margin: 0 0 8px 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.role-department {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.department {
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.position {
+  color: #6b7280;
+  font-size: 13px;
+  margin: 0;
+}
+
+.profile-stats {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-label {
+  color: #6b7280;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  background: #111827;
+  color: #ffffff;
+}
+
+.profile-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.action-btn {
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid #111827;
+  background: #111827;
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  transition: all 0.2s;
+}
+
+.action-btn:hover {
+  background: #1f2937;
+}
+
+.action-btn.secondary-btn {
+  background: #ffffff;
+  color: #111827;
+  border: 1px solid #d6dde8;
+}
+
+.action-btn.secondary-btn:hover {
+  background: #f3f4f6;
+}
+
+.profile-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.info-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 18px;
+  border: 1px solid #e6ebf2;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.05);
+}
+
+.card-header h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.info-group {
+  margin-bottom: 14px;
+}
+
+.info-group label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+.info-value {
+  font-size: 14px;
+  color: #111827;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.readonly-badge {
+  font-size: 10px;
+  background: #f3f4f6;
+  color: #4b5563;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.info-value-with-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.edit-field-btn {
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+}
+
 .edit-phone-container {
   display: flex;
   gap: 8px;
   align-items: center;
 }
 
-.edit-phone-container input {
+.editable-input {
   flex: 1;
-  padding: 10px 14px;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 14px;
-  transition: all 0.2s;
-}
-
-.edit-phone-container input:focus {
-  outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  padding: 10px 12px;
+  border: 1px solid #d6dde8;
+  border-radius: 10px;
+  font-size: 13px;
 }
 
 .edit-phone-actions {
@@ -333,147 +342,264 @@
   gap: 6px;
 }
 
-.save-btn.small {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
+.save-btn.small,
+.cancel-btn.small {
   padding: 6px 12px;
-  border-radius: 6px;
   font-size: 12px;
-  font-weight: 500;
+  border-radius: 8px;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  border: none;
 }
 
-.save-btn.small:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-}
-
-.save-btn.small:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none !important;
+.save-btn.small {
+  background: #111827;
+  color: #ffffff;
 }
 
 .cancel-btn.small {
-  background: #f5f5f5;
-  border: 1px solid #ddd;
-  color: #666;
-  padding: 6px 12px;
-  border-radius: 6px;
+  background: #ffffff;
+  border: 1px solid #d6dde8;
+  color: #4b5563;
+}
+
+.avatar-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar-preview {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1px solid #e6ebf2;
+}
+
+.avatar-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  background: #111827;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.avatar-hint {
   font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
+  color: #6b7280;
+  margin: 0;
 }
 
-.cancel-btn.small:hover:not(:disabled) {
-  background: #e0e0e0;
+.manager-info {
+  display: flex;
+  gap: 12px;
+  align-items: center;
 }
 
-/* Contact button enhancement */
+.manager-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #111827;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.manager-name {
+  font-weight: 700;
+  color: #111827;
+}
+
+.manager-email,
+.manager-phone {
+  color: #6b7280;
+  font-size: 12px;
+}
+
 .contact-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: #111827;
+  color: #ffffff;
   text-decoration: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.3s;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
 }
 
-.contact-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
-  text-decoration: none;
-}
-
-/* Security button enhancement */
 .security-btn {
   width: 100%;
   text-align: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: #111827;
+  color: #ffffff;
   border: none;
-  padding: 12px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s;
 }
 
-.security-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+.quick-actions-section {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 18px;
+  border: 1px solid #e6ebf2;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.05);
 }
 
-/* Responsive improvements for AboutMe */
-@media (max-width: 768px) {
-  .profile-header-section {
-    flex-direction: column;
-    text-align: center;
-    gap: 20px;
-  }
-  
-  .profile-basic-info {
-    align-items: center;
-  }
-  
-  .profile-stats {
-    justify-content: center;
-  }
-  
-  .profile-actions {
-    width: 100%;
-    justify-content: center;
-  }
-  
-  .action-buttons {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  
+.quick-actions-section h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.action-card {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.action-card:hover {
+  background: #ffffff;
+  border-color: #111827;
+}
+
+.action-icon {
+  font-size: 18px;
+}
+
+.action-label {
+  font-weight: 600;
+  color: #111827;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: #ffffff;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 520px;
+  border: 1px solid #e6ebf2;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.2);
+}
+
+.modal-header {
+  padding: 18px 20px;
+  border-bottom: 1px solid #e6ebf2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-body {
+  padding: 18px 20px 22px;
+}
+
+.form-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d6dde8;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.primary-btn,
+.secondary-btn {
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+}
+
+.primary-btn {
+  background: #111827;
+  color: #ffffff;
+}
+
+.secondary-btn {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
   .profile-details-grid {
     grid-template-columns: 1fr;
   }
-  
-  .edit-phone-container {
-    flex-direction: column;
-    gap: 12px;
-  }
-  
-  .edit-phone-actions {
-    width: 100%;
-  }
-  
-  .save-btn.small,
-  .cancel-btn.small {
-    flex: 1;
-  }
 }
 
-/* Print styles */
-@media print {
-  .about-me-header,
-  .profile-actions,
-  .contact-btn,
-  .security-btn,
-  .actions-grid,
-  .message-close {
-    display: none !important;
+@media (max-width: 768px) {
+  .profile-header-section {
+    grid-template-columns: 1fr;
+    text-align: center;
   }
-  
-  .info-card {
-    break-inside: avoid;
-    border: 1px solid #ddd;
-    margin-bottom: 20px;
+
+  .profile-actions {
+    justify-content: center;
+  }
+
+  .profile-stats {
+    justify-content: center;
   }
 }
