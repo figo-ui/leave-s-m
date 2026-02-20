@@ -379,31 +379,37 @@ const ProfileSettings: React.FC = () => {
                 </p>
               </div>
 
-              {/* Profile Picture Section */}
-              <div className="profile-picture-section">
-                <div className="picture-container">
-                  <AvatarUpload
-                    currentAvatar={profile.avatar}
-                    userName={profile.name}
-                    onAvatarUpdate={handleAvatarUpdate}
-                    size="large"
-                  />
-                </div>
-                <div className="picture-info">
-                  <h4>{t('profile_settings.profile_picture.title')}</h4>
-                  <p className="picture-guidelines">
-                    {t('profile_settings.profile_picture.guidelines')}
-                    <br/>
-                    <span className="guideline-detail">{t('profile_settings.profile_picture.details')}</span>
-                  </p>
-                  <div className="picture-status">
-                    <span className="editable-badge">{t('profile_settings.badges.editable')}</span>
-                  </div>
-                </div>
-              </div>
-
               {/* Personal Information Grid */}
               <div className="info-grid">
+                <div className="info-group editable profile-photo-card">
+                  <label className="info-label">
+                    {t('profile_settings.profile_picture.title')}
+                    <span className="editable-indicator">({t('profile_settings.actions.editable')})</span>
+                  </label>
+                  <div className="profile-photo-card-content">
+                    <AvatarUpload
+                      currentAvatar={profile.avatar}
+                      userName={profile.name}
+                      onAvatarUpdate={handleAvatarUpdate}
+                      size="medium"
+                      showGuidelines={false}
+                    />
+                    <div className="profile-photo-meta">
+                      <p className="picture-guidelines">
+                        {t('profile_settings.profile_picture.guidelines')}
+                      </p>
+                      <p className="guideline-detail">{t('profile_settings.profile_picture.details')}</p>
+                      <button
+                        type="button"
+                        className="edit-btn"
+                        onClick={() => navigate('/about-me')}
+                      >
+                        {t('nav.about_me')}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Read-only Fields */}
                 <div className="info-group read-only">
                   <label className="info-label">{t('profile_settings.fields.full_name')}</label>

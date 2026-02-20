@@ -272,6 +272,23 @@
   margin-bottom: 24px;
 }
 
+.profile-photo-card {
+  grid-column: 1 / -1;
+}
+
+.profile-photo-card-content {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.profile-photo-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 420px;
+}
+
 .info-group {
   background: #ffffff;
   border-radius: 14px;
@@ -657,6 +674,10 @@
 
   .profile-sidebar {
     width: 100%;
+  }
+
+  .profile-photo-card-content {
+    flex-direction: column;
   }
 
   .profile-picture-section {

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { apiService, getServerOrigin } from '../../utils/api';
 import type { User } from '../../types';
 import './AvatarUpload.css';
@@ -21,6 +21,13 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
+  const [imageLoadFailed, setImageLoadFailed] = useState(false);
+  const [cacheBust, setCacheBust] = useState<number>(Date.now());
+
+  useEffect(() => {
+    setImageLoadFailed(false);
+    setCacheBust(Date.now());
+  }, [currentAvatar]);
 
   const handleAvatarClick = () => {
     fileInputRef.current?.click();
@@ -119,6 +126,13 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
     return `${getServerOrigin()}${avatarPath}`;
   };
 
+  const avatarSrc = useMemo(() => {
+    const url = getAvatarUrl(currentAvatar);
+    if (!url) return null;
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}v=${cacheBust}`;
+  }, [currentAvatar, cacheBust]);
+
   const getSizeClass = () => {
     switch (size) {
       case 'small': return 'avatar-small';
@@ -153,20 +167,18 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
       )}
 
       <div className={`avatar-container ${getSizeClass()} ${uploading ? 'uploading' : ''}`}>
-        {currentAvatar ? (
+        {currentAvatar && !imageLoadFailed ? (
           <img
-            src={getAvatarUrl(currentAvatar) || ''}
+            key={avatarSrc || currentAvatar}
+            src={avatarSrc || ''}
             alt={`${userName}'s professional photo`}
             className="avatar-image"
-            onError={(e) => {
-              // If image fails to load, show initials
-              e.currentTarget.style.display = 'none';
-              e.currentTarget.nextElementSibling?.classList.remove('hidden');
-            }}
+            onLoad={() => setImageLoadFailed(false)}
+            onError={() => setImageLoadFailed(true)}
           />
         ) : null}
         
-        {!currentAvatar && (
+        {(!currentAvatar || imageLoadFailed) && (
           <div className="avatar-placeholder">
             {getInitials()}
           </div>
