@@ -196,6 +196,45 @@
     "am": "Amharic",
     "om": "Afaan Oromo"
   },
+  "avatar_upload": {
+    "title": "Photo upload criteria",
+    "checks": {
+      "format_idle": "File type must be JPG or PNG.",
+      "size_idle": "File size must be between 10KB and 2MB.",
+      "dimensions_idle": "Dimensions must be between 200x200 and 2000x2000.",
+      "ratio_idle": "Photo should be close to square (portrait/headshot).",
+      "format_valid": "File type is valid.",
+      "format_invalid": "Unsupported file type: {{type}}. Use JPG or PNG.",
+      "size_valid": "File size is valid.",
+      "size_invalid": "Invalid file size: {{sizeKb}}KB. Allowed range is 10KB to 2048KB.",
+      "dimensions_valid": "Dimensions are valid ({{width}}x{{height}}).",
+      "dimensions_invalid": "Invalid dimensions: {{width}}x{{height}}. Allowed range is 200x200 to 2000x2000.",
+      "ratio_valid": "Aspect ratio is valid.",
+      "ratio_invalid": "Invalid aspect ratio: {{ratio}}. Acceptable range is 0.80 to 1.25.",
+      "dimensions_unreadable": "Unable to read image dimensions. Upload a valid JPG or PNG image.",
+      "ratio_unreadable": "Unable to validate aspect ratio because image metadata could not be read."
+    },
+    "errors": {
+      "invalid_file_type": "Upload rejected: only JPG and PNG images are allowed.",
+      "file_too_large": "Upload rejected: file size must be 2MB or less.",
+      "file_too_small": "Upload rejected: file size is too small. Use a higher quality image.",
+      "invalid_dimensions": "Upload rejected: image dimensions are outside allowed range.",
+      "invalid_dimensions_with_values": "Upload rejected: image is {{width}}x{{height}}. Required range is 200x200 to 2000x2000.",
+      "invalid_ratio": "Upload rejected: image aspect ratio is outside allowed range.",
+      "invalid_ratio_with_value": "Upload rejected: aspect ratio {{ratio}} is outside 0.80 to 1.25.",
+      "upload_failed": "Failed to upload profile photo.",
+      "remove_failed": "Failed to remove profile photo."
+    },
+    "actions": {
+      "upload": "Upload",
+      "upload_photo": "Upload Photo",
+      "change_photo": "Change Photo",
+      "remove_photo": "Remove Photo"
+    },
+    "messages": {
+      "uploading": "Uploading photo..."
+    }
+  },
   "pages": {
     "help_support": {
       "title": "Help & Support",

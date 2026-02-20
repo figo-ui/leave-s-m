@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { apiService, getServerOrigin } from '../../utils/api';
 import type { User } from '../../types';
+import { useTranslation } from 'react-i18next';
 import './AvatarUpload.css';
 
 interface AvatarUploadProps {
@@ -28,11 +29,11 @@ const AVATAR_RULES = {
   maxAspectRatio: 1.25
 };
 
-const defaultChecks = (): CheckState => ({
-  format: { status: 'idle', message: 'File type must be JPG or PNG.' },
-  size: { status: 'idle', message: 'File size must be between 10KB and 2MB.' },
-  dimensions: { status: 'idle', message: 'Dimensions must be between 200x200 and 2000x2000.' },
-  ratio: { status: 'idle', message: 'Photo should be close to square (portrait/headshot).' }
+const defaultChecks = (t: (key: string, opts?: any) => string): CheckState => ({
+  format: { status: 'idle', message: t('avatar_upload.checks.format_idle') },
+  size: { status: 'idle', message: t('avatar_upload.checks.size_idle') },
+  dimensions: { status: 'idle', message: t('avatar_upload.checks.dimensions_idle') },
+  ratio: { status: 'idle', message: t('avatar_upload.checks.ratio_idle') }
 });
 
 const AvatarUpload: React.FC<AvatarUploadProps> = ({
@@ -42,10 +43,11 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
   size = 'medium',
   showGuidelines = true
 }) => {
+  const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
-  const [checks, setChecks] = useState<CheckState>(defaultChecks());
+  const [checks, setChecks] = useState<CheckState>(defaultChecks(t));
   const [imageLoadFailed, setImageLoadFailed] = useState(false);
   const [cacheBust, setCacheBust] = useState<number>(Date.now());
 
@@ -53,6 +55,10 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
     setImageLoadFailed(false);
     setCacheBust(Date.now());
   }, [currentAvatar]);
+
+  useEffect(() => {
+    setChecks(defaultChecks(t));
+  }, [t]);
 
   const handleAvatarClick = () => {
     fileInputRef.current?.click();
@@ -80,15 +86,15 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
   };
 
   const validateProfessionalPhoto = async (file: File): Promise<{ valid: boolean; checks: CheckState; messages: string[] }> => {
-    const nextChecks = defaultChecks();
+    const nextChecks = defaultChecks(t);
     const messages: string[] = [];
 
     const fileTypeOk = AVATAR_RULES.allowedTypes.includes(file.type);
     nextChecks.format = {
       status: fileTypeOk ? 'pass' : 'fail',
       message: fileTypeOk
-        ? 'File type is valid.'
-        : `Unsupported file type: ${file.type || 'unknown'}. Use JPG or PNG.`
+        ? t('avatar_upload.checks.format_valid')
+        : t('avatar_upload.checks.format_invalid', { type: file.type || 'unknown' })
     };
     if (!fileTypeOk) messages.push(nextChecks.format.message);
 
@@ -96,8 +102,8 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
     nextChecks.size = {
       status: sizeOk ? 'pass' : 'fail',
       message: sizeOk
-        ? 'File size is valid.'
-        : `Invalid file size: ${Math.round(file.size / 1024)}KB. Allowed range is 10KB to 2048KB.`
+        ? t('avatar_upload.checks.size_valid')
+        : t('avatar_upload.checks.size_invalid', { sizeKb: Math.round(file.size / 1024) })
     };
     if (!sizeOk) messages.push(nextChecks.size.message);
 
@@ -112,8 +118,8 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
       nextChecks.dimensions = {
         status: dimensionsOk ? 'pass' : 'fail',
         message: dimensionsOk
-          ? `Dimensions are valid (${width}x${height}).`
-          : `Invalid dimensions: ${width}x${height}. Allowed range is 200x200 to 2000x2000.`
+          ? t('avatar_upload.checks.dimensions_valid', { width, height })
+          : t('avatar_upload.checks.dimensions_invalid', { width, height })
       };
 
       const ratio = width / height;
@@ -121,8 +127,8 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
       nextChecks.ratio = {
         status: ratioOk ? 'pass' : 'fail',
         message: ratioOk
-          ? 'Aspect ratio is valid.'
-          : `Invalid aspect ratio: ${ratio.toFixed(2)}. Acceptable range is 0.80 to 1.25.`
+          ? t('avatar_upload.checks.ratio_valid')
+          : t('avatar_upload.checks.ratio_invalid', { ratio: ratio.toFixed(2) })
       };
 
       if (!dimensionsOk) messages.push(nextChecks.dimensions.message);
@@ -130,11 +136,11 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
     } catch {
       nextChecks.dimensions = {
         status: 'fail',
-        message: 'Unable to read image dimensions. Upload a valid JPG or PNG image.'
+        message: t('avatar_upload.checks.dimensions_unreadable')
       };
       nextChecks.ratio = {
         status: 'fail',
-        message: 'Unable to validate aspect ratio because image metadata could not be read.'
+        message: t('avatar_upload.checks.ratio_unreadable')
       };
       messages.push(nextChecks.dimensions.message);
     }
@@ -149,28 +155,28 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
     switch (errorData?.code) {
       case 'AVATAR_INVALID_FILE_TYPE':
       case 'AVATAR_INVALID_EXTENSION':
-        return 'Upload rejected: only JPG and PNG images are allowed.';
+        return t('avatar_upload.errors.invalid_file_type');
       case 'AVATAR_FILE_TOO_LARGE':
-        return 'Upload rejected: file size must be 2MB or less.';
+        return t('avatar_upload.errors.file_too_large');
       case 'AVATAR_FILE_TOO_SMALL':
-        return 'Upload rejected: file size is too small. Use a higher quality image.';
+        return t('avatar_upload.errors.file_too_small');
       case 'AVATAR_INVALID_DIMENSIONS': {
         const width = errorData?.details?.width;
         const height = errorData?.details?.height;
         if (width && height) {
-          return `Upload rejected: image is ${width}x${height}. Required range is 200x200 to 2000x2000.`;
+          return t('avatar_upload.errors.invalid_dimensions_with_values', { width, height });
         }
-        return 'Upload rejected: image dimensions are outside allowed range.';
+        return t('avatar_upload.errors.invalid_dimensions');
       }
       case 'AVATAR_INVALID_ASPECT_RATIO': {
         const ratio = errorData?.details?.aspectRatio;
         if (ratio) {
-          return `Upload rejected: aspect ratio ${Number(ratio).toFixed(2)} is outside 0.80 to 1.25.`;
+          return t('avatar_upload.errors.invalid_ratio_with_value', { ratio: Number(ratio).toFixed(2) });
         }
-        return 'Upload rejected: image aspect ratio is outside allowed range.';
+        return t('avatar_upload.errors.invalid_ratio');
       }
       default:
-        return errorData?.message || 'Failed to upload profile photo.';
+        return errorData?.message || t('avatar_upload.errors.upload_failed');
     }
   };
 
@@ -196,7 +202,7 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
         onAvatarUpdate(response.data);
         setError('');
       } else {
-        setError(response.message || 'Failed to upload profile photo.');
+        setError(response.message || t('avatar_upload.errors.upload_failed'));
       }
     } catch (uploadError: unknown) {
       console.error('Avatar upload error:', uploadError);
@@ -220,10 +226,10 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
       if (response.success && response.data) {
         onAvatarUpdate(response.data);
       } else {
-        setError(response.message || 'Failed to remove profile photo.');
+        setError(response.message || t('avatar_upload.errors.remove_failed'));
       }
     } catch (removeError: unknown) {
-      const message = removeError instanceof Error ? removeError.message : 'Failed to remove profile photo.';
+      const message = removeError instanceof Error ? removeError.message : t('avatar_upload.errors.remove_failed');
       setError(message);
     } finally {
       setUploading(false);
@@ -263,7 +269,7 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
     <div className="avatar-upload">
       {showGuidelines && (
         <div className="professional-photo-guidelines">
-          <h4>Photo upload criteria</h4>
+          <h4>{t('avatar_upload.title')}</h4>
           <ul className="validation-checklist">
             {Object.entries(checks).map(([key, value]) => (
               <li key={key} className={`check-item check-${value.status}`}>
@@ -299,9 +305,9 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
             className="avatar-change-btn"
             onClick={handleAvatarClick}
             disabled={uploading}
-            title="Upload photo"
+            title={t('avatar_upload.actions.upload_photo')}
           >
-            {uploading ? '...' : 'Upload'}
+            {uploading ? '...' : t('avatar_upload.actions.upload')}
           </button>
         </div>
 
@@ -322,7 +328,7 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
             onClick={handleRemoveAvatar}
             disabled={uploading}
           >
-            Remove Photo
+            {t('avatar_upload.actions.remove_photo')}
           </button>
         )}
 
@@ -332,7 +338,7 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
           onClick={handleAvatarClick}
           disabled={uploading}
         >
-          {currentAvatar ? 'Change Photo' : 'Upload Photo'}
+          {currentAvatar ? t('avatar_upload.actions.change_photo') : t('avatar_upload.actions.upload_photo')}
         </button>
       </div>
 
@@ -344,7 +350,7 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
 
       {uploading && (
         <div className="uploading-message">
-          Uploading photo...
+          {t('avatar_upload.messages.uploading')}
         </div>
       )}
     </div>

@@ -196,6 +196,45 @@
     "am": "አማርኛ",
     "om": "አፋን ኦሮሞ"
   },
+  "avatar_upload": {
+    "title": "የፎቶ ማስገቢያ መስፈርቶች",
+    "checks": {
+      "format_idle": "የፋይል አይነት JPG ወይም PNG መሆን አለበት።",
+      "size_idle": "የፋይል መጠን ከ10KB እስከ 2MB መሆን አለበት።",
+      "dimensions_idle": "መጠን ከ200x200 እስከ 2000x2000 መሆን አለበት።",
+      "ratio_idle": "ፎቶው ከካሬ ቅርፅ ጋር የተቀራረበ መሆን አለበት።",
+      "format_valid": "የፋይል አይነት ትክክል ነው።",
+      "format_invalid": "ያልተደገፈ የፋይል አይነት: {{type}}። JPG ወይም PNG ይጠቀሙ።",
+      "size_valid": "የፋይል መጠን ትክክል ነው።",
+      "size_invalid": "የፋይል መጠን የተሳሳተ ነው: {{sizeKb}}KB። የተፈቀደው 10KB እስከ 2048KB ነው።",
+      "dimensions_valid": "መጠኑ ትክክል ነው ({{width}}x{{height}})።",
+      "dimensions_invalid": "የምስል መጠን የተሳሳተ ነው: {{width}}x{{height}}። የተፈቀደው 200x200 እስከ 2000x2000 ነው።",
+      "ratio_valid": "የምስል ጥምርታ ትክክል ነው።",
+      "ratio_invalid": "የምስል ጥምርታ የተሳሳተ ነው: {{ratio}}። የተፈቀደው 0.80 እስከ 1.25 ነው።",
+      "dimensions_unreadable": "የምስል መጠን ማንበብ አልተቻለም። ትክክለኛ JPG ወይም PNG ያስገቡ።",
+      "ratio_unreadable": "የምስል ሜታዳታ ስላልተነበበ ጥምርታ መፈተሽ አልተቻለም።"
+    },
+    "errors": {
+      "invalid_file_type": "ማስገቢያ ተከልክሏል: JPG እና PNG ብቻ ይፈቀዳሉ።",
+      "file_too_large": "ማስገቢያ ተከልክሏል: የፋይል መጠን 2MB ወይም ከዚያ በታች መሆን አለበት።",
+      "file_too_small": "ማስገቢያ ተከልክሏል: ፋይሉ በጣም ትንሽ ነው። ከፍተኛ ጥራት ያለው ምስል ይጠቀሙ።",
+      "invalid_dimensions": "ማስገቢያ ተከልክሏል: የምስል መጠን ከተፈቀደው ውጭ ነው።",
+      "invalid_dimensions_with_values": "ማስገቢያ ተከልክሏል: ምስሉ {{width}}x{{height}} ነው። የተፈቀደው 200x200 እስከ 2000x2000 ነው።",
+      "invalid_ratio": "ማስገቢያ ተከልክሏል: የምስል ጥምርታ ከተፈቀደው ውጭ ነው።",
+      "invalid_ratio_with_value": "ማስገቢያ ተከልክሏል: የምስል ጥምርታ {{ratio}} ነው፣ 0.80 እስከ 1.25 ብቻ ይፈቀዳል።",
+      "upload_failed": "የመገለጫ ፎቶ ማስገባት አልተሳካም።",
+      "remove_failed": "የመገለጫ ፎቶ ማስወገድ አልተሳካም።"
+    },
+    "actions": {
+      "upload": "ጫን",
+      "upload_photo": "ፎቶ ጫን",
+      "change_photo": "ፎቶ ቀይር",
+      "remove_photo": "ፎቶ አስወግድ"
+    },
+    "messages": {
+      "uploading": "ፎቶ በመጫን ላይ..."
+    }
+  },
   "pages": {
     "help_support": {
       "title": "Help & Support",

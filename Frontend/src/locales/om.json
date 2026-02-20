@@ -196,6 +196,45 @@
     "am": "Amaariffa",
     "om": "Afaan Oromo"
   },
+  "avatar_upload": {
+    "title": "Ulaagaalee olkaa'insa suuraa",
+    "checks": {
+      "format_idle": "Gosti faayilii JPG yookaan PNG ta'uu qaba.",
+      "size_idle": "Hammamni faayilii 10KB hanga 2MB ta'uu qaba.",
+      "dimensions_idle": "Safarri 200x200 hanga 2000x2000 ta'uu qaba.",
+      "ratio_idle": "Suuraan bifa squaretti dhiyaataa ta'uu qaba.",
+      "format_valid": "Gosti faayilii sirrii dha.",
+      "format_invalid": "Gosti faayilii hin deeggaramne: {{type}}. JPG yookaan PNG fayyadami.",
+      "size_valid": "Hammamni faayilii sirrii dha.",
+      "size_invalid": "Hammamni faayilii sirrii miti: {{sizeKb}}KB. Daangaan hayyamame 10KB hanga 2048KB dha.",
+      "dimensions_valid": "Safarri sirrii dha ({{width}}x{{height}}).",
+      "dimensions_invalid": "Safarri suuraa sirrii miti: {{width}}x{{height}}. Daangaan hayyamame 200x200 hanga 2000x2000 dha.",
+      "ratio_valid": "Raashiyoon suuraa sirrii dha.",
+      "ratio_invalid": "Raashiyoon suuraa sirrii miti: {{ratio}}. Daangaan hayyamame 0.80 hanga 1.25 dha.",
+      "dimensions_unreadable": "Safarri suuraa dubbisuu hin dandeenye. Suuraa JPG yookaan PNG sirrii olkaa'i.",
+      "ratio_unreadable": "Sababa metadata suuraa hin dubbifamneef raashiyoo mirkaneessuu hin dandeenye."
+    },
+    "errors": {
+      "invalid_file_type": "Olkaa'insi dhoorkame: JPG fi PNG qofa hayyamamu.",
+      "file_too_large": "Olkaa'insi dhoorkame: hammamni faayilii 2MB yookaan gadi ta'uu qaba.",
+      "file_too_small": "Olkaa'insi dhoorkame: faayiliin baay'ee xiqqaa dha. Suuraa qulqullina gaarii qabu fayyadami.",
+      "invalid_dimensions": "Olkaa'insi dhoorkame: safarri suuraa daangaa hayyamame keessaa ala dha.",
+      "invalid_dimensions_with_values": "Olkaa'insi dhoorkame: suuraan {{width}}x{{height}} dha. Daangaan barbaachisu 200x200 hanga 2000x2000 dha.",
+      "invalid_ratio": "Olkaa'insi dhoorkame: raashiyoon suuraa daangaa hayyamame keessaa ala dha.",
+      "invalid_ratio_with_value": "Olkaa'insi dhoorkame: raashiyoon {{ratio}} dha; 0.80 hanga 1.25 qofa hayyamama.",
+      "upload_failed": "Suuraa profaayilii olkaa'uun hin milkoofne.",
+      "remove_failed": "Suuraa profaayilii haqeen hin milkoofne."
+    },
+    "actions": {
+      "upload": "Olkaa'i",
+      "upload_photo": "Suuraa Olkaa'i",
+      "change_photo": "Suuraa Jijjiiri",
+      "remove_photo": "Suuraa Haqi"
+    },
+    "messages": {
+      "uploading": "Suuraa olkaa'aa jira..."
+    }
+  },
   "pages": {
     "help_support": {
       "title": "Help & Support",
