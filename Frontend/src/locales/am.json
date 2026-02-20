@@ -1280,6 +1280,7 @@
     },
     "modal": {
       "add_title": "አዲስ ተጠቃሚ ጨምር",
+      "edit_title": "ተጠቃሚ አርትዕ",
       "basic_info": "መሠረታዊ መረጃ",
       "additional_details": "ተጨማሪ ዝርዝሮች",
       "security": "ደህንነት"
@@ -1292,7 +1293,8 @@
       "position": "ስራ መደብ",
       "phone": "ስልክ",
       "manager": "ማኔጀር መመደብ",
-      "password": "የመጀመሪያ የይለፍ ቃል"
+      "password": "የመጀመሪያ የይለፍ ቃል",
+      "new_password": "አዲስ የይለፍ ቃል (አማራጭ)"
     },
     "placeholders": {
       "full_name": "ሙሉ ስም ያስገቡ (ለምሳሌ፣ Obsa Mustefa)",
@@ -1310,7 +1312,8 @@
       "valid_email": "✓ የተረጋገጠ OBU ኢሜይል",
       "no_managers": "በ{{department}} መምሪያ ውስጥ ማኔጀሮች አልተገኙም",
       "select_manager": "ከተመሳሳይ መምሪያ ማኔጀር ይምረጡ",
-      "password_notice": "ተጠቃሚው በመጀመሪያ መግባት ጊዜ የይለፍ ቃሉን ይቀይራል"
+      "password_notice": "ተጠቃሚው በመጀመሪያ መግባት ጊዜ የይለፍ ቃሉን ይቀይራል",
+      "password_optional": "የአሁኑን የይለፍ ቃል ለማቆየት ባዶ ይተዉት።"
     },
     "actions": {
       "generate_email": "አዲስ ኢሜይል ፍጠር",
@@ -1318,6 +1321,9 @@
       "generate_password": "ፍጠር",
       "creating": "በመፍጠር ላይ...",
       "create": "ተጠቃሚ ፍጠር",
+      "edit": "አርትዕ",
+      "updating": "በማዘመን ላይ...",
+      "update": "ተጠቃሚ አዘምን",
       "activate": "አንቃ",
       "deactivate": "አቁም",
       "delete": "ሰርዝ"
@@ -1346,11 +1352,13 @@
       "email_used": "ይህ ኢሜይል በ{{name}} ተጠቃሚ የተጠቀመ ነው",
       "email_exists_suggested": "ኢሜይሉ አስቀድሞ አለ። የተጠቀሱ ምርጫ: {{email}}",
       "create_failed": "ተጠቃሚ መፍጠር አልተቻለም",
+      "update_failed": "ተጠቃሚ ማዘመን አልተቻለም",
       "delete_failed": "ተጠቃሚ ማጥፋት አልተቻለም",
       "update_status": "የተጠቃሚ ሁኔታ ማዘመን አልተቻለም"
     },
     "messages": {
       "created": "ተጠቃሚ \"{{name}}\" በኢሜይል {{email}} ተፈጥሯል",
+      "updated": "ተጠቃሚ \"{{name}}\" በተሳካ ሁኔታ ታድሷል!",
       "deleted": "ተጠቃሚ ተሰርዟል!",
       "activated": "ተጠቃሚ ተነቃ!",
       "deactivated": "ተጠቃሚ ተቆሟል!"

@@ -896,7 +896,10 @@ class ApiService {
     return response;
   }
 
-  async updateUser(userId: number, userData: Partial<User>): Promise<ApiResponse<User>> {
+  async updateUser(
+    userId: number,
+    userData: Omit<Partial<User>, 'managerId'> & { managerId?: number | null }
+  ): Promise<ApiResponse<User>> {
     const response = await this.put<User>(`/users/${userId}`, userData);
     
     if (response.success) {

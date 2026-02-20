@@ -450,6 +450,7 @@
 }
 
 .status-toggle-btn,
+.edit-btn,
 .delete-btn {
   padding: 6px 12px;
   border-radius: 4px;
@@ -458,6 +459,16 @@
   cursor: pointer;
   transition: all 0.2s ease;
   border: 1px solid;
+}
+
+.edit-btn {
+  background: #e3f2fd;
+  color: #1976d2;
+  border-color: #bbdefb;
+}
+
+.edit-btn:hover {
+  background: #bbdefb;
 }
 
 .status-toggle-btn.activate {
@@ -491,6 +502,7 @@
 }
 
 .status-toggle-btn:disabled,
+.edit-btn:disabled,
 .delete-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;

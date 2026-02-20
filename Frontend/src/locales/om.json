@@ -1280,6 +1280,7 @@
     },
     "modal": {
       "add_title": "Fayyadamaa Haaraa Dabaluu",
+      "edit_title": "Fayyadamaa Gulaali",
       "basic_info": "Odeeffannoo Bu'uuraa",
       "additional_details": "Ibsa Dabalataa",
       "security": "Nageenya"
@@ -1292,7 +1293,8 @@
       "position": "Iddoo hojii",
       "phone": "Bilbilaa",
       "manager": "Bulchaa Kenni",
-      "password": "Jecha Icciitii Jalqabaa"
+      "password": "Jecha Icciitii Jalqabaa",
+      "new_password": "Jecha Icciitii Haaraa (Filannoo)"
     },
     "placeholders": {
       "full_name": "Maqaa guutuu galchi (fkn: Obsa Mustefa)",
@@ -1310,7 +1312,8 @@
       "valid_email": "✓ Imeelii OBU sirrii",
       "no_managers": "Kutaa {{department}} keessatti bulchaa hin argamne",
       "select_manager": "Kutaa waliin bulchaa filadhu",
-      "password_notice": "Fayyadamaan yeroo jalqabaatti jecha icciitii ni jijjiira"
+      "password_notice": "Fayyadamaan yeroo jalqabaatti jecha icciitii ni jijjiira",
+      "password_optional": "Jecha icciitii amma jiru tursiisuuf duwwaa dhiisi."
     },
     "actions": {
       "generate_email": "Imeelii haaraa uumi",
@@ -1318,6 +1321,9 @@
       "generate_password": "Uumi",
       "creating": "Uumaa jira...",
       "create": "Fayyadamaa Uumi",
+      "edit": "Gulaali",
+      "updating": "Haaromsaa jira...",
+      "update": "Fayyadamaa Haaromsi",
       "activate": "Hojiirra Oolchi",
       "deactivate": "Dhaabbisi",
       "delete": "Haquu"
@@ -1346,11 +1352,13 @@
       "email_used": "Imeelii kana {{name}} fayyadameera",
       "email_exists_suggested": "Imeelii duraan jira. Filannoo: {{email}}",
       "create_failed": "Fayyadamaa uumuu hin milkoofne",
+      "update_failed": "Fayyadamaa haaromsuu hin milkoofne",
       "delete_failed": "Fayyadamaa haquu hin milkoofne",
       "update_status": "Haala fayyadamaa haaromsuu hin milkoofne"
     },
     "messages": {
       "created": "Fayyadamaan \"{{name}}\" imeelii {{email}} waliin uumame",
+      "updated": "Fayyadamaan \"{{name}}\" milkaa'inaan haaromfame!",
       "deleted": "Fayyadamaa haquun milkaa'ee!",
       "activated": "Fayyadamaa hojiirra oole!",
       "deactivated": "Fayyadamaa dhaabbate!"

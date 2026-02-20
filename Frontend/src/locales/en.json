@@ -1280,6 +1280,7 @@
     },
     "modal": {
       "add_title": "Add New User",
+      "edit_title": "Edit User",
       "basic_info": "Basic Information",
       "additional_details": "Additional Details",
       "security": "Security"
@@ -1292,7 +1293,8 @@
       "position": "Position",
       "phone": "Phone",
       "manager": "Assign Manager",
-      "password": "Initial Password"
+      "password": "Initial Password",
+      "new_password": "New Password (Optional)"
     },
     "placeholders": {
       "full_name": "Enter full name (e.g., Obsa Mustefa)",
@@ -1310,7 +1312,8 @@
       "valid_email": "✓ Valid OBU email",
       "no_managers": "No managers found in {{department}} department",
       "select_manager": "Select a manager from the same department",
-      "password_notice": "User will be asked to change this password on first login"
+      "password_notice": "User will be asked to change this password on first login",
+      "password_optional": "Leave blank to keep current password."
     },
     "actions": {
       "generate_email": "Generate new email",
@@ -1318,6 +1321,9 @@
       "generate_password": "Generate",
       "creating": "Creating...",
       "create": "Create User",
+      "edit": "Edit",
+      "updating": "Updating...",
+      "update": "Update User",
       "activate": "Activate",
       "deactivate": "Deactivate",
       "delete": "Delete"
@@ -1346,11 +1352,13 @@
       "email_used": "This email is already used by {{name}}",
       "email_exists_suggested": "Email already exists. Suggested alternative: {{email}}",
       "create_failed": "Failed to create user",
+      "update_failed": "Failed to update user",
       "delete_failed": "Failed to delete user",
       "update_status": "Failed to update user status"
     },
     "messages": {
       "created": "User \"{{name}}\" created successfully with email: {{email}}",
+      "updated": "User \"{{name}}\" updated successfully!",
       "deleted": "User deleted successfully!",
       "activated": "User activated successfully!",
       "deactivated": "User deactivated successfully!"

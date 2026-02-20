@@ -3346,12 +3346,14 @@ app.get('/api/users', authenticateToken, async (req, res) => {
         department: true,
         position: true,
         phone: true,
+        managerId: true,
         status: true,
         language: true,
         joinDate: true,
         createdAt: true,
         manager: {
           select: {
+            id: true,
             name: true,
             email: true
           }
@@ -3439,14 +3441,10 @@ app.post('/api/users', authenticateToken, async (req, res) => {
     let finalManagerId = null;
     
     if (managerId && backendRole === 'EMPLOYEE') {
-      const manager = await prisma.user.findUnique({
-        where: { 
+      const manager = await prisma.user.findFirst({
+        where: {
           id: parseInt(managerId),
-          OR: [
-            { role: 'MANAGER' },
-            { role: 'HR_ADMIN' },
-            { role: 'SUPER_ADMIN' }
-          ]
+          role: { in: ['MANAGER', 'HR_ADMIN', 'SUPER_ADMIN'] }
         }
       });
 
@@ -3598,12 +3596,14 @@ app.put('/api/users/:id', authenticateToken, async (req, res) => {
         department: true,
         position: true,
         phone: true,
+        managerId: true,
         status: true,
         language: true,
         joinDate: true,
         createdAt: true,
         manager: {
           select: {
+            id: true,
             name: true,
             email: true
           }
@@ -3624,6 +3624,14 @@ app.put('/api/users/:id', authenticateToken, async (req, res) => {
     });
   } catch (error) {
     console.error('Update user error:', error);
+
+    if (error.code === 'P2002') {
+      return res.status(400).json({
+        success: false,
+        message: 'User with this email already exists'
+      });
+    }
+
     res.status(500).json({
       success: false,
       message: 'Internal server error: ' + error.message
@@ -3647,11 +3655,13 @@ app.delete('/api/users/:id', authenticateToken, async (req, res) => {
         department: true,
         position: true,
         phone: true,
+        managerId: true,
         status: true,
         joinDate: true,
         createdAt: true,
         manager: {
           select: {
+            id: true,
             name: true,
             email: true
           }
