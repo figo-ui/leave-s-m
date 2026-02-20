@@ -742,10 +742,16 @@ class ApiService {
           }
         } else {
           try {
-            const error = JSON.parse(xhr.responseText);
-            reject(new Error(error.message || 'Upload failed'));
+            const parsedError = JSON.parse(xhr.responseText);
+            const uploadError: any = new Error(parsedError.message || 'Upload failed');
+            uploadError.code = parsedError.code;
+            uploadError.details = parsedError.details;
+            uploadError.status = xhr.status;
+            reject(uploadError);
           } catch {
-            reject(new Error(`Upload failed with status: ${xhr.status}`));
+            const uploadError: any = new Error(`Upload failed with status: ${xhr.status}`);
+            uploadError.status = xhr.status;
+            reject(uploadError);
           }
         }
       };

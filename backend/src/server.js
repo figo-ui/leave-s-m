@@ -11,6 +11,7 @@ import jwt from 'jsonwebtoken';
 import Joi from 'joi';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { imageSize } from 'image-size';
 
 // Fix for __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -225,18 +226,59 @@ const storage = multer.diskStorage({
   }
 });
 
+const AVATAR_RULES = {
+  minFileSizeBytes: 10 * 1024,
+  maxFileSizeBytes: 2 * 1024 * 1024,
+  minWidth: 200,
+  minHeight: 200,
+  maxWidth: 2000,
+  maxHeight: 2000,
+  minAspectRatio: 0.8,
+  maxAspectRatio: 1.25
+};
+
+const createAvatarError = (code, message, details = undefined) => {
+  const error = new Error(message);
+  error.code = code;
+  error.details = details;
+  return error;
+};
+
+const sendAvatarValidationError = (res, code, message, details = undefined, status = 400) => {
+  return res.status(status).json({
+    success: false,
+    code,
+    message,
+    details
+  });
+};
+
 const fileFilter = (req, file, cb) => {
   // Accept only specific image formats
   const allowedMimes = ['image/jpeg', 'image/jpg', 'image/png'];
   
   if (!allowedMimes.includes(file.mimetype)) {
-    return cb(new Error('Only JPEG and PNG images are allowed'), false);
+    return cb(
+      createAvatarError(
+        'AVATAR_INVALID_FILE_TYPE',
+        'Only JPG and PNG images are allowed.',
+        { allowedMimeTypes: allowedMimes, receivedMimeType: file.mimetype }
+      ),
+      false
+    );
   }
 
   // Check file extension
   const fileExt = path.extname(file.originalname).toLowerCase();
   if (!['.jpg', '.jpeg', '.png'].includes(fileExt)) {
-    return cb(new Error('Invalid file type. Only JPG, JPEG, and PNG are allowed'), false);
+    return cb(
+      createAvatarError(
+        'AVATAR_INVALID_EXTENSION',
+        'Invalid file extension. Only .jpg, .jpeg, and .png are allowed.',
+        { allowedExtensions: ['.jpg', '.jpeg', '.png'], receivedExtension: fileExt }
+      ),
+      false
+    );
   }
 
   cb(null, true);
@@ -246,39 +288,38 @@ const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 2 * 1024 * 1024, // 2MB limit for professional photos
+    fileSize: AVATAR_RULES.maxFileSizeBytes,
     files: 1 // Only one file
   }
 });
 
-// Professional photo validation middleware
-const validateProfessionalPhoto = (req, res, next) => {
-  if (!req.file) {
-    return next();
-  }
+const avatarUpload = upload.fields([{ name: 'avatar', maxCount: 1 }, { name: 'file', maxCount: 1 }]);
+const avatarUploadMiddleware = (req, res, next) => {
+  avatarUpload(req, res, (err) => {
+    if (!err) {
+      return next();
+    }
 
-  const file = req.file;
-  
-  // Check image dimensions (minimum requirements for professional photos)
-  const minWidth = 200;
-  const minHeight = 200;
-  const maxWidth = 2000;
-  const maxHeight = 2000;
-  
-  // For actual dimension validation, you'd need to process the image
-  // This is a basic check - in production, use sharp or jimp to get actual dimensions
-  
-  // Check file size more strictly
-  if (file.size < 10 * 1024) { // 10KB minimum
-    // Delete the uploaded file
-    fs.unlinkSync(file.path);
-    return res.status(400).json({
-      success: false,
-      message: 'Image file is too small. Please upload a higher quality photo.'
-    });
-  }
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return sendAvatarValidationError(
+          res,
+          'AVATAR_FILE_TOO_LARGE',
+          'Image size must be 2MB or less.',
+          { maxSizeBytes: AVATAR_RULES.maxFileSizeBytes }
+        );
+      }
 
-  next();
+      return sendAvatarValidationError(res, 'AVATAR_UPLOAD_ERROR', err.message);
+    }
+
+    return sendAvatarValidationError(
+      res,
+      err.code || 'AVATAR_UPLOAD_ERROR',
+      err.message || 'Failed to process uploaded image.',
+      err.details
+    );
+  });
 };
 
 // Validation schemas
@@ -2520,15 +2561,12 @@ app.post('/api/profile/change-password', authenticateToken, async (req, res) => 
 // ==================== AVATAR ENDPOINTS ====================
 
 // Upload avatar endpoint
-app.post('/api/users/avatar', authenticateToken, upload.fields([{ name: 'avatar', maxCount: 1 }, { name: 'file', maxCount: 1 }]), async (req, res) => {
+app.post('/api/users/avatar', authenticateToken, avatarUploadMiddleware, async (req, res) => {
   try {
     const file = (req.files?.avatar && req.files.avatar[0]) || (req.files?.file && req.files.file[0]);
 
     if (!file) {
-      return res.status(400).json({
-        success: false,
-        message: 'No file uploaded'
-      });
+      return sendAvatarValidationError(res, 'AVATAR_MISSING_FILE', 'No file was uploaded.');
     }
 
     const userId = req.user.userId;
@@ -2539,21 +2577,55 @@ app.post('/api/users/avatar', authenticateToken, upload.fields([{ name: 'avatar'
       select: { avatar: true }
     });
 
-    // Delete old avatar file if exists
-    if (currentUser?.avatar) {
-      const oldFilePath = path.join(__dirname, currentUser.avatar);
-      if (fs.existsSync(oldFilePath)) {
-        fs.unlinkSync(oldFilePath);
-      }
+    // File size floor validation
+    if (file.size < AVATAR_RULES.minFileSizeBytes) {
+      fs.unlinkSync(file.path);
+      return sendAvatarValidationError(
+        res,
+        'AVATAR_FILE_TOO_SMALL',
+        'Image file is too small. Please upload a higher quality photo.',
+        { minSizeBytes: AVATAR_RULES.minFileSizeBytes, receivedSizeBytes: file.size }
+      );
     }
 
-    // Basic min-size validation
-    if (file.size < 10 * 1024) {
+    // Read image dimensions and aspect ratio
+    const dimensions = imageSize(file.path);
+    const width = dimensions.width;
+    const height = dimensions.height;
+
+    if (!width || !height) {
       fs.unlinkSync(file.path);
-      return res.status(400).json({
-        success: false,
-        message: 'Image file is too small. Please upload a higher quality photo.'
-      });
+      return sendAvatarValidationError(
+        res,
+        'AVATAR_INVALID_IMAGE_DATA',
+        'Unable to read image dimensions. Upload a valid JPG or PNG image.'
+      );
+    }
+
+    if (
+      width < AVATAR_RULES.minWidth ||
+      height < AVATAR_RULES.minHeight ||
+      width > AVATAR_RULES.maxWidth ||
+      height > AVATAR_RULES.maxHeight
+    ) {
+      fs.unlinkSync(file.path);
+      return sendAvatarValidationError(
+        res,
+        'AVATAR_INVALID_DIMENSIONS',
+        `Image dimensions must be between ${AVATAR_RULES.minWidth}x${AVATAR_RULES.minHeight} and ${AVATAR_RULES.maxWidth}x${AVATAR_RULES.maxHeight}.`,
+        { width, height }
+      );
+    }
+
+    const aspectRatio = width / height;
+    if (aspectRatio < AVATAR_RULES.minAspectRatio || aspectRatio > AVATAR_RULES.maxAspectRatio) {
+      fs.unlinkSync(file.path);
+      return sendAvatarValidationError(
+        res,
+        'AVATAR_INVALID_ASPECT_RATIO',
+        'Image should be close to square for best results.',
+        { aspectRatio, minAspectRatio: AVATAR_RULES.minAspectRatio, maxAspectRatio: AVATAR_RULES.maxAspectRatio }
+      );
     }
 
     // Get the file path relative to the uploads directory
@@ -2586,6 +2658,14 @@ app.post('/api/users/avatar', authenticateToken, upload.fields([{ name: 'avatar'
       status: user.status.toLowerCase()
     };
 
+    // Delete old avatar file only after successful replacement.
+    if (currentUser?.avatar) {
+      const oldFilePath = path.join(__dirname, currentUser.avatar.replace(/^\/+/, ''));
+      if (fs.existsSync(oldFilePath)) {
+        fs.unlinkSync(oldFilePath);
+      }
+    }
+
     res.json({
       success: true,
       data: frontendUser,
@@ -2596,6 +2676,7 @@ app.post('/api/users/avatar', authenticateToken, upload.fields([{ name: 'avatar'
     console.error('Avatar upload error:', error);
     res.status(500).json({
       success: false,
+      code: 'AVATAR_UPLOAD_SERVER_ERROR',
       message: 'Failed to upload avatar'
     });
   }
@@ -2614,7 +2695,7 @@ app.delete('/api/users/avatar', authenticateToken, async (req, res) => {
 
     // Delete physical file if exists
     if (user?.avatar) {
-      const filePath = path.join(__dirname, user.avatar);
+      const filePath = path.join(__dirname, user.avatar.replace(/^\/+/, ''));
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
       }

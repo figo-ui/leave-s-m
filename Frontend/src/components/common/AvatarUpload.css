@@ -35,6 +35,35 @@
   line-height: 1.4;
 }
 
+.validation-checklist {
+  list-style: none;
+  padding: 0;
+}
+
+.check-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.check-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-top: 4px;
+  background: #9ca3af;
+  flex-shrink: 0;
+}
+
+.check-pass .check-dot {
+  background: #16a34a;
+}
+
+.check-fail .check-dot {
+  background: #dc2626;
+}
+
 .avatar-container {
   position: relative;
   border-radius: 50%;
@@ -123,14 +152,16 @@
 .avatar-change-btn {
   background: rgba(255, 255, 255, 0.9);
   border: none;
-  border-radius: 50%;
-  width: 44px;
-  height: 44px;
+  border-radius: 999px;
+  min-width: 80px;
+  height: 36px;
+  padding: 0 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 18px;
+  font-size: 12px;
+  font-weight: 600;
   transition: all 0.2s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
@@ -193,6 +224,7 @@
   padding: 10px;
   border-radius: 6px;
   font-size: 12px;
+  line-height: 1.45;
   text-align: center;
   width: 100%;
 }
